@@ -378,9 +378,39 @@ class InmuebleImageService
                 return app($class);
             }
 
+            $driver = $this->resolveImageDriver();
+
+            if ($driver !== null) {
+                return new $class($driver);
+            }
+
             return app()->make($class);
         } catch (\Throwable $exception) {
+            report($exception);
+
             return null;
         }
+    }
+
+    protected function resolveImageDriver(): ?object
+    {
+        $drivers = [
+            '\\Intervention\\Image\\Drivers\\Imagick\\Driver',
+            '\\Intervention\\Image\\Drivers\\Gd\\Driver',
+        ];
+
+        foreach ($drivers as $driverClass) {
+            if (! class_exists($driverClass)) {
+                continue;
+            }
+
+            try {
+                return new $driverClass();
+            } catch (\Throwable $exception) {
+                report($exception);
+            }
+        }
+
+        return null;
     }
 }
