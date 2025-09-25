@@ -8,12 +8,14 @@ use App\Models\Inmueble;
 use App\Models\InmuebleStatus;
 use App\Services\InmuebleImageService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use RuntimeException;
 use Throwable;
 
 class InmuebleController extends Controller
@@ -220,9 +222,17 @@ class InmuebleController extends Controller
                 $expiresAt = now()->addMinutes($ttl);
 
                 try {
-                    return $disk->temporaryUrl($path, $expiresAt);
+                    if ($disk instanceof FilesystemAdapter && method_exists($disk, 'temporaryUrl')) {
+                        return $disk->temporaryUrl($path, $expiresAt);
+                    }
+
+                    throw new RuntimeException('Temporary URLs are not supported by the configured disk.');
                 } catch (Throwable $temporaryUrlException) {
-                    if ($disk->exists($path)) {
+                    if (
+                        $disk instanceof FilesystemAdapter
+                        && method_exists($disk, 'url')
+                        && $disk->exists($path)
+                    ) {
                         return $disk->url($path);
                     }
 
