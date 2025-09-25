@@ -144,4 +144,106 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
     });
+
+    const sidebar = document.querySelector("[data-sidebar]");
+
+    if (sidebar) {
+        const openButtons = document.querySelectorAll("[data-sidebar-open]");
+        const closeButtons = document.querySelectorAll("[data-sidebar-close]");
+        const backdrop = document.querySelector("[data-sidebar-backdrop]");
+        const sidebarLinks = sidebar.querySelectorAll("[data-sidebar-link]");
+        const breakpoint = window.matchMedia("(min-width: 768px)");
+
+        const hideBackdrop = () => {
+            if (!backdrop) {
+                return;
+            }
+
+            backdrop.classList.add("opacity-0", "pointer-events-none");
+            backdrop.classList.remove("opacity-100");
+        };
+
+        const showBackdrop = () => {
+            if (!backdrop) {
+                return;
+            }
+
+            backdrop.classList.add("opacity-100");
+            backdrop.classList.remove("opacity-0", "pointer-events-none");
+        };
+
+        const openSidebar = () => {
+            sidebar.classList.remove("-translate-x-full");
+            sidebar.classList.add("translate-x-0");
+            sidebar.dataset.sidebarOpen = "true";
+
+            if (!breakpoint.matches) {
+                document.body.classList.add("overflow-hidden");
+                showBackdrop();
+            }
+        };
+
+        const closeSidebar = () => {
+            sidebar.classList.remove("translate-x-0");
+            sidebar.dataset.sidebarOpen = "false";
+
+            if (breakpoint.matches) {
+                sidebar.classList.remove("-translate-x-full");
+            } else {
+                sidebar.classList.add("-translate-x-full");
+                document.body.classList.remove("overflow-hidden");
+                hideBackdrop();
+            }
+        };
+
+        const syncSidebarWithBreakpoint = (event) => {
+            if (event.matches) {
+                sidebar.classList.remove("-translate-x-full", "translate-x-0");
+                sidebar.dataset.sidebarOpen = "false";
+                document.body.classList.remove("overflow-hidden");
+                hideBackdrop();
+            } else if (sidebar.dataset.sidebarOpen === "true") {
+                openSidebar();
+            } else {
+                sidebar.classList.add("-translate-x-full");
+                sidebar.classList.remove("translate-x-0");
+                hideBackdrop();
+            }
+        };
+
+        syncSidebarWithBreakpoint(breakpoint);
+        breakpoint.addEventListener("change", syncSidebarWithBreakpoint);
+
+        openButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+                openSidebar();
+            });
+        });
+
+        closeButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+                closeSidebar();
+            });
+        });
+
+        sidebarLinks.forEach((link) => {
+            link.addEventListener("click", () => {
+                if (!breakpoint.matches) {
+                    closeSidebar();
+                }
+            });
+        });
+
+        if (backdrop) {
+            backdrop.addEventListener("click", () => {
+                closeSidebar();
+            });
+        }
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && sidebar.dataset.sidebarOpen === "true") {
+                closeSidebar();
+            }
+        });
+    }
 });
