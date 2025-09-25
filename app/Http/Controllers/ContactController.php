@@ -16,11 +16,10 @@ class ContactController extends Controller
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($contactQuery) use ($search) {
                     $contactQuery
-                        ->where('name', 'like', "%{$search}%")
-                        ->orWhere('nombre', 'like', "%{$search}%")
-                        ->orWhere('phone', 'like', "%{$search}%")
+                        ->where('nombre', 'like', "%{$search}%")
                         ->orWhere('telefono', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('mensaje', 'like', "%{$search}%");
                 });
             })
             ->orderByDesc('id')
