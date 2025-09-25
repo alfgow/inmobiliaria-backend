@@ -3,6 +3,7 @@
     'statuses' => collect(),
     'tipos' => [],
     'operaciones' => [],
+    'watermarkPreviewUrl' => null,
 ])
 
 @php
@@ -329,6 +330,9 @@
             <div
                 class="hidden grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
                 data-gallery-previews-container
+                @if ($watermarkPreviewUrl)
+                    data-gallery-watermark-url="{{ $watermarkPreviewUrl }}"
+                @endif
             >
                 <template data-gallery-preview-template>
                     <div class="group relative overflow-hidden rounded-2xl border border-gray-800 bg-gray-900/60 shadow-lg shadow-black/30 transition">
