@@ -16,6 +16,9 @@ return [
             'position' => env('INMUEBLES_WATERMARK_POSITION', 'bottom-right'),
             'offset_x' => (int) env('INMUEBLES_WATERMARK_OFFSET_X', 24),
             'offset_y' => (int) env('INMUEBLES_WATERMARK_OFFSET_Y', 24),
+            'preview_disk' => env('INMUEBLES_WATERMARK_PREVIEW_DISK', 's3'),
+            'preview_path' => env('INMUEBLES_WATERMARK_PREVIEW_PATH', ''),
+            'preview_ttl' => (int) env('INMUEBLES_WATERMARK_PREVIEW_TTL', 10),
         ],
     ],
 ];

@@ -40,7 +40,13 @@
             @csrf
             @method('PUT')
 
-            <x-inmuebles.form :inmueble="$inmueble" :statuses="$statuses" :tipos="$tipos" :operaciones="$operaciones" />
+            <x-inmuebles.form
+                :inmueble="$inmueble"
+                :statuses="$statuses"
+                :tipos="$tipos"
+                :operaciones="$operaciones"
+                :watermark-preview-url="$watermarkPreviewUrl"
+            />
 
             <div class="flex flex-col items-stretch gap-3 border-t border-gray-800 pt-6 sm:flex-row sm:justify-between">
                 <p class="text-sm text-gray-400">Los cambios se guardan en tu historial para futuras referencias.</p>

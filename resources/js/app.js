@@ -252,10 +252,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (galleryInput && previewsContainer) {
         const template = previewsContainer.querySelector("template[data-gallery-preview-template]");
-        const watermarkUrl = "https://alfgow.s3.mx-central-1.amazonaws.com/MarcaDeAgua_GDE.png";
+        const watermarkUrl = previewsContainer.dataset.galleryWatermarkUrl ?? "";
         let watermarkPromise;
 
         const loadWatermark = () => {
+            if (!watermarkUrl) {
+                return Promise.resolve(null);
+            }
+
             if (!watermarkPromise) {
                 watermarkPromise = new Promise((resolve, reject) => {
                     const watermark = new Image();
@@ -312,20 +316,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const fileUrl = URL.createObjectURL(file);
             const baseImage = new Image();
-            baseImage.src = fileUrl;
 
             const cleanup = () => {
                 URL.revokeObjectURL(fileUrl);
             };
 
             try {
-                const [watermark] = await Promise.all([
-                    loadWatermark(),
-                    new Promise((resolve, reject) => {
-                        baseImage.onload = resolve;
-                        baseImage.onerror = () => reject(new Error("No se pudo leer la imagen"));
-                    }),
-                ]);
+                const baseImageLoad = new Promise((resolve, reject) => {
+                    baseImage.onload = resolve;
+                    baseImage.onerror = () => reject(new Error("No se pudo leer la imagen"));
+                });
+                const watermarkLoad = loadWatermark().catch((error) => {
+                    console.warn(error);
+
+                    return null;
+                });
+
+                baseImage.src = fileUrl;
+
+                await baseImageLoad;
+                const watermark = await watermarkLoad;
 
                 const maxDimension = 1200;
                 const scale = Math.min(1, maxDimension / Math.max(baseImage.width, baseImage.height));
@@ -344,27 +354,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 context.drawImage(baseImage, 0, 0, canvasWidth, canvasHeight);
 
-                const watermarkMaxWidth = canvasWidth * 0.35;
-                const watermarkScale = Math.min(
-                    1,
-                    watermarkMaxWidth / watermark.width,
-                    (canvasHeight * 0.35) / watermark.height,
-                );
-                const watermarkWidth = watermark.width * watermarkScale;
-                const watermarkHeight = watermark.height * watermarkScale;
-                const margin = Math.max(16, canvasWidth * 0.02);
-                const watermarkX = canvasWidth - watermarkWidth - margin;
-                const watermarkY = canvasHeight - watermarkHeight - margin;
+                if (watermark) {
+                    const watermarkWidth = watermark.width || 1;
+                    const watermarkHeight = watermark.height || 1;
+                    const watermarkRatio = watermarkWidth / watermarkHeight;
+                    const canvasRatio = canvasWidth / canvasHeight;
 
-                context.globalAlpha = 0.85;
-                context.drawImage(
-                    watermark,
-                    watermarkX,
-                    watermarkY,
-                    watermarkWidth,
-                    watermarkHeight,
-                );
-                context.globalAlpha = 1;
+                    let sourceWidth = watermarkWidth;
+                    let sourceHeight = watermarkHeight;
+                    let sourceX = 0;
+                    let sourceY = 0;
+
+                    if (watermarkRatio > canvasRatio) {
+                        sourceHeight = watermarkHeight;
+                        sourceWidth = sourceHeight * canvasRatio;
+                        sourceX = (watermarkWidth - sourceWidth) / 2;
+                    } else {
+                        sourceWidth = watermarkWidth;
+                        sourceHeight = sourceWidth / canvasRatio;
+                        sourceY = (watermarkHeight - sourceHeight) / 2;
+                    }
+
+                    context.save();
+                    context.globalAlpha = 0.25;
+                    context.drawImage(
+                        watermark,
+                        sourceX,
+                        sourceY,
+                        sourceWidth,
+                        sourceHeight,
+                        0,
+                        0,
+                        canvasWidth,
+                        canvasHeight,
+                    );
+                    context.restore();
+                }
 
                 const previewUrl = canvas.toDataURL("image/jpeg", 0.92);
 

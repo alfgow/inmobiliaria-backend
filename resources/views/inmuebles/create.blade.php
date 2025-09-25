@@ -11,7 +11,12 @@
         <form action="{{ route('inmuebles.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
             @csrf
 
-            <x-inmuebles.form :statuses="$statuses" :tipos="$tipos" :operaciones="$operaciones" />
+            <x-inmuebles.form
+                :statuses="$statuses"
+                :tipos="$tipos"
+                :operaciones="$operaciones"
+                :watermark-preview-url="$watermarkPreviewUrl"
+            />
 
             <div class="flex flex-col items-stretch gap-3 border-t border-gray-800 pt-6 sm:flex-row sm:justify-between">
                 <p class="text-sm text-gray-400">Al guardar, el inmueble se marcará como asignado a tu usuario.</p>

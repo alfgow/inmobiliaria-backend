@@ -12,7 +12,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Throwable;
 
 class InmuebleController extends Controller
 {
@@ -85,6 +87,7 @@ class InmuebleController extends Controller
             'statuses' => $statuses,
             'tipos' => Inmueble::TIPOS,
             'operaciones' => Inmueble::OPERACIONES,
+            'watermarkPreviewUrl' => $this->getWatermarkPreviewUrl(),
         ]);
     }
 
@@ -120,6 +123,7 @@ class InmuebleController extends Controller
             'statuses' => $statuses,
             'tipos' => Inmueble::TIPOS,
             'operaciones' => Inmueble::OPERACIONES,
+            'watermarkPreviewUrl' => $this->getWatermarkPreviewUrl(),
         ]);
     }
 
@@ -202,6 +206,27 @@ class InmuebleController extends Controller
         unset($payload['imagenes']);
 
         return $payload;
+    }
+
+    private function getWatermarkPreviewUrl(): ?string
+    {
+        $diskName = (string) config('inmuebles.images.watermark.preview_disk', '');
+        $path = trim((string) config('inmuebles.images.watermark.preview_path', ''));
+
+        if ($diskName === '' || $path === '') {
+            return null;
+        }
+
+        try {
+            $ttl = max(1, (int) config('inmuebles.images.watermark.preview_ttl', 10));
+            $expiresAt = now()->addMinutes($ttl);
+
+            return Storage::disk($diskName)->temporaryUrl($path, $expiresAt);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return null;
+        }
     }
 
     /**
