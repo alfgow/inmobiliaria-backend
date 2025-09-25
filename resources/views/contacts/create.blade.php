@@ -13,39 +13,7 @@
                 <form action="{{ route('contactos.store') }}" method="POST" class="space-y-6">
                     @csrf
 
-                    <div class="space-y-2">
-                        <label for="inmueble_id" class="block text-sm font-medium text-gray-300">Inmueble asociado</label>
-                        <div class="space-y-2" data-searchable-select>
-                            <input
-                                type="search"
-                                id="inmueble-search"
-                                data-search-input
-                                placeholder="Buscar por título o dirección"
-                                class="w-full rounded-xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
-                                autocomplete="off"
-                            >
-                            <select
-                                id="inmueble_id"
-                                name="inmueble_id"
-                                class="w-full rounded-xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
-                            >
-                                <option value="">Sin inmueble asociado</option>
-                                @foreach ($inmuebles as $inmueble)
-                                    <option
-                                        value="{{ $inmueble->id }}"
-                                        data-searchable="{{ Str::lower($inmueble->titulo . ' ' . $inmueble->direccion) }}"
-                                        @selected((string) old('inmueble_id') === (string) $inmueble->id)
-                                    >
-                                        {{ $inmueble->titulo }} — {{ $inmueble->direccion }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <p class="text-sm text-gray-400">Utiliza el buscador para filtrar inmuebles por título o dirección.</p>
-                        @error('inmueble_id')
-                            <p class="text-sm text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
+                    
 
                     <div class="space-y-2">
                         <label for="nombre" class="block text-sm font-medium text-gray-300">Nombre completo<span class="text-red-500">*</span></label>
@@ -89,6 +57,40 @@
                             placeholder="5512345678"
                         >
                         @error('telefono')
+                            <p class="text-sm text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="inmueble_id" class="block text-sm font-medium text-gray-300">Inmueble asociado</label>
+                        <div class="space-y-2" data-searchable-select>
+                            <input
+                                type="search"
+                                id="inmueble-search"
+                                data-search-input
+                                placeholder="Buscar por título o dirección"
+                                class="w-full rounded-xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                                autocomplete="off"
+                            >
+                            <select
+                                id="inmueble_id"
+                                name="inmueble_id"
+                                class="w-full rounded-xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                            >
+                                <option value="">Sin inmueble asociado</option>
+                                @foreach ($inmuebles as $inmueble)
+                                    <option
+                                        value="{{ $inmueble->id }}"
+                                        data-searchable="{{ Str::lower($inmueble->titulo . ' ' . $inmueble->direccion) }}"
+                                        @selected((string) old('inmueble_id') === (string) $inmueble->id)
+                                    >
+                                        {{ $inmueble->titulo }} — {{ $inmueble->direccion }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <p class="text-sm text-gray-400">Utiliza el buscador para filtrar inmuebles por título o dirección.</p>
+                        @error('inmueble_id')
                             <p class="text-sm text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
