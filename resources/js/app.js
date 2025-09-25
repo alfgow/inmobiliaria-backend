@@ -101,4 +101,47 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
     });
+
+    document.querySelectorAll("form[data-swal-confirm]").forEach((form) => {
+        form.addEventListener("submit", (event) => {
+            if (form.dataset.swalConfirmed === "true") {
+                return;
+            }
+
+            const title = form.dataset.swalTitle || "¿Estás seguro?";
+            const text = form.dataset.swalConfirm || "Esta acción no se puede deshacer.";
+            const confirmButtonText =
+                form.dataset.swalConfirmButton || "Sí, continuar";
+            const cancelButtonText = form.dataset.swalCancelButton || "Cancelar";
+
+            if (!window.Swal) {
+                const shouldSubmit = window.confirm(`${title}\n\n${text}`);
+
+                if (!shouldSubmit) {
+                    event.preventDefault();
+                }
+
+                return;
+            }
+
+            event.preventDefault();
+
+            window.Swal.fire({
+                icon: "warning",
+                title,
+                text,
+                showCancelButton: true,
+                confirmButtonText,
+                cancelButtonText,
+                reverseButtons: true,
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                form.dataset.swalConfirmed = "true";
+                form.submit();
+            });
+        });
+    });
 });
