@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Contact;
+use App\Models\Inmueble;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -37,12 +38,16 @@ class ContactController extends Controller
     {
         return view('contacts.create', [
             'prefill' => trim((string) $request->input('prefill')),
+            'inmuebles' => Inmueble::query()
+                ->orderBy('titulo')
+                ->get(['id', 'titulo', 'direccion', 'operacion', 'tipo']),
         ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
+            'inmueble_id' => ['nullable', 'exists:inmuebles,id'],
             'nombre' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
             'telefono' => ['nullable', 'string', 'max:30'],

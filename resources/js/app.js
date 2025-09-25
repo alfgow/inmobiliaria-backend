@@ -21,4 +21,48 @@ document.addEventListener("DOMContentLoaded", () => {
             },
         });
     }
+
+    document.querySelectorAll("[data-searchable-select]").forEach((container) => {
+        const searchInput = container.querySelector("[data-search-input]");
+        const select = container.querySelector("select");
+
+        if (!searchInput || !select) {
+            return;
+        }
+
+        const options = Array.from(select.options);
+
+        const filterOptions = () => {
+            const term = searchInput.value.trim().toLowerCase();
+
+            options.forEach((option) => {
+                if (option.value === "") {
+                    option.hidden = false;
+                    return;
+                }
+
+                const searchSource = option.dataset.searchable || option.textContent || "";
+                const matches = term === "" || searchSource.toLowerCase().includes(term);
+
+                option.hidden = !matches;
+            });
+
+            const selectedOption = select.selectedOptions[0];
+            if (selectedOption && selectedOption.hidden) {
+                select.value = "";
+            }
+        };
+
+        searchInput.addEventListener("input", filterOptions);
+
+        searchInput.addEventListener("search", filterOptions);
+
+        searchInput.addEventListener("blur", () => {
+            if (searchInput.value.trim() === "") {
+                options.forEach((option) => {
+                    option.hidden = false;
+                });
+            }
+        });
+    });
 });
