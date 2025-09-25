@@ -43,7 +43,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('two-factor.show');
 
     Route::get('/contactos', [ContactController::class, 'index'])
-        ->name('contacts.index');
+        ->name('contactos.index');
 });
 
 require __DIR__ . '/auth.php';
