@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\InmuebleController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
@@ -14,15 +15,6 @@ Route::get('/dashboard', function () {
 })->middleware(['auth'])->name('dashboard');
 
 Route::redirect('/', '/dashboard')->name('home');
-
-// Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-// Route::resource('inmuebles', InmuebleController::class);
-// Route::resource('arrendadores', ArrendadorController::class);
-// Route::resource('inquilinos', InquilinoController::class);
-// Route::resource('polizas', PolizaController::class);
-// Route::resource('blog', BlogController::class);
-// Route::get('/finanzas', [FinanzaController::class, 'index'])->name('finanzas.index');
-
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
@@ -56,6 +48,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('contactos.comentarios.store');
     Route::post('/contactos/{contact}/intereses', [ContactController::class, 'storeInterest'])
         ->name('contactos.intereses.store');
+
+    Route::resource('inmuebles', InmuebleController::class)->except(['show']);
 });
 
 require __DIR__ . '/auth.php';

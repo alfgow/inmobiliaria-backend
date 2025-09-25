@@ -17,14 +17,32 @@
             </div>
 
             <nav class="flex-1 p-4 space-y-2">
-                <a href="{{ route('dashboard') }}" class="block px-3 py-2 rounded hover:bg-gray-800">📊 Dashboard</a>
-                <a href="{{ route('contactos.index') }}" class="block px-3 py-2 rounded hover:bg-gray-800">🧑‍💼 Contactos</a>
-                {{-- <a href="{{ route('inmuebles.index') }}" class="block px-3 py-2 rounded hover:bg-gray-800">🏠 Inmuebles</a>
-                <a href="{{ route('arrendadores.index') }}" class="block px-3 py-2 rounded hover:bg-gray-800">👤 Arrendadores</a>
-                
-                <a href="{{ route('polizas.index') }}" class="block px-3 py-2 rounded hover:bg-gray-800">📑 Pólizas</a>
-                <a href="{{ route('blog.index') }}" class="block px-3 py-2 rounded hover:bg-gray-800">📝 Blog</a>
-                <a href="{{ route('finanzas.index') }}" class="block px-3 py-2 rounded hover:bg-gray-800">💰 Finanzas</a> --}}
+                @php
+                    $navLink = fn (string $route, string $label, string $pattern) => [
+                        'url' => route($route),
+                        'label' => $label,
+                        'active' => request()->routeIs($pattern),
+                    ];
+
+                    $links = [
+                        $navLink('dashboard', '📊 Dashboard', 'dashboard'),
+                        $navLink('contactos.index', '🧑‍💼 Contactos', 'contactos.*'),
+                        $navLink('inmuebles.index', '🏠 Inmuebles', 'inmuebles.*'),
+                    ];
+                @endphp
+
+                @foreach ($links as $link)
+                    <a
+                        href="{{ $link['url'] }}"
+                        @class([
+                            'block rounded-xl px-3 py-2 transition',
+                            'bg-gray-800 text-white shadow-lg shadow-indigo-500/10' => $link['active'],
+                            'hover:bg-gray-800/80 text-gray-300' => ! $link['active'],
+                        ])
+                    >
+                        {{ $link['label'] }}
+                    </a>
+                @endforeach
             </nav>
 
             <!-- Usuario / Logout -->
