@@ -375,8 +375,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         sourceY = (watermarkHeight - sourceHeight) / 2;
                     }
 
-                    context.save();
-                    context.globalAlpha = 0.25;
                     context.drawImage(
                         watermark,
                         sourceX,
@@ -388,7 +386,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         canvasWidth,
                         canvasHeight,
                     );
-                    context.restore();
                 }
 
                 const previewUrl = canvas.toDataURL("image/jpeg", 0.92);
