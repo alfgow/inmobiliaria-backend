@@ -50,6 +50,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('contactos.store');
     Route::get('/contactos/{contact}', [ContactController::class, 'show'])
         ->name('contactos.show');
+    Route::delete('/contactos/{contact}', [ContactController::class, 'destroy'])
+        ->name('contactos.destroy');
     Route::post('/contactos/{contact}/comentarios', [ContactController::class, 'storeComment'])
         ->name('contactos.comentarios.store');
     Route::post('/contactos/{contact}/intereses', [ContactController::class, 'storeInterest'])
