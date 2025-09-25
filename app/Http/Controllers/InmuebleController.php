@@ -6,17 +6,20 @@ use App\Http\Requests\StoreInmuebleRequest;
 use App\Http\Requests\UpdateInmuebleRequest;
 use App\Models\Inmueble;
 use App\Models\InmuebleStatus;
+use App\Services\InmuebleImageService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class InmuebleController extends Controller
 {
+    public function __construct(
+        private readonly InmuebleImageService $imageService,
+    ) {}
+
     /**
      * Display a listing of the properties.
      */
@@ -153,7 +156,7 @@ class InmuebleController extends Controller
 
         DB::transaction(function () use ($inmueble): void {
             foreach ($inmueble->images as $image) {
-                Storage::disk($image->disk)->delete($image->path);
+                $this->imageService->deleteImage($image);
             }
 
             $inmueble->delete();
@@ -231,26 +234,8 @@ class InmuebleController extends Controller
         }
 
         $diskName = $this->resolveImageDisk();
-        $disk = Storage::disk($diskName);
-        $basePath = "inmuebles/{$inmueble->id}";
-        $ordenBase = (int) $inmueble->images()->max('orden');
 
-        foreach ($imagenes as $index => $imagen) {
-            $fileName = Str::uuid() . '.' . $imagen->getClientOriginalExtension();
-            $path = $disk->putFileAs($basePath, $imagen, $fileName, ['visibility' => 'public']);
-
-            $inmueble->images()->create([
-                'disk' => $diskName,
-                'path' => $path,
-                'url' => $disk->url($path),
-                'orden' => $ordenBase + $index + 1,
-                'metadata' => [
-                    'original_name' => $imagen->getClientOriginalName(),
-                    'size' => $imagen->getSize(),
-                    'mime_type' => $imagen->getMimeType(),
-                ],
-            ]);
-        }
+        $this->imageService->storeImages($inmueble, $imagenes, $diskName);
     }
 
     /**
@@ -263,8 +248,7 @@ class InmuebleController extends Controller
         $imagenes = $inmueble->images()->whereIn('id', $imagenesIds)->get();
 
         foreach ($imagenes as $imagen) {
-            Storage::disk($imagen->disk)->delete($imagen->path);
-            $imagen->delete();
+            $this->imageService->deleteImage($imagen);
         }
     }
 
