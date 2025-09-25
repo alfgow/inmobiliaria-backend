@@ -1,11 +1,5 @@
 <x-guest-layout>
     <div class="flex flex-col items-center justify-center w-full min-h-screen px-4 bg-gray-900">
-        
-        <!-- Logo -->
-        <div class="mb-8">
-            {{-- Reemplaza por el logo de tu inmobiliaria si quieres --}}
-            <img src="https://laravel.com/img/logomark.min.svg" alt="Logo" class="w-16 h-16 mx-auto">
-        </div>
 
         <!-- Card -->
         <div class="w-full max-w-lg bg-gray-800 rounded-2xl shadow-xl p-8">
@@ -24,7 +18,7 @@
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-300">Correo electrónico</label>
                     <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus
-                        class="mt-1 block w-full rounded-lg border border-gray-700 bg-gray-700 text-white 
+                        class="mt-1 block w-full rounded-lg border border-gray-700 bg-gray-700 text-white px-4 py-3
                                placeholder-gray-400 focus:border-indigo-500 focus:ring focus:ring-indigo-500/30 sm:text-sm">
                     @error('email')
                         <span class="text-red-500 text-xs">{{ $message }}</span>
@@ -35,7 +29,7 @@
                 <div>
                     <label for="password" class="block text-sm font-medium text-gray-300">Contraseña</label>
                     <input id="password" type="password" name="password" required
-                        class="mt-1 block w-full rounded-lg border border-gray-700 bg-gray-700 text-white 
+                        class="mt-1 block w-full rounded-lg border border-gray-700 bg-gray-700 text-white px-4 py-3
                                placeholder-gray-400 focus:border-indigo-500 focus:ring focus:ring-indigo-500/30 sm:text-sm">
                     @error('password')
                         <span class="text-red-500 text-xs">{{ $message }}</span>
