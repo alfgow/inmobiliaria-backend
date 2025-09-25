@@ -1,4 +1,4 @@
-<x-guest-layout>
+<x-layouts.guest-layout>
     <div class="flex flex-col items-center justify-center w-full min-h-screen px-4 bg-gray-900">
 
         <!-- Card -->
@@ -58,4 +58,4 @@
             </form>
         </div>
     </div>
-</x-guest-layout>
+</x-layouts.guest-layout>
