@@ -22,7 +22,7 @@
                             type="submit"
                             class="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-red-600/30 transition hover:bg-red-500"
                         >
-                            🗑️ Eliminar contacto
+                            🗑️
                         </button>
                     </form>
                     <a href="{{ route('contactos.index') }}" class="inline-flex items-center gap-2 rounded-xl border border-gray-700 px-4 py-2 text-sm font-medium text-gray-300 transition hover:bg-gray-800/60">
