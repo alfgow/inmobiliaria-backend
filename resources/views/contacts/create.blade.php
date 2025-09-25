@@ -10,7 +10,12 @@
             </header>
 
             <div class="rounded-2xl border border-gray-800 bg-gray-900/60 p-6 shadow-xl shadow-black/30">
-                <form action="{{ route('contactos.store') }}" method="POST" class="space-y-6">
+                <form
+                    action="{{ route('contactos.store') }}"
+                    method="POST"
+                    class="space-y-6"
+                    data-swal-loader="registrar-contacto"
+                >
                     @csrf
 
                     

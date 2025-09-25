@@ -80,4 +80,25 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     });
+
+    document.querySelectorAll("form[data-swal-loader]").forEach((form) => {
+        form.addEventListener("submit", () => {
+            if (!window.Swal || form.dataset.submitting === "true") {
+                return;
+            }
+
+            form.dataset.submitting = "true";
+
+            window.Swal.fire({
+                title: "Registrando contacto",
+                text: "Estamos guardando la información...",
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    window.Swal.showLoading();
+                },
+            });
+        });
+    });
 });
