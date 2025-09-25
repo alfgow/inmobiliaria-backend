@@ -64,7 +64,26 @@ class InmuebleManagementTest extends TestCase
 
         $image = InmuebleImage::first();
         $this->assertNotNull($image);
-        Storage::disk('s3')->assertExists($image->path);
+
+        $expectedSlug = 'av_del_sol_123_cancun_quintana_roo';
+        $this->assertStringStartsWith($expectedSlug . '/', $image->path);
+        $this->assertStringContainsString('_watermarked.jpg', $image->path);
+
+        $metadata = $image->metadata;
+        $this->assertIsArray($metadata);
+        $this->assertArrayHasKey('variants', $metadata);
+
+        foreach (['original', 'normalized', 'watermarked', 'thumbnail'] as $variant) {
+            $this->assertArrayHasKey($variant, $metadata['variants']);
+            $variantPath = $metadata['variants'][$variant]['path'];
+            Storage::disk('s3')->assertExists($variantPath);
+        }
+
+        $this->assertSame(
+            $metadata['variants']['watermarked']['path'],
+            $image->path,
+            'Watermarked path should be stored as main path.',
+        );
     }
 
     public function test_user_can_update_inmueble_and_replace_images(): void
@@ -88,14 +107,31 @@ class InmuebleManagementTest extends TestCase
             'estatus_id' => $status->id,
         ]);
 
-        $existingPath = "inmuebles/{$inmueble->id}/original.jpg";
-        Storage::disk('s3')->put($existingPath, 'fake content');
+        $basePath = 'departamento_centrico_cdmx_ciudad_de_mexico';
+        $existingPaths = [
+            'original' => "$basePath/original_original.jpg",
+            'normalized' => "$basePath/original_normalized.jpg",
+            'watermarked' => "$basePath/original_watermarked.jpg",
+            'thumbnail' => "$basePath/original_thumbnail.jpg",
+        ];
+
+        foreach ($existingPaths as $path) {
+            Storage::disk('s3')->put($path, 'fake content');
+        }
 
         $image = $inmueble->images()->create([
             'disk' => 's3',
-            'path' => $existingPath,
-            'url' => Storage::disk('s3')->url($existingPath),
+            'path' => $existingPaths['watermarked'],
+            'url' => Storage::disk('s3')->url($existingPaths['watermarked']),
             'orden' => 1,
+            'metadata' => [
+                'variants' => [
+                    'original' => ['path' => $existingPaths['original']],
+                    'normalized' => ['path' => $existingPaths['normalized']],
+                    'watermarked' => ['path' => $existingPaths['watermarked']],
+                    'thumbnail' => ['path' => $existingPaths['thumbnail']],
+                ],
+            ],
         ]);
 
         $response = $this->actingAs($user)->put(route('inmuebles.update', $inmueble), [
@@ -121,7 +157,9 @@ class InmuebleManagementTest extends TestCase
         $inmueble->refresh();
 
         $this->assertSame('Departamento remodelado', $inmueble->titulo);
-        Storage::disk('s3')->assertMissing($existingPath);
+        foreach ($existingPaths as $path) {
+            Storage::disk('s3')->assertMissing($path);
+        }
         $this->assertCount(1, $inmueble->images);
     }
 
@@ -146,14 +184,31 @@ class InmuebleManagementTest extends TestCase
             'estatus_id' => $status->id,
         ]);
 
-        $existingPath = "inmuebles/{$inmueble->id}/loft.jpg";
-        Storage::disk('s3')->put($existingPath, 'fake content');
+        $slugPath = 'calle_arte_55_guadalajara_jalisco';
+        $existingPaths = [
+            'original' => "$slugPath/loft_original.jpg",
+            'normalized' => "$slugPath/loft_normalized.jpg",
+            'watermarked' => "$slugPath/loft_watermarked.jpg",
+            'thumbnail' => "$slugPath/loft_thumbnail.jpg",
+        ];
+
+        foreach ($existingPaths as $path) {
+            Storage::disk('s3')->put($path, 'fake content');
+        }
 
         $inmueble->images()->create([
             'disk' => 's3',
-            'path' => $existingPath,
-            'url' => Storage::disk('s3')->url($existingPath),
+            'path' => $existingPaths['watermarked'],
+            'url' => Storage::disk('s3')->url($existingPaths['watermarked']),
             'orden' => 1,
+            'metadata' => [
+                'variants' => [
+                    'original' => ['path' => $existingPaths['original']],
+                    'normalized' => ['path' => $existingPaths['normalized']],
+                    'watermarked' => ['path' => $existingPaths['watermarked']],
+                    'thumbnail' => ['path' => $existingPaths['thumbnail']],
+                ],
+            ],
         ]);
 
         $response = $this->actingAs($user)->delete(route('inmuebles.destroy', $inmueble));
@@ -161,6 +216,8 @@ class InmuebleManagementTest extends TestCase
         $response->assertRedirect(route('inmuebles.index'));
 
         $this->assertDatabaseMissing('inmuebles', ['id' => $inmueble->id]);
-        Storage::disk('s3')->assertMissing($existingPath);
+        foreach ($existingPaths as $path) {
+            Storage::disk('s3')->assertMissing($path);
+        }
     }
 }
