@@ -32,9 +32,9 @@
             </form>
 
             @if ($contacts->count())
-                <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                <div class="flex flex-col items-stretch gap-5 md:flex-row md:flex-wrap md:justify-center">
                     @foreach ($contacts as $contact)
-                        <article class="rounded-2xl border border-gray-800 bg-gray-900/60 p-5 shadow-lg shadow-black/30">
+                        <article class="w-full max-w-md md:w-80 rounded-2xl border border-gray-800 bg-gray-900/60 p-5 shadow-lg shadow-black/30">
                             <div class="mb-4 flex items-center justify-between">
                                 <div>
                                     <p class="text-xs uppercase tracking-wide text-gray-500">ID contacto</p>
@@ -42,7 +42,10 @@
                                 </div>
                                 <span class="rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-medium text-indigo-300">{{ optional($contact->created_at)->format('d/m/Y') ?? '—' }}</span>
                             </div>
-                            <h2 class="text-lg font-semibold text-gray-100">{{ $contact->nombre ?? '—' }}</h2>
+                            <div class="space-y-2">
+                                <h2 class="text-lg font-semibold text-gray-100">{{ $contact->nombre ?? '—' }}</h2>
+                                <p class="text-sm text-gray-400">Última interacción: {{ optional($contact->last_interaction_at)->format('d/m/Y H:i') ?? 'Sin registros' }}</p>
+                            </div>
                             <dl class="mt-4 space-y-3 text-sm text-gray-300">
                                 <div class="flex items-start gap-3">
                                     <dt class="text-gray-500">Correo:</dt>
@@ -52,11 +55,26 @@
                                     <dt class="text-gray-500">Teléfono:</dt>
                                     <dd class="flex-1">{{ $contact->telefono ?? '—' }}</dd>
                                 </div>
-                                <div>
-                                    <dt class="mb-1 text-gray-500">Mensaje:</dt>
-                                    <dd class="rounded-xl border border-gray-800 bg-gray-950/60 p-3 text-gray-200">{{ $contact->mensaje ?? '—' }}</dd>
+                                <div class="flex items-start gap-3">
+                                    <dt class="text-gray-500">Inmueble de interés:</dt>
+                                    <dd class="flex-1">
+                                        @if (optional($contact->latestInterest)->inmueble)
+                                            {{ $contact->latestInterest->inmueble->titulo }}
+                                        @else
+                                            <span class="text-gray-500">Sin registrar</span>
+                                        @endif
+                                    </dd>
                                 </div>
                             </dl>
+
+                            <div class="mt-6 flex justify-end">
+                                <a
+                                    href="{{ route('contactos.show', $contact) }}"
+                                    class="inline-flex items-center gap-2 rounded-xl border border-indigo-500/60 px-4 py-2 text-sm font-medium text-indigo-200 transition hover:bg-indigo-500/10"
+                                >
+                                    Ver detalle →
+                                </a>
+                            </div>
                         </article>
                     @endforeach
                 </div>

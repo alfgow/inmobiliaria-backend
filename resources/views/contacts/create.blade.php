@@ -67,7 +67,7 @@
                     </div>
 
                     <div class="space-y-2">
-                        <label for="inmueble_id" class="block text-sm font-medium text-gray-300">Inmueble asociado</label>
+                        <label for="inmueble_id" class="block text-sm font-medium text-gray-300">Inmueble de interés</label>
                         <div class="space-y-2" data-searchable-select>
                             <input
                                 type="search"
@@ -82,7 +82,7 @@
                                 name="inmueble_id"
                                 class="w-full rounded-xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
                             >
-                                <option value="">Sin inmueble asociado</option>
+                                <option value="">Sin inmueble registrado</option>
                                 @foreach ($inmuebles as $inmueble)
                                     <option
                                         value="{{ $inmueble->id }}"
@@ -94,22 +94,22 @@
                                 @endforeach
                             </select>
                         </div>
-                        <p class="text-sm text-gray-400">Utiliza el buscador para filtrar inmuebles por título o dirección.</p>
+                        <p class="text-sm text-gray-400">Utiliza el buscador para registrar el inmueble de interés que quedará ligado al historial.</p>
                         @error('inmueble_id')
                             <p class="text-sm text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div class="space-y-2">
-                        <label for="mensaje" class="block text-sm font-medium text-gray-300">Notas o mensaje</label>
+                        <label for="comentario" class="block text-sm font-medium text-gray-300">Comentario inicial</label>
                         <textarea
-                            id="mensaje"
-                            name="mensaje"
+                            id="comentario"
+                            name="comentario"
                             rows="4"
                             class="w-full rounded-xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
                             placeholder="Información adicional"
-                        >{{ old('mensaje') }}</textarea>
-                        @error('mensaje')
+                        >{{ old('comentario') }}</textarea>
+                        @error('comentario')
                             <p class="text-sm text-red-400">{{ $message }}</p>
                         @enderror
                     </div>

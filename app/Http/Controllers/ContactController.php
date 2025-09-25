@@ -6,6 +6,7 @@ use App\Models\Contact;
 use App\Models\Inmueble;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class ContactController extends Controller
@@ -15,14 +16,17 @@ class ContactController extends Controller
         $search = trim((string) $request->input('search'));
 
         $contacts = Contact::query()
+            ->with(['latestInterest.inmueble', 'latestComment'])
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($contactQuery) use ($search) {
                     $contactQuery
                         ->where('nombre', 'like', "%{$search}%")
                         ->orWhere('telefono', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%")
-                        ->orWhere('mensaje', 'like', "%{$search}%");
+                        ->orWhere('email', 'like', "%{$search}%");
                 });
+            })
+            ->when($search === '', function ($query) {
+                $query->whereRaw('0 = 1');
             })
             ->orderByDesc('id')
             ->paginate(12)
@@ -59,13 +63,38 @@ class ContactController extends Controller
             'nombre' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
             'telefono' => ['nullable', 'string', 'max:30'],
-            'mensaje' => ['nullable', 'string'],
+            'comentario' => ['nullable', 'string'],
         ]);
 
-        Contact::create($data);
+        $contact = null;
+
+        DB::transaction(function () use (&$contact, $data) {
+            $contact = Contact::create([
+                'inmueble_id' => null,
+                'nombre' => $data['nombre'],
+                'email' => $data['email'] ?? null,
+                'telefono' => $data['telefono'] ?? null,
+            ]);
+
+            if (! empty($data['comentario'])) {
+                $contact->comentarios()->create([
+                    'comentario' => $data['comentario'],
+                    'created_at' => now(),
+                ]);
+                $contact->touch();
+            }
+
+            if (! empty($data['inmueble_id'])) {
+                $contact->intereses()->create([
+                    'inmueble_id' => $data['inmueble_id'],
+                    'created_at' => now(),
+                ]);
+                $contact->touch();
+            }
+        });
 
         return redirect()
-            ->route('contactos.index')
+            ->route('contactos.show', $contact)
             ->with('status', 'El contacto se registró correctamente.');
     }
 
@@ -85,5 +114,60 @@ class ContactController extends Controller
         }
 
         return 'nombre';
+    }
+
+    public function show(Contact $contact): View
+    {
+        $contact->load([
+            'comentarios' => fn ($query) => $query->orderByDesc('created_at'),
+            'intereses' => fn ($query) => $query->with('inmueble')->orderByDesc('created_at'),
+        ]);
+
+        return view('contacts.show', [
+            'contact' => $contact,
+            'inmuebles' => Inmueble::query()
+                ->orderBy('titulo')
+                ->get(['id', 'titulo', 'direccion', 'operacion', 'tipo']),
+        ]);
+    }
+
+    public function storeComment(Request $request, Contact $contact): RedirectResponse
+    {
+        $data = $request->validate([
+            'comentario' => ['required', 'string'],
+        ]);
+
+        $contact->comentarios()->create([
+            'comentario' => $data['comentario'],
+            'created_at' => now(),
+        ]);
+
+        $contact->touch();
+
+        return redirect()
+            ->route('contactos.show', $contact)
+            ->with('status', 'El comentario se agregó correctamente.');
+    }
+
+    public function storeInterest(Request $request, Contact $contact): RedirectResponse
+    {
+        $data = $request->validate([
+            'inmueble_id' => ['required', 'exists:inmuebles,id'],
+        ]);
+
+        $interest = $contact->intereses()->firstOrCreate(
+            ['inmueble_id' => $data['inmueble_id']],
+            ['created_at' => now()]
+        );
+
+        if (! $interest->wasRecentlyCreated) {
+            $interest->update(['created_at' => now()]);
+        }
+
+        $contact->touch();
+
+        return redirect()
+            ->route('contactos.show', $contact)
+            ->with('status', 'El inmueble de interés se registró correctamente.');
     }
 }
