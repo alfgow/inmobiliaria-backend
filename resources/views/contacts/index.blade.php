@@ -81,12 +81,12 @@
                         showCancelButton: true,
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            window.location.href = "{{ route('contactos.create', ['prefill' => $search]) }}";
+                            window.location.href = "{{ route('contactos.create', ['prefill' => $search, 'prefill_field' => $searchPrefillField]) }}";
                         }
                     });
                 } else {
                     if (confirm('No encontramos contactos que coincidan con tu búsqueda. ¿Deseas registrar un nuevo contacto?')) {
-                        window.location.href = "{{ route('contactos.create', ['prefill' => $search]) }}";
+                        window.location.href = "{{ route('contactos.create', ['prefill' => $search, 'prefill_field' => $searchPrefillField]) }}";
                     }
                 }
             });
