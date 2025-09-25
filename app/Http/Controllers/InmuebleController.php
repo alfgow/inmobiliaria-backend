@@ -215,6 +215,19 @@ class InmuebleController extends Controller
         $diskName = (string) config('inmuebles.images.watermark.preview_disk', '');
         $path = trim((string) config('inmuebles.images.watermark.preview_path', ''));
 
+        if ($diskName === '' && $path === '') {
+            $diskName = (string) config('inmuebles.images.watermark.disk', '');
+            $path = trim((string) config('inmuebles.images.watermark.path', ''));
+        } else {
+            if ($diskName === '') {
+                $diskName = (string) config('inmuebles.images.watermark.disk', '');
+            }
+
+            if ($path === '') {
+                $path = trim((string) config('inmuebles.images.watermark.path', ''));
+            }
+        }
+
         if ($diskName !== '' && $path !== '') {
             try {
                 $disk = Storage::disk($diskName);
@@ -237,6 +250,23 @@ class InmuebleController extends Controller
                     }
 
                     report($temporaryUrlException);
+                }
+
+                if ($disk instanceof FilesystemAdapter && method_exists($disk, 'get')) {
+                    try {
+                        if ($disk->exists($path)) {
+                            $contents = $disk->get($path);
+
+                            if ($contents !== false && $contents !== null) {
+                                $mimeType = method_exists($disk, 'mimeType') ? $disk->mimeType($path) : null;
+                                $mimeType = $mimeType ?: 'image/png';
+
+                                return sprintf('data:%s;base64,%s', $mimeType, base64_encode($contents));
+                            }
+                        }
+                    } catch (Throwable $diskException) {
+                        report($diskException);
+                    }
                 }
             } catch (Throwable $exception) {
                 report($exception);
