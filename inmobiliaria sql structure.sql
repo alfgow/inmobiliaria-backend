@@ -7,6 +7,18 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+DROP TABLE IF EXISTS `asesores`;
+CREATE TABLE `asesores` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `telefono` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 DROP TABLE IF EXISTS `blogs`;
 CREATE TABLE `blogs` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
@@ -30,17 +42,28 @@ CREATE TABLE `cache` (
   PRIMARY KEY (`key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+DROP TABLE IF EXISTS `comentarios`;
+CREATE TABLE `comentarios` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `contacto_id` bigint unsigned NOT NULL,
+  `comentario` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `contacto_id` (`contacto_id`),
+  CONSTRAINT `comentarios_ibfk_1` FOREIGN KEY (`contacto_id`) REFERENCES `contactos` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 DROP TABLE IF EXISTS `contactos`;
 CREATE TABLE `contactos` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `inmueble_id` bigint unsigned DEFAULT NULL,
+  `inmueble_id` bigint unsigned NOT NULL,
   `nombre` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `email` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `telefono` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `mensaje` text COLLATE utf8mb4_unicode_ci,
+  `email` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `telefono` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
   `estado` enum('nuevo','en_contacto','convertido') COLLATE utf8mb4_unicode_ci DEFAULT 'nuevo',
   `fuente` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT 'Web',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `inmueble_id` (`inmueble_id`),
   CONSTRAINT `contactos_ibfk_1` FOREIGN KEY (`inmueble_id`) REFERENCES `inmuebles` (`id`) ON DELETE CASCADE
@@ -85,6 +108,7 @@ CREATE TABLE `inmueble_imagenes` (
 DROP TABLE IF EXISTS `inmuebles`;
 CREATE TABLE `inmuebles` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `id_asesor` bigint unsigned DEFAULT NULL,
   `asesor_id` bigint unsigned NOT NULL,
   `titulo` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
   `descripcion` text COLLATE utf8mb4_unicode_ci,
@@ -98,8 +122,23 @@ CREATE TABLE `inmuebles` (
   PRIMARY KEY (`id`),
   KEY `asesor_id` (`asesor_id`),
   KEY `estatus_id` (`estatus_id`),
+  KEY `inmuebles_id_asesor_foreign` (`id_asesor`),
   CONSTRAINT `inmuebles_ibfk_1` FOREIGN KEY (`asesor_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `inmuebles_ibfk_2` FOREIGN KEY (`estatus_id`) REFERENCES `inmueble_estatus` (`id`)
+  CONSTRAINT `inmuebles_ibfk_2` FOREIGN KEY (`estatus_id`) REFERENCES `inmueble_estatus` (`id`),
+  CONSTRAINT `inmuebles_id_asesor_foreign` FOREIGN KEY (`id_asesor`) REFERENCES `asesores` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+DROP TABLE IF EXISTS `intereses`;
+CREATE TABLE `intereses` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `contacto_id` bigint unsigned NOT NULL,
+  `inmueble_id` bigint unsigned NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `contacto_inmueble_unique` (`contacto_id`,`inmueble_id`),
+  KEY `inmueble_id` (`inmueble_id`),
+  CONSTRAINT `intereses_ibfk_1` FOREIGN KEY (`contacto_id`) REFERENCES `contactos` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `intereses_ibfk_2` FOREIGN KEY (`inmueble_id`) REFERENCES `inmuebles` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 DROP TABLE IF EXISTS `migrations`;
