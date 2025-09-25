@@ -34,7 +34,7 @@
                             </div>
                             <span class="rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-medium text-indigo-300">{{ optional($contact->created_at)->format('d/m/Y') ?? '—' }}</span>
                         </div>
-                        <h2 class="text-lg font-semibold text-gray-100">{{ $contact->name ?? $contact->nombre ?? '—' }}</h2>
+                        <h2 class="text-lg font-semibold text-gray-100">{{ $contact->nombre ?? '—' }}</h2>
                         <dl class="mt-4 space-y-3 text-sm text-gray-300">
                             <div class="flex items-start gap-3">
                                 <dt class="text-gray-500">Correo:</dt>
@@ -42,11 +42,11 @@
                             </div>
                             <div class="flex items-start gap-3">
                                 <dt class="text-gray-500">Teléfono:</dt>
-                                <dd class="flex-1">{{ $contact->phone ?? $contact->telefono ?? '—' }}</dd>
+                                <dd class="flex-1">{{ $contact->telefono ?? '—' }}</dd>
                             </div>
                             <div>
                                 <dt class="text-gray-500 mb-1">Mensaje:</dt>
-                                <dd class="rounded-xl border border-gray-800 bg-gray-950/60 p-3 text-gray-200">{{ $contact->message ?? $contact->mensaje ?? '—' }}</dd>
+                                <dd class="rounded-xl border border-gray-800 bg-gray-950/60 p-3 text-gray-200">{{ $contact->mensaje ?? '—' }}</dd>
                             </div>
                         </dl>
                     </article>

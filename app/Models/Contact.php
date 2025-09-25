@@ -12,12 +12,12 @@ class Contact extends Model
     protected $table = 'contactos';
 
     protected $fillable = [
-        'name',
+        'inmueble_id',
         'nombre',
         'email',
-        'phone',
         'telefono',
-        'message',
         'mensaje',
+        'estado',
+        'fuente',
     ];
 }
