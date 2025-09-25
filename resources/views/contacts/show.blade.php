@@ -14,7 +14,10 @@
                         action="{{ route('contactos.destroy', $contact) }}"
                         method="POST"
                         class="inline-flex"
-                        onsubmit="return confirm('Esta acción eliminará el contacto y todo su historial. ¿Deseas continuar?');"
+                        data-swal-confirm="Esta acción eliminará el contacto y todo su historial."
+                        data-swal-title="¿Deseas eliminar el contacto?"
+                        data-swal-confirm-button="Sí, eliminar"
+                        data-swal-cancel-button="Cancelar"
                     >
                         @csrf
                         @method('DELETE')
