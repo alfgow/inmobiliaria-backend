@@ -64,3 +64,13 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+
+[data-searchable-select] select {
+    background-color: #1f2937;
+    color: #f9fafb;
+}
+
+[data-searchable-select] select option {
+    background-color: #111827;
+    color: #f9fafb;
+}
