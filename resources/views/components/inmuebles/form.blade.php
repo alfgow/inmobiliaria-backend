@@ -315,6 +315,7 @@
                     name="imagenes[]"
                     accept="image/*"
                     multiple
+                    data-gallery-input
                     class="block w-full rounded-2xl border border-dashed border-gray-700 bg-gray-850/70 px-4 py-5 text-sm text-gray-300 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
                 >
                 @error('imagenes')
@@ -323,6 +324,25 @@
                 @error('imagenes.*')
                     <p class="text-sm text-red-400">{{ $message }}</p>
                 @enderror
+            </div>
+
+            <div
+                class="hidden grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+                data-gallery-previews-container
+            >
+                <template data-gallery-preview-template>
+                    <div class="group relative overflow-hidden rounded-2xl border border-gray-800 bg-gray-900/60 shadow-lg shadow-black/30 transition">
+                        <div class="flex h-48 items-center justify-center bg-gray-850/80 text-sm text-gray-400" data-gallery-loading>
+                            Procesando vista previa...
+                        </div>
+                        <img
+                            data-gallery-preview-image
+                            alt="Vista previa de la imagen"
+                            class="hidden h-48 w-full object-cover transition duration-300 group-hover:scale-105"
+                        >
+                        <p class="hidden px-3 pb-3 text-xs text-gray-400" data-gallery-error></p>
+                    </div>
+                </template>
             </div>
 
             @if ($inmueble && $inmueble->images->isNotEmpty())
