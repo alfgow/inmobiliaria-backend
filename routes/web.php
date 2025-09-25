@@ -44,6 +44,10 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/contactos', [ContactController::class, 'index'])
         ->name('contactos.index');
+    Route::get('/contactos/nuevo', [ContactController::class, 'create'])
+        ->name('contactos.create');
+    Route::post('/contactos', [ContactController::class, 'store'])
+        ->name('contactos.store');
 });
 
 require __DIR__ . '/auth.php';
