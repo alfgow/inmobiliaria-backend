@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateInmuebleRequest;
 use App\Models\Inmueble;
 use App\Models\InmuebleStatus;
 use App\Services\InmuebleImageService;
+use App\Support\WatermarkPathResolver;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Database\Eloquent\Builder;
@@ -211,7 +212,7 @@ class InmuebleController extends Controller
 
     private function getWatermarkPreviewUrl(): ?string
     {
-        $localWatermarkPath = config('inmuebles.images.watermark.path');
+        $localWatermarkPath = WatermarkPathResolver::resolve(config('inmuebles.images.watermark.path'));
 
         if ($localWatermarkPath && file_exists($localWatermarkPath)) {
             try {
@@ -230,18 +231,18 @@ class InmuebleController extends Controller
         }
 
         $diskName = (string) config('inmuebles.images.watermark.preview_disk', '');
-        $path = trim((string) config('inmuebles.images.watermark.preview_path', ''));
+        $path = str_replace('\\', '/', trim((string) config('inmuebles.images.watermark.preview_path', '')));
 
         if ($diskName === '' && $path === '') {
             $diskName = (string) config('inmuebles.images.watermark.disk', '');
-            $path = trim((string) config('inmuebles.images.watermark.path', ''));
+            $path = str_replace('\\', '/', trim((string) config('inmuebles.images.watermark.path', '')));
         } else {
             if ($diskName === '') {
                 $diskName = (string) config('inmuebles.images.watermark.disk', '');
             }
 
             if ($path === '') {
-                $path = trim((string) config('inmuebles.images.watermark.path', ''));
+                $path = str_replace('\\', '/', trim((string) config('inmuebles.images.watermark.path', '')));
             }
         }
 

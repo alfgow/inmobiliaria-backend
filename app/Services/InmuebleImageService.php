@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Inmueble;
 use App\Models\InmuebleImage;
 use App\Support\AddressSlugger;
+use App\Support\WatermarkPathResolver;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
@@ -245,9 +246,9 @@ class InmuebleImageService
 
     protected function resolveWatermarkContents(): ?string
     {
-        $path = trim((string) config('inmuebles.images.watermark.path', ''));
+        $path = WatermarkPathResolver::resolve(config('inmuebles.images.watermark.path'));
 
-        if ($path === '') {
+        if ($path === null || $path === '') {
             return null;
         }
 
