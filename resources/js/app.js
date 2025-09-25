@@ -252,8 +252,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (galleryInput && previewsContainer) {
         const template = previewsContainer.querySelector("template[data-gallery-preview-template]");
-        // URL (o data:) de la marca de agua que nos inyecta el controlador
         const watermarkUrl = previewsContainer.dataset.galleryWatermarkUrl || "";
+        const MAX_FILES = 10;
+        const canManageFiles =
+            typeof window !== "undefined" && typeof window.DataTransfer !== "undefined";
+
+        let selectedFiles = [];
+        let dragSourceIndex = null;
+        let dragSourcePreview = null;
 
         const createPreviewElement = () => {
             if (!(template instanceof HTMLTemplateElement)) {
@@ -270,69 +276,278 @@ document.addEventListener("DOMContentLoaded", () => {
             return element;
         };
 
-        const clearPreviews = () => {
+        const updateContainerVisibility = () => {
+            previewsContainer.classList.toggle("hidden", selectedFiles.length === 0);
+        };
+
+        const updateFileInput = () => {
+            if (!canManageFiles) {
+                return;
+            }
+
+            const dataTransfer = new DataTransfer();
+
+            selectedFiles.forEach((file) => {
+                dataTransfer.items.add(file);
+            });
+
+            galleryInput.files = dataTransfer.files;
+        };
+
+        const renderPreviews = () => {
             previewsContainer.querySelectorAll("[data-gallery-preview]").forEach((element) => {
                 element.remove();
             });
-        };
 
-        const updateContainerVisibility = () => {
-            const hasPreviews = previewsContainer.querySelectorAll("[data-gallery-preview]").length > 0;
+            selectedFiles.forEach((file, index) => {
+                const element = createPreviewElement();
+                element.dataset.galleryPreview = "";
+                element.dataset.galleryIndex = String(index);
+                element.draggable = true;
 
-            previewsContainer.classList.toggle("hidden", !hasPreviews);
-        };
+                const loadingIndicator = element.querySelector("[data-gallery-loading]");
+                const imgBase = element.querySelector("[data-gallery-preview-image]");
+                const imgWater = element.querySelector("[data-gallery-preview-watermark]");
+                const errorEl = element.querySelector("[data-gallery-error]");
+                const coverBadge = element.querySelector("[data-gallery-cover-badge]");
+                const filenameEl = element.querySelector("[data-gallery-filename]");
 
-        // Render simplificado: imagen base + overlay <img> con watermark (sin canvas)
-        const renderPreview = (file) => {
-            const element = createPreviewElement();
-            element.dataset.galleryPreview = "";
+                if (coverBadge) {
+                    coverBadge.classList.toggle("hidden", index !== 0);
+                }
 
-            const loadingIndicator = element.querySelector("[data-gallery-loading]");
-            const imgBase  = element.querySelector("[data-gallery-preview-image]");
-            const imgWater = element.querySelector("[data-gallery-preview-watermark]");
-            const errorEl  = element.querySelector("[data-gallery-error]");
+                if (filenameEl) {
+                    filenameEl.textContent = file.name || `Imagen ${index + 1}`;
+                }
 
-            previewsContainer.appendChild(element);
+                previewsContainer.appendChild(element);
+
+                if (!imgBase) {
+                    return;
+                }
+
+                const fileUrl = URL.createObjectURL(file);
+
+                const hideLoading = () => {
+                    if (loadingIndicator) {
+                        loadingIndicator.classList.add("hidden");
+                    }
+                };
+
+                imgBase.addEventListener(
+                    "load",
+                    () => {
+                        hideLoading();
+                        imgBase.classList.remove("hidden");
+
+                        if (imgWater && watermarkUrl) {
+                            imgWater.src = watermarkUrl;
+                            imgWater.classList.remove("hidden");
+                        }
+
+                        URL.revokeObjectURL(fileUrl);
+                    },
+                    { once: true }
+                );
+
+                imgBase.addEventListener(
+                    "error",
+                    () => {
+                        hideLoading();
+
+                        if (errorEl) {
+                            errorEl.textContent = "No se pudo leer la imagen";
+                            errorEl.classList.remove("hidden");
+                        }
+
+                        URL.revokeObjectURL(fileUrl);
+                    },
+                    { once: true }
+                );
+
+                imgBase.src = fileUrl;
+            });
+
+            updateFileInput();
             updateContainerVisibility();
+        };
 
-            const fileUrl = URL.createObjectURL(file);
+        const addFilesToSelection = (files) => {
+            if (!Array.isArray(files) || files.length === 0) {
+                return;
+            }
 
-            if (!imgBase) return;
+            const validFiles = files.filter((file) => file.type.startsWith("image/"));
 
-            // Cuando la base cargue, ocultamos loader y mostramos overlay si existe
-            imgBase.addEventListener("load", () => {
-                URL.revokeObjectURL(fileUrl);
-                if (loadingIndicator) loadingIndicator.classList.add("hidden");
-                imgBase.classList.remove("hidden");
+            if (validFiles.length === 0) {
+                return;
+            }
 
-                if (imgWater && watermarkUrl) {
-                    imgWater.src = watermarkUrl;
-                    imgWater.classList.remove("hidden");
-                }
-            }, { once: true });
+            const availableSlots = MAX_FILES - selectedFiles.length;
 
-            imgBase.addEventListener("error", () => {
-                if (loadingIndicator) loadingIndicator.classList.add("hidden");
-                if (errorEl) {
-                    errorEl.textContent = "No se pudo leer la imagen";
-                    errorEl.classList.remove("hidden");
-                }
-            }, { once: true });
+            if (availableSlots <= 0) {
+                return;
+            }
 
-            // Disparar carga
-            imgBase.src = fileUrl;
+            const filesToAdd = validFiles.slice(0, availableSlots);
+
+            selectedFiles = selectedFiles.concat(filesToAdd);
+            renderPreviews();
+        };
+
+        const findPreviewElement = (target) => {
+            if (!(target instanceof Element)) {
+                return null;
+            }
+
+            return target.closest("[data-gallery-preview]");
         };
 
         galleryInput.addEventListener("change", () => {
-            clearPreviews();
+            const files = Array.from(galleryInput.files || []);
 
-            const files = Array.from(galleryInput.files || []).filter((file) => file.type.startsWith("image/"));
+            addFilesToSelection(files);
 
-            files.slice(0, 10).forEach((file) => {
-                renderPreview(file);
-            });
+            if (canManageFiles) {
+                galleryInput.value = "";
+            }
+        });
 
-            updateContainerVisibility();
+        previewsContainer.addEventListener("click", (event) => {
+            const removeButton = event.target instanceof Element
+                ? event.target.closest("[data-gallery-remove]")
+                : null;
+
+            if (!removeButton) {
+                return;
+            }
+
+            event.preventDefault();
+
+            const preview = findPreviewElement(removeButton);
+
+            if (!preview) {
+                return;
+            }
+
+            const index = Number(preview.dataset.galleryIndex);
+
+            if (Number.isNaN(index)) {
+                return;
+            }
+
+            selectedFiles.splice(index, 1);
+            renderPreviews();
+        });
+
+        previewsContainer.addEventListener("dragstart", (event) => {
+            const target = event.target;
+
+            if (!(target instanceof Element)) {
+                return;
+            }
+
+            if (target.closest("[data-gallery-remove]")) {
+                event.preventDefault();
+                return;
+            }
+
+            const preview = findPreviewElement(target);
+
+            if (!preview) {
+                return;
+            }
+
+            const index = Number(preview.dataset.galleryIndex);
+
+            if (Number.isNaN(index)) {
+                return;
+            }
+
+            dragSourceIndex = index;
+            dragSourcePreview = preview;
+
+            preview.classList.add("opacity-50");
+
+            if (event.dataTransfer) {
+                event.dataTransfer.effectAllowed = "move";
+                event.dataTransfer.setData("text/plain", String(index));
+            }
+        });
+
+        previewsContainer.addEventListener("dragend", () => {
+            if (dragSourcePreview) {
+                dragSourcePreview.classList.remove("opacity-50");
+            }
+
+            dragSourceIndex = null;
+            dragSourcePreview = null;
+        });
+
+        previewsContainer.addEventListener("dragover", (event) => {
+            if (dragSourceIndex === null) {
+                return;
+            }
+
+            event.preventDefault();
+
+            if (event.dataTransfer) {
+                event.dataTransfer.dropEffect = "move";
+            }
+        });
+
+        previewsContainer.addEventListener("drop", (event) => {
+            if (dragSourceIndex === null) {
+                return;
+            }
+
+            event.preventDefault();
+
+            const preview = findPreviewElement(event.target);
+
+            let destinationIndex = selectedFiles.length;
+
+            if (preview) {
+                const targetIndex = Number(preview.dataset.galleryIndex);
+
+                if (!Number.isNaN(targetIndex)) {
+                    destinationIndex = targetIndex;
+
+                    const rect = preview.getBoundingClientRect();
+                    const shouldPlaceAfter = event.clientY > rect.top + rect.height / 2;
+
+                    if (shouldPlaceAfter) {
+                        destinationIndex += 1;
+                    }
+                }
+            }
+
+            const [movedFile] = selectedFiles.splice(dragSourceIndex, 1);
+
+            if (!movedFile) {
+                dragSourceIndex = null;
+                dragSourcePreview = null;
+                return;
+            }
+
+            if (destinationIndex > selectedFiles.length) {
+                destinationIndex = selectedFiles.length;
+            }
+
+            if (dragSourceIndex < destinationIndex) {
+                destinationIndex -= 1;
+            }
+
+            selectedFiles.splice(destinationIndex, 0, movedFile);
+
+            if (dragSourcePreview) {
+                dragSourcePreview.classList.remove("opacity-50");
+            }
+
+            dragSourceIndex = null;
+            dragSourcePreview = null;
+
+            renderPreviews();
         });
 
         updateContainerVisibility();
