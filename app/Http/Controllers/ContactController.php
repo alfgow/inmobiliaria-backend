@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Contact;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -30,5 +31,28 @@ class ContactController extends Controller
             'contacts' => $contacts,
             'search' => $search,
         ]);
+    }
+
+    public function create(Request $request): View
+    {
+        return view('contacts.create', [
+            'prefill' => trim((string) $request->input('prefill')),
+        ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'nombre' => ['required', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'telefono' => ['nullable', 'string', 'max:30'],
+            'mensaje' => ['nullable', 'string'],
+        ]);
+
+        Contact::create($data);
+
+        return redirect()
+            ->route('contactos.index')
+            ->with('status', 'El contacto se registró correctamente.');
     }
 }
