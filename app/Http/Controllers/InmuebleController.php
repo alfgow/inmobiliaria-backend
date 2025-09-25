@@ -15,7 +15,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
-use RuntimeException;
 use Throwable;
 
 class InmuebleController extends Controller
@@ -249,30 +248,22 @@ class InmuebleController extends Controller
         if ($diskName !== '' && $path !== '') {
             try {
                 $disk = Storage::disk($diskName);
-                $ttl = max(1, (int) config('inmuebles.images.watermark.preview_ttl', 10));
-                $expiresAt = now()->addMinutes($ttl);
 
-                try {
-                    if ($disk instanceof FilesystemAdapter && method_exists($disk, 'temporaryUrl')) {
-                        return $disk->temporaryUrl($path, $expiresAt);
+                if (
+                    $disk instanceof FilesystemAdapter
+                    && method_exists($disk, 'exists')
+                    && $disk->exists($path)
+                ) {
+                    if (method_exists($disk, 'url')) {
+                        $url = $disk->url($path);
+
+                        if (is_string($url) && $url !== '') {
+                            return $url;
+                        }
                     }
 
-                    throw new RuntimeException('Temporary URLs are not supported by the configured disk.');
-                } catch (Throwable $temporaryUrlException) {
-                    if (
-                        $disk instanceof FilesystemAdapter
-                        && method_exists($disk, 'url')
-                        && $disk->exists($path)
-                    ) {
-                        return $disk->url($path);
-                    }
-
-                    report($temporaryUrlException);
-                }
-
-                if ($disk instanceof FilesystemAdapter && method_exists($disk, 'get')) {
-                    try {
-                        if ($disk->exists($path)) {
+                    if (method_exists($disk, 'get')) {
+                        try {
                             $contents = $disk->get($path);
 
                             if ($contents !== false && $contents !== null) {
@@ -281,9 +272,9 @@ class InmuebleController extends Controller
 
                                 return sprintf('data:%s;base64,%s', $mimeType, base64_encode($contents));
                             }
+                        } catch (Throwable $diskException) {
+                            report($diskException);
                         }
-                    } catch (Throwable $diskException) {
-                        report($diskException);
                     }
                 }
             } catch (Throwable $exception) {
