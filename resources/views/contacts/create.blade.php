@@ -21,7 +21,7 @@
                             type="text"
                             id="nombre"
                             name="nombre"
-                            value="{{ old('nombre', $prefill) }}"
+                            value="{{ old('nombre', $prefillField === 'nombre' ? $prefill : '') }}"
                             required
                             class="w-full rounded-xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
                             placeholder="Ej. Juan Pérez"
@@ -37,7 +37,7 @@
                             type="email"
                             id="email"
                             name="email"
-                            value="{{ old('email') }}"
+                            value="{{ old('email', $prefillField === 'email' ? $prefill : '') }}"
                             class="w-full rounded-xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
                             placeholder="correo@dominio.com"
                         >
@@ -52,7 +52,7 @@
                             type="text"
                             id="telefono"
                             name="telefono"
-                            value="{{ old('telefono') }}"
+                            value="{{ old('telefono', $prefillField === 'telefono' ? $prefill : '') }}"
                             class="w-full rounded-xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
                             placeholder="5512345678"
                         >

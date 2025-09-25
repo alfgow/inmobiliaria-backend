@@ -31,13 +31,21 @@ class ContactController extends Controller
         return view('contacts.index', [
             'contacts' => $contacts,
             'search' => $search,
+            'searchPrefillField' => $this->detectPrefillField($search),
         ]);
     }
 
     public function create(Request $request): View
     {
+        $prefillValue = trim((string) $request->input('prefill'));
+        $requestedField = $request->input('prefill_field');
+        $prefillField = in_array($requestedField, ['nombre', 'email', 'telefono'], true)
+            ? $requestedField
+            : $this->detectPrefillField($prefillValue);
+
         return view('contacts.create', [
-            'prefill' => trim((string) $request->input('prefill')),
+            'prefill' => $prefillValue,
+            'prefillField' => $prefillField,
             'inmuebles' => Inmueble::query()
                 ->orderBy('titulo')
                 ->get(['id', 'titulo', 'direccion', 'operacion', 'tipo']),
@@ -59,5 +67,23 @@ class ContactController extends Controller
         return redirect()
             ->route('contactos.index')
             ->with('status', 'El contacto se registró correctamente.');
+    }
+
+    private function detectPrefillField(string $value): string
+    {
+        if ($value === '') {
+            return 'nombre';
+        }
+
+        if (filter_var($value, FILTER_VALIDATE_EMAIL)) {
+            return 'email';
+        }
+
+        $sanitized = preg_replace('/[\s\-().+]/', '', $value);
+        if ($sanitized !== null && $sanitized !== '' && ctype_digit($sanitized) && strlen($sanitized) >= 7) {
+            return 'telefono';
+        }
+
+        return 'nombre';
     }
 }
