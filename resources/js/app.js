@@ -252,29 +252,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (galleryInput && previewsContainer) {
         const template = previewsContainer.querySelector("template[data-gallery-preview-template]");
-        const watermarkUrl = previewsContainer.dataset.galleryWatermarkUrl ?? "";
-        let watermarkPromise;
-
-        const loadWatermark = () => {
-            if (!watermarkUrl) {
-                return Promise.resolve(null);
-            }
-
-            if (!watermarkPromise) {
-                watermarkPromise = new Promise((resolve, reject) => {
-                    const watermark = new Image();
-                    watermark.crossOrigin = "anonymous";
-                    watermark.onload = () => resolve(watermark);
-                    watermark.onerror = () => {
-                        watermarkPromise = undefined;
-                        reject(new Error("No se pudo cargar la marca de agua"));
-                    };
-                    watermark.src = watermarkUrl;
-                });
-            }
-
-            return watermarkPromise;
-        };
+        // URL (o data:) de la marca de agua que nos inyecta el controlador
+        const watermarkUrl = previewsContainer.dataset.galleryWatermarkUrl || "";
 
         const createPreviewElement = () => {
             if (!(template instanceof HTMLTemplateElement)) {
@@ -303,113 +282,45 @@ document.addEventListener("DOMContentLoaded", () => {
             previewsContainer.classList.toggle("hidden", !hasPreviews);
         };
 
-        const renderPreview = async (file) => {
+        // Render simplificado: imagen base + overlay <img> con watermark (sin canvas)
+        const renderPreview = (file) => {
             const element = createPreviewElement();
             element.dataset.galleryPreview = "";
 
             const loadingIndicator = element.querySelector("[data-gallery-loading]");
-            const imageElement = element.querySelector("[data-gallery-preview-image]");
-            const errorElement = element.querySelector("[data-gallery-error]");
+            const imgBase  = element.querySelector("[data-gallery-preview-image]");
+            const imgWater = element.querySelector("[data-gallery-preview-watermark]");
+            const errorEl  = element.querySelector("[data-gallery-error]");
 
             previewsContainer.appendChild(element);
             updateContainerVisibility();
 
             const fileUrl = URL.createObjectURL(file);
-            const baseImage = new Image();
 
-            const cleanup = () => {
+            if (!imgBase) return;
+
+            // Cuando la base cargue, ocultamos loader y mostramos overlay si existe
+            imgBase.addEventListener("load", () => {
                 URL.revokeObjectURL(fileUrl);
-            };
+                if (loadingIndicator) loadingIndicator.classList.add("hidden");
+                imgBase.classList.remove("hidden");
 
-            try {
-                const baseImageLoad = new Promise((resolve, reject) => {
-                    baseImage.onload = resolve;
-                    baseImage.onerror = () => reject(new Error("No se pudo leer la imagen"));
-                });
-                const watermarkLoad = loadWatermark().catch((error) => {
-                    console.warn(error);
-
-                    return null;
-                });
-
-                baseImage.src = fileUrl;
-
-                await baseImageLoad;
-                const watermark = await watermarkLoad;
-
-                const maxDimension = 1200;
-                const scale = Math.min(1, maxDimension / Math.max(baseImage.width, baseImage.height));
-                const canvasWidth = Math.round(baseImage.width * scale);
-                const canvasHeight = Math.round(baseImage.height * scale);
-
-                const canvas = document.createElement("canvas");
-                canvas.width = canvasWidth;
-                canvas.height = canvasHeight;
-
-                const context = canvas.getContext("2d");
-
-                if (!context) {
-                    throw new Error("No se pudo preparar el lienzo");
+                if (imgWater && watermarkUrl) {
+                    imgWater.src = watermarkUrl;
+                    imgWater.classList.remove("hidden");
                 }
+            }, { once: true });
 
-                context.drawImage(baseImage, 0, 0, canvasWidth, canvasHeight);
-
-                if (watermark) {
-                    const watermarkWidth = watermark.width || 1;
-                    const watermarkHeight = watermark.height || 1;
-                    const watermarkRatio = watermarkWidth / watermarkHeight;
-                    const canvasRatio = canvasWidth / canvasHeight;
-
-                    let sourceWidth = watermarkWidth;
-                    let sourceHeight = watermarkHeight;
-                    let sourceX = 0;
-                    let sourceY = 0;
-
-                    if (watermarkRatio > canvasRatio) {
-                        sourceHeight = watermarkHeight;
-                        sourceWidth = sourceHeight * canvasRatio;
-                        sourceX = (watermarkWidth - sourceWidth) / 2;
-                    } else {
-                        sourceWidth = watermarkWidth;
-                        sourceHeight = sourceWidth / canvasRatio;
-                        sourceY = (watermarkHeight - sourceHeight) / 2;
-                    }
-
-                    context.drawImage(
-                        watermark,
-                        sourceX,
-                        sourceY,
-                        sourceWidth,
-                        sourceHeight,
-                        0,
-                        0,
-                        canvasWidth,
-                        canvasHeight,
-                    );
+            imgBase.addEventListener("error", () => {
+                if (loadingIndicator) loadingIndicator.classList.add("hidden");
+                if (errorEl) {
+                    errorEl.textContent = "No se pudo leer la imagen";
+                    errorEl.classList.remove("hidden");
                 }
+            }, { once: true });
 
-                const previewUrl = canvas.toDataURL("image/jpeg", 0.92);
-
-                if (loadingIndicator) {
-                    loadingIndicator.classList.add("hidden");
-                }
-
-                if (imageElement) {
-                    imageElement.src = previewUrl;
-                    imageElement.classList.remove("hidden");
-                }
-            } catch (error) {
-                if (loadingIndicator) {
-                    loadingIndicator.classList.add("hidden");
-                }
-
-                if (errorElement) {
-                    errorElement.textContent = error instanceof Error ? error.message : "Error desconocido al generar la vista previa";
-                    errorElement.classList.remove("hidden");
-                }
-            } finally {
-                cleanup();
-            }
+            // Disparar carga
+            imgBase.src = fileUrl;
         };
 
         galleryInput.addEventListener("change", () => {
@@ -418,7 +329,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const files = Array.from(galleryInput.files || []).filter((file) => file.type.startsWith("image/"));
 
             files.slice(0, 10).forEach((file) => {
-                void renderPreview(file);
+                renderPreview(file);
             });
 
             updateContainerVisibility();
