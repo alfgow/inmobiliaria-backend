@@ -1,18 +1,23 @@
-<x-layouts.app :title="__('Dashboard')">
-    <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
-        <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-                <x-placeholder-pattern class="absolute inset-0 size-full stroke-gray-900/20 dark:stroke-neutral-100/20" />
-            </div>
-            <div class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-                <x-placeholder-pattern class="absolute inset-0 size-full stroke-gray-900/20 dark:stroke-neutral-100/20" />
-            </div>
-            <div class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-                <x-placeholder-pattern class="absolute inset-0 size-full stroke-gray-900/20 dark:stroke-neutral-100/20" />
-            </div>
+<x-layouts.admin>
+    <h1 class="text-2xl md:text-3xl font-bold mb-6">Bienvenido(a) 👋</h1>
+
+    <p class="text-gray-300 mb-8">
+        Ingresaste correctamente. Desde aquí construiremos tu panel de administración.
+    </p>
+
+    <!-- Tarjetas de ejemplo (puedes borrarlas luego) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="rounded-xl border border-gray-800 bg-gray-850/50 p-5">
+            <div class="text-sm text-gray-400 mb-2">Inmuebles activos</div>
+            <div class="text-3xl font-semibold">0</div>
         </div>
-        <div class="relative h-full flex-1 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-            <x-placeholder-pattern class="absolute inset-0 size-full stroke-gray-900/20 dark:stroke-neutral-100/20" />
+        <div class="rounded-xl border border-gray-800 bg-gray-850/50 p-5">
+            <div class="text-sm text-gray-400 mb-2">Interesados hoy</div>
+            <div class="text-3xl font-semibold">0</div>
+        </div>
+        <div class="rounded-xl border border-gray-800 bg-gray-850/50 p-5">
+            <div class="text-sm text-gray-400 mb-2">Publicaciones del blog</div>
+            <div class="text-3xl font-semibold">0</div>
         </div>
     </div>
-</x-layouts.app>
+</x-layouts.admin>
