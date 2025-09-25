@@ -9,6 +9,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Throwable;
 use RuntimeException;
 
 class InmuebleImageService
@@ -191,7 +192,7 @@ class InmuebleImageService
     protected function createWatermarkedVariant(string $normalizedContents): array
     {
         $quality = (int) config('inmuebles.images.quality', 85);
-        $watermarkPath = config('inmuebles.images.watermark.path');
+        $watermark = $this->loadWatermarkImage();
         $position = config('inmuebles.images.watermark.position', 'bottom-right');
         $offsetX = (int) config('inmuebles.images.watermark.offset_x', 24);
         $offsetY = (int) config('inmuebles.images.watermark.offset_y', 24);
@@ -199,12 +200,11 @@ class InmuebleImageService
         if ($this->imageManager) {
             $image = $this->imageManager->read($normalizedContents);
 
-            if ($watermarkPath && file_exists($watermarkPath)) {
+            if ($watermark) {
                 if (method_exists($image, 'place')) {
-                    $watermarkImage = $this->imageManager->read($watermarkPath);
-                    $image->place($watermarkImage, $position, $offsetX, $offsetY);
+                    $image->place($watermark, $position, $offsetX, $offsetY);
                 } elseif (method_exists($image, 'insert')) {
-                    $image->insert($watermarkPath, $position, $offsetX, $offsetY);
+                    $image->insert($watermark, $position, $offsetX, $offsetY);
                 }
             }
 
@@ -220,6 +220,46 @@ class InmuebleImageService
         return [
             'contents' => $normalizedContents,
         ];
+    }
+
+    protected function loadWatermarkImage(): ?object
+    {
+        if (! $this->imageManager) {
+            return null;
+        }
+
+        $contents = $this->resolveWatermarkContents();
+
+        if ($contents === null) {
+            return null;
+        }
+
+        try {
+            return $this->imageManager->read($contents);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return null;
+        }
+    }
+
+    protected function resolveWatermarkContents(): ?string
+    {
+        $path = trim((string) config('inmuebles.images.watermark.path', ''));
+
+        if ($path === '' || ! is_file($path)) {
+            return null;
+        }
+
+        try {
+            $contents = file_get_contents($path);
+
+            return $contents === false ? null : (string) $contents;
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return null;
+        }
     }
 
     protected function createThumbnailVariant(string $normalizedContents): array

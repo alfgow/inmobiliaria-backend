@@ -8,14 +8,11 @@ use App\Models\Inmueble;
 use App\Models\InmuebleStatus;
 use App\Services\InmuebleImageService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
-use RuntimeException;
 use Throwable;
 
 class InmuebleController extends Controller
@@ -212,56 +209,27 @@ class InmuebleController extends Controller
 
     private function getWatermarkPreviewUrl(): ?string
     {
-        $diskName = (string) config('inmuebles.images.watermark.preview_disk', '');
-        $path = trim((string) config('inmuebles.images.watermark.preview_path', ''));
+        $path = trim((string) config('inmuebles.images.watermark.path', ''));
 
-        if ($diskName !== '' && $path !== '') {
-            try {
-                $disk = Storage::disk($diskName);
-                $ttl = max(1, (int) config('inmuebles.images.watermark.preview_ttl', 10));
-                $expiresAt = now()->addMinutes($ttl);
-
-                try {
-                    if ($disk instanceof FilesystemAdapter && method_exists($disk, 'temporaryUrl')) {
-                        return $disk->temporaryUrl($path, $expiresAt);
-                    }
-
-                    throw new RuntimeException('Temporary URLs are not supported by the configured disk.');
-                } catch (Throwable $temporaryUrlException) {
-                    if (
-                        $disk instanceof FilesystemAdapter
-                        && method_exists($disk, 'url')
-                        && $disk->exists($path)
-                    ) {
-                        return $disk->url($path);
-                    }
-
-                    report($temporaryUrlException);
-                }
-            } catch (Throwable $exception) {
-                report($exception);
-            }
+        if ($path === '' || ! is_file($path)) {
+            return null;
         }
 
-        $localWatermarkPath = config('inmuebles.images.watermark.path');
+        try {
+            $contents = file_get_contents($path);
 
-        if ($localWatermarkPath && file_exists($localWatermarkPath)) {
-            try {
-                $contents = file_get_contents($localWatermarkPath);
-
-                if ($contents === false) {
-                    return null;
-                }
-
-                $mimeType = mime_content_type($localWatermarkPath) ?: 'image/png';
-
-                return sprintf('data:%s;base64,%s', $mimeType, base64_encode($contents));
-            } catch (Throwable $exception) {
-                report($exception);
+            if ($contents === false) {
+                return null;
             }
-        }
 
-        return null;
+            $mimeType = mime_content_type($path) ?: 'image/png';
+
+            return sprintf('data:%s;base64,%s', $mimeType, base64_encode($contents));
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return null;
+        }
     }
 
     /**
