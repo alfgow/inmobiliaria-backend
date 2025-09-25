@@ -330,9 +330,8 @@
             <div
                 class="hidden grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
                 data-gallery-previews-container
-                @if ($watermarkPreviewUrl)
-                    data-gallery-watermark-url="{{ $watermarkPreviewUrl }}"
-                @endif
+                {{-- dejamos siempre el data-attr (vacío si no hay watermark) para simplificar el JS --}}
+                data-gallery-watermark-url="{{ $watermarkPreviewUrl ?? '' }}"
             >
                 <template data-gallery-preview-template>
                     <div class="group relative overflow-hidden rounded-2xl border border-gray-800 bg-gray-900/60 shadow-lg shadow-black/30 transition">
@@ -343,6 +342,12 @@
                             data-gallery-preview-image
                             alt="Vista previa de la imagen"
                             class="hidden h-48 w-full object-cover transition duration-300 group-hover:scale-105"
+                        >
+                        {{-- Overlay de marca de agua (PNG transparente a pantalla completa) --}}
+                        <img
+                            data-gallery-preview-watermark
+                            alt=""
+                            class="hidden absolute inset-0 h-48 w-full object-cover pointer-events-none select-none"
                         >
                         <p class="hidden px-3 pb-3 text-xs text-gray-400" data-gallery-error></p>
                     </div>
