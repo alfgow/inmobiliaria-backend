@@ -213,20 +213,45 @@ class InmuebleController extends Controller
         $diskName = (string) config('inmuebles.images.watermark.preview_disk', '');
         $path = trim((string) config('inmuebles.images.watermark.preview_path', ''));
 
-        if ($diskName === '' || $path === '') {
-            return null;
+        if ($diskName !== '' && $path !== '') {
+            try {
+                $disk = Storage::disk($diskName);
+                $ttl = max(1, (int) config('inmuebles.images.watermark.preview_ttl', 10));
+                $expiresAt = now()->addMinutes($ttl);
+
+                try {
+                    return $disk->temporaryUrl($path, $expiresAt);
+                } catch (Throwable $temporaryUrlException) {
+                    if ($disk->exists($path)) {
+                        return $disk->url($path);
+                    }
+
+                    report($temporaryUrlException);
+                }
+            } catch (Throwable $exception) {
+                report($exception);
+            }
         }
 
-        try {
-            $ttl = max(1, (int) config('inmuebles.images.watermark.preview_ttl', 10));
-            $expiresAt = now()->addMinutes($ttl);
+        $localWatermarkPath = config('inmuebles.images.watermark.path');
 
-            return Storage::disk($diskName)->temporaryUrl($path, $expiresAt);
-        } catch (Throwable $exception) {
-            report($exception);
+        if ($localWatermarkPath && file_exists($localWatermarkPath)) {
+            try {
+                $contents = file_get_contents($localWatermarkPath);
 
-            return null;
+                if ($contents === false) {
+                    return null;
+                }
+
+                $mimeType = mime_content_type($localWatermarkPath) ?: 'image/png';
+
+                return sprintf('data:%s;base64,%s', $mimeType, base64_encode($contents));
+            } catch (Throwable $exception) {
+                report($exception);
+            }
         }
+
+        return null;
     }
 
     /**
