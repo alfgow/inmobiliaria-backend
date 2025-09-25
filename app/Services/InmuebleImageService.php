@@ -251,6 +251,12 @@ class InmuebleImageService
             return null;
         }
 
+        if (is_file($path)) {
+            $contents = file_get_contents($path);
+
+            return $contents === false ? null : (string) $contents;
+        }
+
         $diskName = (string) config('inmuebles.images.watermark.disk', '');
 
         if ($diskName !== '') {
@@ -267,12 +273,6 @@ class InmuebleImageService
             } catch (Throwable $exception) {
                 report($exception);
             }
-        }
-
-        if (is_file($path)) {
-            $contents = file_get_contents($path);
-
-            return $contents === false ? null : (string) $contents;
         }
 
         if (filter_var($path, FILTER_VALIDATE_URL)) {

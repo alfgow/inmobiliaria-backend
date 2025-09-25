@@ -212,6 +212,24 @@ class InmuebleController extends Controller
 
     private function getWatermarkPreviewUrl(): ?string
     {
+        $localWatermarkPath = config('inmuebles.images.watermark.path');
+
+        if ($localWatermarkPath && file_exists($localWatermarkPath)) {
+            try {
+                $contents = file_get_contents($localWatermarkPath);
+
+                if ($contents === false) {
+                    return null;
+                }
+
+                $mimeType = mime_content_type($localWatermarkPath) ?: 'image/png';
+
+                return sprintf('data:%s;base64,%s', $mimeType, base64_encode($contents));
+            } catch (Throwable $exception) {
+                report($exception);
+            }
+        }
+
         $diskName = (string) config('inmuebles.images.watermark.preview_disk', '');
         $path = trim((string) config('inmuebles.images.watermark.preview_path', ''));
 
@@ -268,24 +286,6 @@ class InmuebleController extends Controller
                         report($diskException);
                     }
                 }
-            } catch (Throwable $exception) {
-                report($exception);
-            }
-        }
-
-        $localWatermarkPath = config('inmuebles.images.watermark.path');
-
-        if ($localWatermarkPath && file_exists($localWatermarkPath)) {
-            try {
-                $contents = file_get_contents($localWatermarkPath);
-
-                if ($contents === false) {
-                    return null;
-                }
-
-                $mimeType = mime_content_type($localWatermarkPath) ?: 'image/png';
-
-                return sprintf('data:%s;base64,%s', $mimeType, base64_encode($contents));
             } catch (Throwable $exception) {
                 report($exception);
             }

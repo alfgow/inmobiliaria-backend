@@ -12,7 +12,7 @@ return [
             'height' => (int) env('INMUEBLES_THUMB_HEIGHT', 200),
         ],
         'watermark' => [
-            'path' => env('INMUEBLES_WATERMARK_PATH', resource_path('images/watermark.png')),
+            'path' => env('INMUEBLES_WATERMARK_PATH', resource_path('images/MarcaDeAgua_GDE.png')),
             'disk' => env('INMUEBLES_WATERMARK_DISK'),
             'position' => env('INMUEBLES_WATERMARK_POSITION', 'bottom-right'),
             'offset_x' => (int) env('INMUEBLES_WATERMARK_OFFSET_X', 24),
