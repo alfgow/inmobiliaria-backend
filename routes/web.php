@@ -14,6 +14,15 @@ Route::get('/dashboard', function () {
 
 Route::redirect('/', '/dashboard')->name('home');
 
+// Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+// Route::resource('inmuebles', InmuebleController::class);
+// Route::resource('arrendadores', ArrendadorController::class);
+// Route::resource('inquilinos', InquilinoController::class);
+// Route::resource('polizas', PolizaController::class);
+// Route::resource('blog', BlogController::class);
+// Route::get('/finanzas', [FinanzaController::class, 'index'])->name('finanzas.index');
+
+
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
 

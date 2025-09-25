@@ -3,32 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ config('app.name', 'Inmobiliaria') }}</title>
-    @vite('resources/css/app.css')
-    @vite('resources/js/app.js')
+    <title>{{ $title ?? 'Panel de administración' }}</title>
+    @vite(['resources/css/app.css','resources/js/app.js'])
 </head>
 <body class="bg-gray-900 text-gray-100">
-    <!-- Topbar simple -->
-    <header class="w-full border-b border-gray-800 bg-gray-900/80 backdrop-blur">
-        <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-            <div class="font-semibold">Inmobiliaria — Admin</div>
+    <div class="flex min-h-screen">
 
-            <!-- Cerrar sesión -->
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button
-                    type="submit"
-                    class="text-sm px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 transition"
-                >
-                    Cerrar sesión
-                </button>
-            </form>
-        </div>
-    </header>
+        <!-- Sidebar -->
+        <aside class="w-64 bg-gray-950 border-r border-gray-800 flex flex-col">
+            <div class="p-4 text-2xl font-bold text-indigo-400">
+                Inmobiliaria
+            </div>
 
-    <!-- Contenido -->
-    <main class="max-w-6xl mx-auto px-4 py-8">
-        {{ $slot }}
-    </main>
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="{{ route('dashboard') }}" class="block px-3 py-2 rounded hover:bg-gray-800">📊 Dashboard</a>
+                <a href="{{ route('contactos.index') }}" class="block px-3 py-2 rounded hover:bg-gray-800">🧑‍💼 Contactos</a>
+                {{-- <a href="{{ route('inmuebles.index') }}" class="block px-3 py-2 rounded hover:bg-gray-800">🏠 Inmuebles</a>
+                <a href="{{ route('arrendadores.index') }}" class="block px-3 py-2 rounded hover:bg-gray-800">👤 Arrendadores</a>
+                
+                <a href="{{ route('polizas.index') }}" class="block px-3 py-2 rounded hover:bg-gray-800">📑 Pólizas</a>
+                <a href="{{ route('blog.index') }}" class="block px-3 py-2 rounded hover:bg-gray-800">📝 Blog</a>
+                <a href="{{ route('finanzas.index') }}" class="block px-3 py-2 rounded hover:bg-gray-800">💰 Finanzas</a> --}}
+            </nav>
+
+            <!-- Usuario / Logout -->
+            <div class="p-4 border-t border-gray-800">
+                <span class="block text-sm text-gray-400 mb-2">Hola, {{ Auth::user()->name ?? 'Usuario' }}</span>
+                <form action="{{ route('logout') }}" method="POST">
+                    @csrf
+                    <button class="w-full bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">
+                        Cerrar sesión
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        <!-- Contenido -->
+        <main class="flex-1 p-6">
+            {{ $slot }}
+        </main>
+    </div>
 </body>
 </html>
