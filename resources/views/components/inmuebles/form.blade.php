@@ -334,22 +334,49 @@
                 data-gallery-watermark-url="{{ $watermarkPreviewUrl ?? '' }}"
             >
                 <template data-gallery-preview-template>
-                    <div class="group relative overflow-hidden rounded-2xl border border-gray-800 bg-gray-900/60 shadow-lg shadow-black/30 transition">
+                    <div
+                        class="group relative cursor-move overflow-hidden rounded-2xl border border-gray-800 bg-gray-900/60 shadow-lg shadow-black/30 transition hover:border-indigo-400/60"
+                        data-gallery-preview
+                    >
+                        <div class="absolute inset-x-0 top-0 flex items-start justify-between p-3">
+                            <span
+                                class="hidden rounded-full bg-indigo-500/90 px-3 py-1 text-xs font-semibold text-white shadow-lg shadow-indigo-500/40"
+                                data-gallery-cover-badge
+                            >
+                                Portada
+                            </span>
+                            <button
+                                type="button"
+                                class="inline-flex items-center gap-1 rounded-full bg-black/60 px-3 py-1 text-xs font-medium text-red-300 transition hover:bg-black/80 hover:text-red-200 focus:outline-none focus:ring-2 focus:ring-red-400/60 focus:ring-offset-2 focus:ring-offset-black/20"
+                                data-gallery-remove
+                            >
+                                Eliminar
+                            </button>
+                        </div>
+
                         <div class="flex h-48 items-center justify-center bg-gray-850/80 text-sm text-gray-400" data-gallery-loading>
                             Procesando vista previa...
                         </div>
+
                         <img
                             data-gallery-preview-image
                             alt="Vista previa de la imagen"
                             class="hidden h-48 w-full object-cover transition duration-300 group-hover:scale-105"
                         >
+
                         {{-- Overlay de marca de agua (PNG transparente a pantalla completa) --}}
                         <img
                             data-gallery-preview-watermark
                             alt=""
-                            class="hidden absolute inset-0 h-48 w-full object-cover pointer-events-none select-none"
+                            class="hidden pointer-events-none absolute inset-0 h-48 w-full select-none object-cover"
                         >
-                        <p class="hidden px-3 pb-3 text-xs text-gray-400" data-gallery-error></p>
+
+                        <p class="hidden px-3 pb-3 text-xs text-red-300" data-gallery-error></p>
+
+                        <div class="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-1 bg-gradient-to-t from-black/80 to-transparent p-3 text-xs text-gray-200">
+                            <span class="truncate font-medium text-gray-100" data-gallery-filename></span>
+                            <span class="text-[11px] text-gray-300">Arrastra para cambiar el orden</span>
+                        </div>
                     </div>
                 </template>
             </div>
