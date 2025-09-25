@@ -57,6 +57,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
         searchInput.addEventListener("search", filterOptions);
 
+        searchInput.addEventListener("keydown", (event) => {
+            if (event.key !== "Enter") {
+                return;
+            }
+
+            event.preventDefault();
+
+            const firstVisibleOption = options.find((option) => !option.hidden && option.value !== "");
+
+            if (firstVisibleOption) {
+                select.value = firstVisibleOption.value;
+                select.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+        });
+
         searchInput.addEventListener("blur", () => {
             if (searchInput.value.trim() === "") {
                 options.forEach((option) => {

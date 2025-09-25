@@ -33,10 +33,10 @@ CREATE TABLE `cache` (
 DROP TABLE IF EXISTS `contactos`;
 CREATE TABLE `contactos` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `inmueble_id` bigint unsigned NOT NULL,
+  `inmueble_id` bigint unsigned DEFAULT NULL,
   `nombre` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `email` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `telefono` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `telefono` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `mensaje` text COLLATE utf8mb4_unicode_ci,
   `estado` enum('nuevo','en_contacto','convertido') COLLATE utf8mb4_unicode_ci DEFAULT 'nuevo',
   `fuente` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT 'Web',
