@@ -130,6 +130,23 @@ class ContactController extends Controller
         ]);
     }
 
+    public function destroy(Contact $contact): RedirectResponse
+    {
+        $contactName = trim((string) $contact->nombre);
+
+        DB::transaction(static function () use ($contact): void {
+            $contact->delete();
+        });
+
+        $statusMessage = $contactName === ''
+            ? 'El contacto se eliminó correctamente.'
+            : "El contacto {$contactName} se eliminó correctamente.";
+
+        return redirect()
+            ->route('contactos.index')
+            ->with('status', $statusMessage);
+    }
+
     public function storeComment(Request $request, Contact $contact): RedirectResponse
     {
         $data = $request->validate([
