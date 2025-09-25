@@ -203,7 +203,7 @@ class InmuebleImageService
 
             if ($watermark) {
                 if (method_exists($image, 'place')) {
-                    $image->place($watermark, $position, $offsetX, $offsetY);
+                    $image = $image->place($watermark, $position, $offsetX, $offsetY);
                 } elseif (method_exists($image, 'insert')) {
                     $image->insert($watermark, $position, $offsetX, $offsetY);
                 }
