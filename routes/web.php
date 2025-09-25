@@ -48,6 +48,12 @@ Route::middleware(['auth'])->group(function () {
         ->name('contactos.create');
     Route::post('/contactos', [ContactController::class, 'store'])
         ->name('contactos.store');
+    Route::get('/contactos/{contact}', [ContactController::class, 'show'])
+        ->name('contactos.show');
+    Route::post('/contactos/{contact}/comentarios', [ContactController::class, 'storeComment'])
+        ->name('contactos.comentarios.store');
+    Route::post('/contactos/{contact}/intereses', [ContactController::class, 'storeInterest'])
+        ->name('contactos.intereses.store');
 });
 
 require __DIR__ . '/auth.php';
