@@ -339,7 +339,9 @@ class InmuebleController extends Controller
      */
     protected function resolveImageDisk(): string
     {
-        if (config('filesystems.default') === 's3') {
+        $defaultDisk = (string) config('filesystems.default');
+
+        if ($defaultDisk === 's3') {
             return 's3';
         }
 
@@ -347,6 +349,10 @@ class InmuebleController extends Controller
             return 's3';
         }
 
-        return config('filesystems.default', 'public');
+        if ($defaultDisk === 'local' || $defaultDisk === '') {
+            return 'public';
+        }
+
+        return $defaultDisk;
     }
 }
