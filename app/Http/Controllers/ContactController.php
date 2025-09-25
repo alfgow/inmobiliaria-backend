@@ -70,7 +70,6 @@ class ContactController extends Controller
 
         DB::transaction(function () use (&$contact, $data) {
             $contact = Contact::create([
-                'inmueble_id' => null,
                 'nombre' => $data['nombre'],
                 'email' => $data['email'] ?? null,
                 'telefono' => $data['telefono'] ?? null,

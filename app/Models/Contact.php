@@ -15,7 +15,6 @@ class Contact extends Model
     protected $table = 'contactos';
 
     protected $fillable = [
-        'inmueble_id',
         'nombre',
         'email',
         'telefono',
