@@ -254,7 +254,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const template = previewsContainer.querySelector("template[data-gallery-preview-template]");
         const watermarkUrl = previewsContainer.dataset.galleryWatermarkUrl || "";
         const dropzone = document.querySelector("[data-gallery-dropzone]");
+        const previewsWrapper = document.querySelector("[data-gallery-previews-wrapper]");
         const counterElement = document.querySelector("[data-gallery-counter]");
+        const emptyState = dropzone?.querySelector("[data-gallery-empty-state]");
         const MAX_FILES = 10;
         const canManageFiles =
             typeof window !== "undefined" && typeof window.DataTransfer !== "undefined";
@@ -262,7 +264,6 @@ document.addEventListener("DOMContentLoaded", () => {
         let selectedFiles = [];
         let dragSourceIndex = null;
         let dragSourcePreview = null;
-        let dragInitiatedByHandle = false;
 
         const setDropzoneActive = (isActive) => {
             if (!dropzone) {
@@ -315,7 +316,11 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         const updateContainerVisibility = () => {
-            previewsContainer.classList.toggle("hidden", selectedFiles.length === 0);
+            const hasFiles = selectedFiles.length > 0;
+
+            previewsContainer.classList.toggle("hidden", !hasFiles);
+            previewsWrapper?.classList.toggle("hidden", !hasFiles);
+            emptyState?.classList.toggle("hidden", hasFiles);
             updateFileCount();
         };
 
@@ -483,11 +488,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
             dropzone.addEventListener("drop", handleFileDrop);
 
-            dropzone.addEventListener("click", () => {
+            dropzone.addEventListener("click", (event) => {
+                if (event.target instanceof Element
+                    && event.target.closest("[data-gallery-preview]")) {
+                    return;
+                }
+
                 galleryInput.click();
             });
 
             dropzone.addEventListener("keydown", (event) => {
+                if (event.target !== dropzone) {
+                    return;
+                }
+
                 if (event.key !== "Enter" && event.key !== " ") {
                     return;
                 }
@@ -507,21 +521,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        previewsContainer.addEventListener("mousedown", (event) => {
-            dragInitiatedByHandle = event.target instanceof Element
-                && Boolean(event.target.closest("[data-gallery-drag-handle]"));
-        });
-
-        previewsContainer.addEventListener("mouseup", () => {
-            dragInitiatedByHandle = false;
-        });
-
-        previewsContainer.addEventListener("mouseleave", (event) => {
-            if (event.buttons === 0) {
-                dragInitiatedByHandle = false;
-            }
-        });
-
         previewsContainer.addEventListener("click", (event) => {
             const removeButton = event.target instanceof Element
                 ? event.target.closest("[data-gallery-remove]")
@@ -532,6 +531,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             event.preventDefault();
+            event.stopPropagation();
 
             const preview = findPreviewElement(removeButton);
 
@@ -561,11 +561,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            if (!dragInitiatedByHandle) {
-                event.preventDefault();
-                return;
-            }
-
             const preview = findPreviewElement(target);
 
             if (!preview) {
@@ -580,8 +575,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             dragSourceIndex = index;
             dragSourcePreview = preview;
-
-            dragInitiatedByHandle = false;
 
             preview.classList.add("opacity-50");
 
@@ -598,7 +591,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             dragSourceIndex = null;
             dragSourcePreview = null;
-            dragInitiatedByHandle = false;
         });
 
         previewsContainer.addEventListener("dragover", (event) => {
