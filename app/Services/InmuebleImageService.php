@@ -4,16 +4,15 @@ namespace App\Services;
 
 use App\Models\Inmueble;
 use App\Models\InmuebleImage;
-use App\Support\AddressSlugger;
 use App\Support\WatermarkPathResolver;
-use Illuminate\Contracts\Filesystem\Filesystem;
-use Illuminate\Filesystem\FilesystemAdapter;
+use Aws\Exception\AwsException;
+use Aws\S3\S3Client;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Throwable;
 use RuntimeException;
+use Throwable;
 
 class InmuebleImageService
 {
@@ -22,102 +21,326 @@ class InmuebleImageService
      */
     protected $imageManager;
 
-    public function __construct($imageManager = null)
+    protected S3Client $s3Client;
+
+    protected string $s3Bucket;
+
+    protected string $s3Region;
+
+    protected ?string $s3Endpoint = null;
+
+    protected bool $s3PathStyle = false;
+
+    public function __construct(?S3Client $s3Client = null, $imageManager = null)
     {
+        $config = $this->resolveS3Configuration();
+
+        $this->s3Client = $s3Client ?: new S3Client($config['client']);
+        $this->s3Bucket = $config['bucket'];
+        $this->s3Region = $config['region'];
+        $this->s3Endpoint = $config['endpoint'];
+        $this->s3PathStyle = $config['path_style'];
         $this->imageManager = $imageManager ?: $this->resolveImageManager();
     }
 
     /**
-     * @param  array<int, UploadedFile>  $imagenes
+     * @param  array<int, UploadedFile|null>  $imagenes
      */
-    public function storeImages(Inmueble $inmueble, array $imagenes, string $diskName): void
+    public function storeImages(Inmueble $inmueble, array $imagenes): void
     {
+        $imagenes = array_values(array_filter(
+            $imagenes,
+            static fn ($imagen) => $imagen instanceof UploadedFile,
+        ));
+
         if (empty($imagenes)) {
             return;
         }
 
-        $basePath = AddressSlugger::forInmueble($inmueble);
+        $baseFolder = $this->buildInmuebleFolder($inmueble);
         $ordenBase = (int) $inmueble->images()->max('orden');
+        $records = [];
+        $uploadedKeys = [];
 
-        foreach ($imagenes as $index => $imagen) {
-            if (! $imagen instanceof UploadedFile) {
-                continue;
+        try {
+            foreach ($imagenes as $index => $imagen) {
+                $sequence = $ordenBase + $index + 1;
+                $keyPrefix = sprintf('%s/foto%d', $baseFolder, $sequence);
+
+                $filePayload = $this->storeSingleImage($imagen, $keyPrefix);
+
+                $records[] = [
+                    'disk' => 's3',
+                    'path' => $filePayload['path'],
+                    'url' => $filePayload['url'],
+                    'orden' => $sequence,
+                    'metadata' => $filePayload['metadata'],
+                ];
+
+                $uploadedKeys = array_merge($uploadedKeys, $filePayload['stored_keys']);
             }
+        } catch (Throwable $exception) {
+            report($exception);
+            $this->cleanupUploadedKeys($uploadedKeys);
 
-            $filePayload = $this->storeSingleImage($imagen, $diskName, $basePath);
+            throw $exception;
+        }
 
-            $inmueble->images()->create([
-                'disk' => $diskName,
-                'path' => $filePayload['path'],
-                'url' => $filePayload['url'],
-                'orden' => $ordenBase + $index + 1,
-                'metadata' => $filePayload['metadata'],
-            ]);
+        if (empty($records)) {
+            return;
+        }
+
+        try {
+            $inmueble->images()->createMany($records);
+        } catch (Throwable $exception) {
+            report($exception);
+            $this->cleanupUploadedKeys($uploadedKeys);
+
+            throw $exception;
         }
     }
 
     public function deleteImage(InmuebleImage $image): void
     {
-        $disk = Storage::disk($image->disk);
         $paths = $this->collectPathsForDeletion($image);
 
-        foreach ($paths as $path) {
-            $disk->delete($path);
+        if ($image->disk !== 's3') {
+            $disk = Storage::disk($image->disk);
+
+            foreach ($paths as $path) {
+                $disk->delete($path);
+            }
+
+            $image->delete();
+
+            return;
+        }
+
+        if (! empty($paths)) {
+            $this->cleanupUploadedKeys($paths, true);
         }
 
         $image->delete();
     }
 
-    protected function storeSingleImage(UploadedFile $image, string $diskName, string $basePath): array
+    protected function buildInmuebleFolder(Inmueble $inmueble): string
     {
-        $disk = Storage::disk($diskName);
-        $visibility = ['visibility' => 'public'];
+        $segments = array_filter([
+            $inmueble->direccion,
+            $inmueble->ciudad,
+            $inmueble->estado,
+        ], fn ($value) => filled($value));
 
+        if (! empty($segments)) {
+            $folder = Str::slug(implode(' ', $segments), '-');
+
+            if ($folder !== '') {
+                return $folder;
+            }
+        }
+
+        return 'inmueble-' . $inmueble->id;
+    }
+
+    protected function uploadUploadedFileToS3(UploadedFile $file, string $key, string $mimeType): void
+    {
+        $stream = fopen($file->getPathname(), 'rb');
+
+        if ($stream === false) {
+            throw new RuntimeException(sprintf('No se pudo leer el archivo [%s] para subirlo a S3.', $file->getClientOriginalName()));
+        }
+
+        try {
+            $this->s3Client->putObject([
+                'Bucket' => $this->s3Bucket,
+                'Key' => ltrim($key, '/'),
+                'Body' => $stream,
+                'ACL' => 'public-read',
+                'ContentType' => $mimeType,
+            ]);
+        } catch (AwsException $exception) {
+            $message = $exception->getAwsErrorMessage() ?: $exception->getMessage();
+
+            throw new RuntimeException(
+                sprintf('No se pudo subir el archivo original al bucket S3: %s', $message),
+                0,
+                $exception,
+            );
+        } finally {
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+        }
+    }
+
+    protected function uploadContentsToS3(string $contents, string $key, string $mimeType): void
+    {
+        try {
+            $this->s3Client->putObject([
+                'Bucket' => $this->s3Bucket,
+                'Key' => ltrim($key, '/'),
+                'Body' => $contents,
+                'ACL' => 'public-read',
+                'ContentType' => $mimeType,
+            ]);
+        } catch (AwsException $exception) {
+            $message = $exception->getAwsErrorMessage() ?: $exception->getMessage();
+
+            throw new RuntimeException(
+                sprintf('No se pudo subir la variante de imagen al bucket S3: %s', $message),
+                0,
+                $exception,
+            );
+        }
+    }
+
+    protected function cleanupUploadedKeys(array $keys, bool $throwOnFailure = false): void
+    {
+        $keys = array_values(array_filter(array_unique(array_map(
+            static fn ($key) => is_string($key) ? ltrim($key, '/') : null,
+            $keys,
+        ))));
+
+        if (empty($keys)) {
+            return;
+        }
+
+        try {
+            foreach (array_chunk($keys, 1000) as $chunk) {
+                $this->s3Client->deleteObjects([
+                    'Bucket' => $this->s3Bucket,
+                    'Delete' => [
+                        'Objects' => array_map(static fn (string $key) => ['Key' => $key], $chunk),
+                        'Quiet' => true,
+                    ],
+                ]);
+            }
+        } catch (Throwable $exception) {
+            report($exception);
+
+            if ($throwOnFailure) {
+                $message = $exception instanceof AwsException
+                    ? ($exception->getAwsErrorMessage() ?: $exception->getMessage())
+                    : $exception->getMessage();
+
+                throw new RuntimeException(
+                    sprintf('No se pudieron eliminar las imágenes del bucket S3: %s', $message),
+                    0,
+                    $exception,
+                );
+            }
+        }
+    }
+
+    protected function buildPublicUrl(string $key): string
+    {
+        $key = ltrim($key, '/');
+        $customUrl = config('filesystems.disks.s3.url') ?? env('AWS_URL');
+
+        if (is_string($customUrl) && $customUrl !== '') {
+            return rtrim($customUrl, '/') . '/' . $key;
+        }
+
+        if ($this->s3Endpoint) {
+            $base = rtrim($this->s3Endpoint, '/');
+
+            if ($this->s3PathStyle) {
+                return sprintf('%s/%s/%s', $base, $this->s3Bucket, $key);
+            }
+
+            return sprintf('%s/%s', $base, $key);
+        }
+
+        return sprintf('https://%s.s3.%s.amazonaws.com/%s', $this->s3Bucket, $this->s3Region, $key);
+    }
+
+    protected function resolveS3Configuration(): array
+    {
+        $diskConfig = (array) config('filesystems.disks.s3', []);
+
+        $bucket = (string) ($diskConfig['bucket'] ?? env('AWS_BUCKET'));
+        $region = (string) ($diskConfig['region'] ?? env('AWS_DEFAULT_REGION'));
+
+        if ($bucket === '' || $region === '') {
+            throw new RuntimeException('La configuración de S3 no está completa. Asegúrate de definir AWS_BUCKET y AWS_DEFAULT_REGION.');
+        }
+
+        $clientConfig = [
+            'version' => 'latest',
+            'region' => $region,
+        ];
+
+        $key = $diskConfig['key'] ?? env('AWS_ACCESS_KEY_ID');
+        $secret = $diskConfig['secret'] ?? env('AWS_SECRET_ACCESS_KEY');
+        $token = $diskConfig['token'] ?? env('AWS_SESSION_TOKEN');
+
+        if ($key && $secret) {
+            $credentials = ['key' => $key, 'secret' => $secret];
+
+            if ($token) {
+                $credentials['token'] = $token;
+            }
+
+            $clientConfig['credentials'] = $credentials;
+        }
+
+        $endpoint = $diskConfig['endpoint'] ?? env('AWS_ENDPOINT');
+
+        if ($endpoint) {
+            $clientConfig['endpoint'] = $endpoint;
+        }
+
+        $pathStyleRaw = $diskConfig['use_path_style_endpoint'] ?? env('AWS_USE_PATH_STYLE_ENDPOINT');
+        $pathStyle = filter_var($pathStyleRaw, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? false;
+
+        if ($pathStyle) {
+            $clientConfig['use_path_style_endpoint'] = true;
+        }
+
+        return [
+            'client' => $clientConfig,
+            'bucket' => $bucket,
+            'region' => $region,
+            'endpoint' => $endpoint ? (string) $endpoint : null,
+            'path_style' => $pathStyle,
+        ];
+    }
+
+    protected function storeSingleImage(UploadedFile $image, string $keyPrefix): array
+    {
         $originalName = $image->getClientOriginalName() ?: $image->hashName();
         $originalExtension = strtolower($image->getClientOriginalExtension() ?: $image->guessExtension() ?: 'jpg');
         $processedExtension = 'jpg';
 
-        $baseName = Str::of(pathinfo($originalName, PATHINFO_FILENAME))
-            ->ascii()
-            ->lower()
-            ->replaceMatches('/[^a-z0-9]+/', '_')
-            ->trim('_')
-            ->replaceMatches('/_+/', '_')
-            ->toString();
+        $paths = [
+            'original' => sprintf('%s_original.%s', $keyPrefix, $originalExtension),
+            'normalized' => sprintf('%s_normalized.%s', $keyPrefix, $processedExtension),
+            'watermarked' => sprintf('%s.%s', $keyPrefix, $processedExtension),
+            'thumbnail' => sprintf('%s_thumbnail.%s', $keyPrefix, $processedExtension),
+        ];
 
-        if ($baseName === '') {
-            $baseName = 'imagen';
-        }
-
-        $paths = $this->resolveUniqueVariantPaths($disk, $basePath, $baseName, $originalExtension, $processedExtension);
-
-        $storedFile = $disk->putFileAs($basePath, $image, basename($paths['original']), $visibility);
-
-        if ($storedFile === false) {
-            throw new RuntimeException(sprintf('Unable to store original image for [%s].', $originalName));
-        }
+        $originalMime = $image->getMimeType() ?: $image->getClientMimeType() ?: 'image/' . $originalExtension;
+        $this->uploadUploadedFileToS3($image, $paths['original'], $originalMime);
 
         $normalizedVariant = $this->createNormalizedVariant($image);
         $normalizedContents = (string) ($normalizedVariant['contents'] ?? '');
         $this->ensureVariantContentsNotEmpty($normalizedContents, 'normalized');
-        $this->storeVariantContents($disk, $paths['normalized'], $normalizedContents, $visibility);
+        $this->uploadContentsToS3($normalizedContents, $paths['normalized'], 'image/jpeg');
 
         $watermarkedVariant = $this->createWatermarkedVariant($normalizedContents);
         $watermarkedContents = (string) ($watermarkedVariant['contents'] ?? '');
         $this->ensureVariantContentsNotEmpty($watermarkedContents, 'watermarked');
-        $this->storeVariantContents($disk, $paths['watermarked'], $watermarkedContents, $visibility);
+        $this->uploadContentsToS3($watermarkedContents, $paths['watermarked'], 'image/jpeg');
 
         $thumbnailVariant = $this->createThumbnailVariant($normalizedContents);
         $thumbnailContents = (string) ($thumbnailVariant['contents'] ?? '');
         $this->ensureVariantContentsNotEmpty($thumbnailContents, 'thumbnail');
-        $this->storeVariantContents($disk, $paths['thumbnail'], $thumbnailContents, $visibility);
+        $this->uploadContentsToS3($thumbnailContents, $paths['thumbnail'], 'image/jpeg');
 
         $originalSize = $this->resolveUploadedFileSize($image);
         $normalizedSize = strlen($normalizedContents);
         $watermarkedSize = strlen($watermarkedContents);
         $thumbnailSize = strlen($thumbnailContents);
-
-        $originalMime = $image->getMimeType() ?: $image->getClientMimeType() ?: 'image/' . $originalExtension;
 
         $metadata = [
             'original_name' => $originalName,
@@ -126,13 +349,13 @@ class InmuebleImageService
             'variants' => [
                 'original' => $this->filterVariantMetadata([
                     'path' => $paths['original'],
-                    'url' => $disk->url($paths['original']),
+                    'url' => $this->buildPublicUrl($paths['original']),
                     'size' => $originalSize,
                     'mime_type' => $originalMime,
                 ]),
                 'normalized' => $this->filterVariantMetadata([
                     'path' => $paths['normalized'],
-                    'url' => $disk->url($paths['normalized']),
+                    'url' => $this->buildPublicUrl($paths['normalized']),
                     'width' => $normalizedVariant['width'] ?? null,
                     'height' => $normalizedVariant['height'] ?? null,
                     'size' => $normalizedSize,
@@ -140,7 +363,7 @@ class InmuebleImageService
                 ]),
                 'watermarked' => $this->filterVariantMetadata([
                     'path' => $paths['watermarked'],
-                    'url' => $disk->url($paths['watermarked']),
+                    'url' => $this->buildPublicUrl($paths['watermarked']),
                     'width' => $watermarkedVariant['width'] ?? ($normalizedVariant['width'] ?? null),
                     'height' => $watermarkedVariant['height'] ?? ($normalizedVariant['height'] ?? null),
                     'size' => $watermarkedSize,
@@ -148,7 +371,7 @@ class InmuebleImageService
                 ]),
                 'thumbnail' => $this->filterVariantMetadata([
                     'path' => $paths['thumbnail'],
-                    'url' => $disk->url($paths['thumbnail']),
+                    'url' => $this->buildPublicUrl($paths['thumbnail']),
                     'width' => $thumbnailVariant['width'] ?? null,
                     'height' => $thumbnailVariant['height'] ?? null,
                     'size' => $thumbnailSize,
@@ -159,8 +382,9 @@ class InmuebleImageService
 
         return [
             'path' => $paths['watermarked'],
-            'url' => $disk->url($paths['watermarked']),
+            'url' => $this->buildPublicUrl($paths['watermarked']),
             'metadata' => $metadata,
+            'stored_keys' => array_values(array_unique($paths)),
         ];
     }
 
@@ -430,65 +654,6 @@ class InmuebleImageService
         }
 
         return null;
-    }
-
-    /**
-     * @param  Filesystem|FilesystemAdapter  $disk
-     * @return array{
-     *     original: string,
-     *     normalized: string,
-     *     watermarked: string,
-     *     thumbnail: string,
-     * }
-     */
-    protected function resolveUniqueVariantPaths($disk, string $basePath, string $baseName, string $originalExtension, string $processedExtension): array
-    {
-        $candidateBase = $baseName;
-        $counter = 1;
-
-        while (true) {
-            $paths = [
-                'original' => sprintf('%s/%s_original.%s', $basePath, $candidateBase, $originalExtension),
-                'normalized' => sprintf('%s/%s_normalized.%s', $basePath, $candidateBase, $processedExtension),
-                'watermarked' => sprintf('%s/%s_watermarked.%s', $basePath, $candidateBase, $processedExtension),
-                'thumbnail' => sprintf('%s/%s_thumbnail.%s', $basePath, $candidateBase, $processedExtension),
-            ];
-
-            if (! $this->anyPathExists($disk, $paths)) {
-                return $paths;
-            }
-
-            $candidateBase = sprintf('%s_%d', $baseName, $counter);
-            $counter++;
-        }
-    }
-
-    /**
-     * @param  Filesystem|FilesystemAdapter  $disk
-     * @param  array<string, string>  $paths
-     */
-    protected function anyPathExists($disk, array $paths): bool
-    {
-        foreach ($paths as $path) {
-            if ($disk->exists($path)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @param  Filesystem|FilesystemAdapter  $disk
-     * @param  array<string, mixed>  $options
-     */
-    protected function storeVariantContents($disk, string $path, string $contents, array $options): void
-    {
-        $result = $disk->put($path, $contents, $options);
-
-        if ($result === false) {
-            throw new RuntimeException(sprintf('Unable to store image variant at [%s].', $path));
-        }
     }
 
     protected function resolveUploadedFileSize(UploadedFile $file): ?int
