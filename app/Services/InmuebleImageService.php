@@ -28,31 +28,103 @@ class InmuebleImageService
     }
 
     /**
-     * @param  array<int, UploadedFile>  $imagenes
+     * @param  array<int, UploadedFile|null>  $imagenes
      */
-    public function storeImages(Inmueble $inmueble, array $imagenes, string $diskName): void
-    {
+    public function storeImages(
+        Inmueble $inmueble,
+        array $imagenes,
+        string $diskName,
+        ?string $fallbackDisk = null,
+    ): void {
+        $imagenes = array_values(array_filter(
+            $imagenes,
+            static fn ($imagen) => $imagen instanceof UploadedFile,
+        ));
+
         if (empty($imagenes)) {
             return;
         }
 
         $basePath = AddressSlugger::forInmueble($inmueble);
-        $ordenBase = (int) $inmueble->images()->max('orden');
 
-        foreach ($imagenes as $index => $imagen) {
-            if (! $imagen instanceof UploadedFile) {
-                continue;
+        try {
+            $this->storeImagesOnDisk($inmueble, $imagenes, $diskName, $basePath);
+        } catch (Throwable $primaryException) {
+            report($primaryException);
+
+            if ($fallbackDisk === null) {
+                throw $primaryException;
             }
 
-            $filePayload = $this->storeSingleImage($imagen, $diskName, $basePath);
+            $this->cleanupDirectoryQuietly($diskName, $basePath);
 
-            $inmueble->images()->create([
-                'disk' => $diskName,
-                'path' => $filePayload['path'],
-                'url' => $filePayload['url'],
-                'orden' => $ordenBase + $index + 1,
-                'metadata' => $filePayload['metadata'],
-            ]);
+            try {
+                $this->storeImagesOnDisk($inmueble, $imagenes, $fallbackDisk, $basePath);
+            } catch (Throwable $fallbackException) {
+                report($fallbackException);
+
+                $this->cleanupDirectoryQuietly($fallbackDisk, $basePath);
+
+                throw new RuntimeException(
+                    sprintf(
+                        'No se pudieron subir las imágenes al disco "%s" ni al alternativo "%s". Error original: %s',
+                        $diskName,
+                        $fallbackDisk,
+                        $primaryException->getMessage(),
+                    ),
+                    0,
+                    $fallbackException,
+                );
+            }
+        }
+    }
+
+    /**
+     * @param  array<int, UploadedFile>  $imagenes
+     */
+    protected function storeImagesOnDisk(
+        Inmueble $inmueble,
+        array $imagenes,
+        string $diskName,
+        string $basePath,
+    ): void {
+        $ordenBase = (int) $inmueble->images()->max('orden');
+        $records = [];
+        $storedFiles = [];
+
+        try {
+            foreach ($imagenes as $imagen) {
+                $filePayload = $this->storeSingleImage($imagen, $diskName, $basePath);
+
+                $records[] = [
+                    'disk' => $diskName,
+                    'path' => $filePayload['path'],
+                    'url' => $filePayload['url'],
+                    'orden' => $ordenBase + count($records) + 1,
+                    'metadata' => $filePayload['metadata'],
+                ];
+
+                $storedFiles[] = [
+                    'disk' => $diskName,
+                    'paths' => $filePayload['stored_paths'],
+                ];
+            }
+        } catch (Throwable $exception) {
+            $this->cleanupStoredFiles($storedFiles);
+
+            throw $exception;
+        }
+
+        if (empty($records)) {
+            return;
+        }
+
+        try {
+            $inmueble->images()->createMany($records);
+        } catch (Throwable $exception) {
+            $this->cleanupStoredFiles($storedFiles);
+
+            throw $exception;
         }
     }
 
@@ -161,7 +233,53 @@ class InmuebleImageService
             'path' => $paths['watermarked'],
             'url' => $disk->url($paths['watermarked']),
             'metadata' => $metadata,
+            'stored_paths' => array_values(array_unique($paths)),
         ];
+    }
+
+    /**
+     * @param  array<int, array{disk: string, paths: array<int, string>}>  $storedFiles
+     */
+    protected function cleanupStoredFiles(array $storedFiles): void
+    {
+        foreach ($storedFiles as $fileGroup) {
+            $paths = array_values(array_filter(array_unique($fileGroup['paths'])));
+
+            if (empty($paths)) {
+                continue;
+            }
+
+            try {
+                $disk = Storage::disk($fileGroup['disk']);
+
+                foreach ($paths as $path) {
+                    $disk->delete($path);
+                }
+            } catch (Throwable $exception) {
+                report($exception);
+            }
+        }
+    }
+
+    protected function cleanupDirectoryQuietly(string $diskName, string $basePath): void
+    {
+        try {
+            $disk = Storage::disk($diskName);
+
+            if (! method_exists($disk, 'allFiles')) {
+                return;
+            }
+
+            $files = $disk->allFiles($basePath);
+
+            if (empty($files)) {
+                return;
+            }
+
+            $disk->delete($files);
+        } catch (Throwable $exception) {
+            report($exception);
+        }
     }
 
     protected function collectPathsForDeletion(InmuebleImage $image): array

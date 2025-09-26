@@ -316,8 +316,9 @@ class InmuebleController extends Controller
         }
 
         $diskName = $this->resolveImageDisk();
+        $fallbackDisk = $diskName === 'public' ? null : 'public';
 
-        $this->imageService->storeImages($inmueble, $imagenes, $diskName);
+        $this->imageService->storeImages($inmueble, $imagenes, $diskName, $fallbackDisk);
     }
 
     /**
