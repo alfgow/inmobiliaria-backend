@@ -6,6 +6,8 @@ use App\Models\Inmueble;
 use App\Models\InmuebleImage;
 use App\Support\AddressSlugger;
 use App\Support\WatermarkPathResolver;
+use Illuminate\Contracts\Filesystem\Filesystem;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
@@ -73,6 +75,7 @@ class InmuebleImageService
 
         $originalName = $image->getClientOriginalName() ?: $image->hashName();
         $originalExtension = strtolower($image->getClientOriginalExtension() ?: $image->guessExtension() ?: 'jpg');
+        $processedExtension = 'jpg';
 
         $baseName = Str::of(pathinfo($originalName, PATHINFO_FILENAME))
             ->ascii()
@@ -86,29 +89,77 @@ class InmuebleImageService
             $baseName = 'imagen';
         }
 
-        $sanitizedBase = $baseName;
-        $fileName = sprintf('%s.%s', $sanitizedBase, $originalExtension);
-        $path = sprintf('%s/%s', $basePath, $fileName);
-        $counter = 1;
+        $paths = $this->resolveUniqueVariantPaths($disk, $basePath, $baseName, $originalExtension, $processedExtension);
 
-        while ($disk->exists($path)) {
-            $fileName = sprintf('%s_%d.%s', $sanitizedBase, $counter, $originalExtension);
-            $path = sprintf('%s/%s', $basePath, $fileName);
-            $counter++;
+        $storedFile = $disk->putFileAs($basePath, $image, basename($paths['original']), $visibility);
+
+        if ($storedFile === false) {
+            throw new RuntimeException(sprintf('Unable to store original image for [%s].', $originalName));
         }
 
-        $disk->putFileAs($basePath, $image, $fileName, $visibility);
-        $fileUrl = $disk->url($path);
+        $normalizedVariant = $this->createNormalizedVariant($image);
+        $normalizedContents = (string) ($normalizedVariant['contents'] ?? '');
+        $this->ensureVariantContentsNotEmpty($normalizedContents, 'normalized');
+        $this->storeVariantContents($disk, $paths['normalized'], $normalizedContents, $visibility);
+
+        $watermarkedVariant = $this->createWatermarkedVariant($normalizedContents);
+        $watermarkedContents = (string) ($watermarkedVariant['contents'] ?? '');
+        $this->ensureVariantContentsNotEmpty($watermarkedContents, 'watermarked');
+        $this->storeVariantContents($disk, $paths['watermarked'], $watermarkedContents, $visibility);
+
+        $thumbnailVariant = $this->createThumbnailVariant($normalizedContents);
+        $thumbnailContents = (string) ($thumbnailVariant['contents'] ?? '');
+        $this->ensureVariantContentsNotEmpty($thumbnailContents, 'thumbnail');
+        $this->storeVariantContents($disk, $paths['thumbnail'], $thumbnailContents, $visibility);
+
+        $originalSize = $this->resolveUploadedFileSize($image);
+        $normalizedSize = strlen($normalizedContents);
+        $watermarkedSize = strlen($watermarkedContents);
+        $thumbnailSize = strlen($thumbnailContents);
+
+        $originalMime = $image->getMimeType() ?: $image->getClientMimeType() ?: 'image/' . $originalExtension;
 
         $metadata = [
             'original_name' => $originalName,
-            'size' => $image->getSize(),
-            'mime_type' => $image->getMimeType(),
+            'size' => $originalSize,
+            'mime_type' => $originalMime,
+            'variants' => [
+                'original' => $this->filterVariantMetadata([
+                    'path' => $paths['original'],
+                    'url' => $disk->url($paths['original']),
+                    'size' => $originalSize,
+                    'mime_type' => $originalMime,
+                ]),
+                'normalized' => $this->filterVariantMetadata([
+                    'path' => $paths['normalized'],
+                    'url' => $disk->url($paths['normalized']),
+                    'width' => $normalizedVariant['width'] ?? null,
+                    'height' => $normalizedVariant['height'] ?? null,
+                    'size' => $normalizedSize,
+                    'mime_type' => 'image/jpeg',
+                ]),
+                'watermarked' => $this->filterVariantMetadata([
+                    'path' => $paths['watermarked'],
+                    'url' => $disk->url($paths['watermarked']),
+                    'width' => $watermarkedVariant['width'] ?? ($normalizedVariant['width'] ?? null),
+                    'height' => $watermarkedVariant['height'] ?? ($normalizedVariant['height'] ?? null),
+                    'size' => $watermarkedSize,
+                    'mime_type' => 'image/jpeg',
+                ]),
+                'thumbnail' => $this->filterVariantMetadata([
+                    'path' => $paths['thumbnail'],
+                    'url' => $disk->url($paths['thumbnail']),
+                    'width' => $thumbnailVariant['width'] ?? null,
+                    'height' => $thumbnailVariant['height'] ?? null,
+                    'size' => $thumbnailSize,
+                    'mime_type' => 'image/jpeg',
+                ]),
+            ],
         ];
 
         return [
-            'path' => $path,
-            'url' => $fileUrl,
+            'path' => $paths['watermarked'],
+            'url' => $disk->url($paths['watermarked']),
             'metadata' => $metadata,
         ];
     }
@@ -379,5 +430,101 @@ class InmuebleImageService
         }
 
         return null;
+    }
+
+    /**
+     * @param  Filesystem|FilesystemAdapter  $disk
+     * @return array{
+     *     original: string,
+     *     normalized: string,
+     *     watermarked: string,
+     *     thumbnail: string,
+     * }
+     */
+    protected function resolveUniqueVariantPaths($disk, string $basePath, string $baseName, string $originalExtension, string $processedExtension): array
+    {
+        $candidateBase = $baseName;
+        $counter = 1;
+
+        while (true) {
+            $paths = [
+                'original' => sprintf('%s/%s_original.%s', $basePath, $candidateBase, $originalExtension),
+                'normalized' => sprintf('%s/%s_normalized.%s', $basePath, $candidateBase, $processedExtension),
+                'watermarked' => sprintf('%s/%s_watermarked.%s', $basePath, $candidateBase, $processedExtension),
+                'thumbnail' => sprintf('%s/%s_thumbnail.%s', $basePath, $candidateBase, $processedExtension),
+            ];
+
+            if (! $this->anyPathExists($disk, $paths)) {
+                return $paths;
+            }
+
+            $candidateBase = sprintf('%s_%d', $baseName, $counter);
+            $counter++;
+        }
+    }
+
+    /**
+     * @param  Filesystem|FilesystemAdapter  $disk
+     * @param  array<string, string>  $paths
+     */
+    protected function anyPathExists($disk, array $paths): bool
+    {
+        foreach ($paths as $path) {
+            if ($disk->exists($path)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param  Filesystem|FilesystemAdapter  $disk
+     * @param  array<string, mixed>  $options
+     */
+    protected function storeVariantContents($disk, string $path, string $contents, array $options): void
+    {
+        $result = $disk->put($path, $contents, $options);
+
+        if ($result === false) {
+            throw new RuntimeException(sprintf('Unable to store image variant at [%s].', $path));
+        }
+    }
+
+    protected function resolveUploadedFileSize(UploadedFile $file): ?int
+    {
+        $size = $file->getSize();
+
+        if (is_int($size)) {
+            return $size;
+        }
+
+        $path = $file->getPathname();
+
+        if ($path !== '' && is_file($path)) {
+            $fileSize = @filesize($path);
+
+            if ($fileSize !== false) {
+                return (int) $fileSize;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $metadata
+     * @return array<string, mixed>
+     */
+    protected function filterVariantMetadata(array $metadata): array
+    {
+        return array_filter($metadata, static fn ($value) => $value !== null && $value !== '');
+    }
+
+    protected function ensureVariantContentsNotEmpty(string $contents, string $variant): void
+    {
+        if ($contents === '') {
+            throw new RuntimeException(sprintf('Empty contents generated for %s variant.', $variant));
+        }
     }
 }
