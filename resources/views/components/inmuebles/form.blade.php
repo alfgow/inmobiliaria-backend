@@ -317,8 +317,34 @@
                     accept="image/*"
                     multiple
                     data-gallery-input
-                    class="block w-full rounded-2xl border border-dashed border-gray-700 bg-gray-850/70 px-4 py-5 text-sm text-gray-300 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                    class="sr-only"
                 >
+                <div
+                    class="flex cursor-pointer flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-gray-700 bg-gray-850/70 px-6 py-10 text-center transition focus:outline-none focus:ring-2 focus:ring-indigo-400/40 focus:ring-offset-2 focus:ring-offset-gray-950 hover:border-indigo-400/60 hover:bg-gray-850/80"
+                    data-gallery-dropzone
+                    role="button"
+                    tabindex="0"
+                    aria-controls="imagenes"
+                    aria-label="Agregar imágenes a la galería"
+                >
+                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-800/80 text-indigo-300">
+                        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5m-15 12.75h13.5A1.5 1.5 0 0 0 20.25 18V6a1.5 1.5 0 0 0-1.5-1.5H5.25A1.5 1.5 0 0 0 3.75 6v12a1.5 1.5 0 0 0 1.5 1.5Zm5.25-3.75h4.5a1.5 1.5 0 0 0 1.29-2.295l-2.25-3.75a1.5 1.5 0 0 0-2.58 0l-2.25 3.75A1.5 1.5 0 0 0 9 15.75Z" />
+                        </svg>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-sm font-medium text-gray-100">Arrastra y suelta tus fotos</p>
+                        <p class="text-xs text-gray-400">También puedes hacer clic para seleccionarlas desde tu dispositivo</p>
+                    </div>
+                    <span class="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-medium text-indigo-200">
+                        <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 4v9m0 0 3-3m-3 3-3-3" />
+                        </svg>
+                        Seleccionar imágenes
+                    </span>
+                    <p class="text-xs text-gray-400 transition-colors" data-gallery-counter>0 de 10 imágenes seleccionadas</p>
+                    <p class="text-[11px] text-gray-500">Formatos permitidos: JPG y PNG</p>
+                </div>
                 @error('imagenes')
                     <p class="text-sm text-red-400">{{ $message }}</p>
                 @enderror
@@ -335,19 +361,31 @@
             >
                 <template data-gallery-preview-template>
                     <div
-                        class="group relative cursor-move overflow-hidden rounded-2xl border border-gray-800 bg-gray-900/60 shadow-lg shadow-black/30 transition hover:border-indigo-400/60"
+                        class="group relative overflow-hidden rounded-2xl border border-gray-800 bg-gray-900/60 shadow-lg shadow-black/30 transition hover:border-indigo-400/60"
                         data-gallery-preview
                     >
-                        <div class="absolute inset-x-0 top-0 flex items-start justify-between p-3">
-                            <span
-                                class="hidden rounded-full bg-indigo-500/90 px-3 py-1 text-xs font-semibold text-white shadow-lg shadow-indigo-500/40"
-                                data-gallery-cover-badge
-                            >
-                                Portada
-                            </span>
+                        <div class="absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-3">
+                            <div class="flex items-center gap-2">
+                                <span
+                                    class="hidden rounded-full bg-indigo-500/90 px-3 py-1 text-xs font-semibold text-white shadow-lg shadow-indigo-500/40"
+                                    data-gallery-cover-badge
+                                >
+                                    Portada
+                                </span>
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center gap-1 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-medium text-gray-200 transition hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black/30"
+                                    data-gallery-drag-handle
+                                >
+                                    <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M7 4h6M7 10h6M7 16h6" />
+                                    </svg>
+                                    Reordenar
+                                </button>
+                            </div>
                             <button
                                 type="button"
-                                class="inline-flex items-center gap-1 rounded-full bg-black/60 px-3 py-1 text-xs font-medium text-red-300 transition hover:bg-black/80 hover:text-red-200 focus:outline-none focus:ring-2 focus:ring-red-400/60 focus:ring-offset-2 focus:ring-offset-black/20"
+                                class="inline-flex items-center gap-1 rounded-full bg-black/60 px-3 py-1 text-xs font-medium text-red-200 transition hover:bg-black/80 hover:text-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black/30"
                                 data-gallery-remove
                             >
                                 Eliminar
@@ -375,7 +413,7 @@
 
                         <div class="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-1 bg-gradient-to-t from-black/80 to-transparent p-3 text-xs text-gray-200">
                             <span class="truncate font-medium text-gray-100" data-gallery-filename></span>
-                            <span class="text-[11px] text-gray-300">Arrastra para cambiar el orden</span>
+                            <span class="text-[11px] text-gray-300">Usa “Reordenar” para cambiar la posición</span>
                         </div>
                     </div>
                 </template>
