@@ -8,7 +8,15 @@
             </p>
         </div>
 
-        <form action="{{ route('inmuebles.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
+        <form
+            action="{{ route('inmuebles.store') }}"
+            method="POST"
+            enctype="multipart/form-data"
+            class="space-y-8"
+            data-swal-loader="registrar-inmueble"
+            data-swal-loader-title="Registrando inmueble"
+            data-swal-loader-text="Estamos guardando la información del inmueble..."
+        >
             @csrf
 
             <x-inmuebles.form

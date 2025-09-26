@@ -89,9 +89,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
             form.dataset.submitting = "true";
 
+            const title = form.dataset.swalLoaderTitle || "Registrando contacto";
+            const text = form.dataset.swalLoaderText || "Estamos guardando la información...";
+
             window.Swal.fire({
-                title: "Registrando contacto",
-                text: "Estamos guardando la información...",
+                title,
+                text,
                 allowOutsideClick: false,
                 allowEscapeKey: false,
                 showConfirmButton: false,
