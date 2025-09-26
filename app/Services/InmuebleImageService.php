@@ -9,6 +9,7 @@ use Aws\Exception\AwsException;
 use Aws\S3\S3Client;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -53,6 +54,11 @@ class InmuebleImageService
             static fn ($imagen) => $imagen instanceof UploadedFile,
         ));
 
+        Log::debug('Iniciando almacenamiento de imágenes del inmueble.', [
+            'inmueble_id' => $inmueble->id,
+            'total_archivos' => count($imagenes),
+        ]);
+
         if (empty($imagenes)) {
             return;
         }
@@ -66,6 +72,12 @@ class InmuebleImageService
             foreach ($imagenes as $index => $imagen) {
                 $sequence = $ordenBase + $index + 1;
                 $keyPrefix = sprintf('%s/foto%d', $baseFolder, $sequence);
+
+                Log::debug('Procesando imagen para inmueble.', [
+                    'inmueble_id' => $inmueble->id,
+                    'key_prefix' => $keyPrefix,
+                    'orden' => $sequence,
+                ]);
 
                 $filePayload = $this->storeSingleImage($imagen, $keyPrefix);
 
@@ -91,7 +103,12 @@ class InmuebleImageService
         }
 
         try {
-            $inmueble->images()->createMany($records);
+            $created = $inmueble->images()->createMany($records);
+
+            Log::debug('Imágenes creadas en base de datos para inmueble.', [
+                'inmueble_id' => $inmueble->id,
+                'registros_creados' => $created->count(),
+            ]);
         } catch (Throwable $exception) {
             report($exception);
             $this->cleanupUploadedKeys($uploadedKeys);
@@ -151,6 +168,12 @@ class InmuebleImageService
         }
 
         try {
+            Log::debug('Subiendo archivo original a S3.', [
+                'bucket' => $this->s3Bucket,
+                'key' => ltrim($key, '/'),
+                'content_type' => $mimeType,
+            ]);
+
             $this->s3Client->putObject([
                 'Bucket' => $this->s3Bucket,
                 'Key' => ltrim($key, '/'),
@@ -158,8 +181,17 @@ class InmuebleImageService
                 'ACL' => 'public-read',
                 'ContentType' => $mimeType,
             ]);
+
+            Log::debug('Archivo original subido correctamente a S3.', [
+                'key' => ltrim($key, '/'),
+            ]);
         } catch (AwsException $exception) {
             $message = $exception->getAwsErrorMessage() ?: $exception->getMessage();
+
+            Log::error('Error al subir archivo original a S3.', [
+                'key' => ltrim($key, '/'),
+                'mensaje' => $message,
+            ]);
 
             throw new RuntimeException(
                 sprintf('No se pudo subir el archivo original al bucket S3: %s', $message),
@@ -176,6 +208,12 @@ class InmuebleImageService
     protected function uploadContentsToS3(string $contents, string $key, string $mimeType): void
     {
         try {
+            Log::debug('Subiendo contenido a S3.', [
+                'bucket' => $this->s3Bucket,
+                'key' => ltrim($key, '/'),
+                'content_type' => $mimeType,
+            ]);
+
             $this->s3Client->putObject([
                 'Bucket' => $this->s3Bucket,
                 'Key' => ltrim($key, '/'),
@@ -183,8 +221,17 @@ class InmuebleImageService
                 'ACL' => 'public-read',
                 'ContentType' => $mimeType,
             ]);
+
+            Log::debug('Contenido subido correctamente a S3.', [
+                'key' => ltrim($key, '/'),
+            ]);
         } catch (AwsException $exception) {
             $message = $exception->getAwsErrorMessage() ?: $exception->getMessage();
+
+            Log::error('Error al subir contenido a S3.', [
+                'key' => ltrim($key, '/'),
+                'mensaje' => $message,
+            ]);
 
             throw new RuntimeException(
                 sprintf('No se pudo subir la variante de imagen al bucket S3: %s', $message),
@@ -205,6 +252,10 @@ class InmuebleImageService
             return;
         }
 
+        Log::debug('Iniciando limpieza de claves en S3.', [
+            'total_claves' => count($keys),
+        ]);
+
         try {
             foreach (array_chunk($keys, 1000) as $chunk) {
                 $this->s3Client->deleteObjects([
@@ -217,6 +268,10 @@ class InmuebleImageService
             }
         } catch (Throwable $exception) {
             report($exception);
+
+            Log::error('Error al limpiar claves en S3.', [
+                'mensaje' => $exception->getMessage(),
+            ]);
 
             if ($throwOnFailure) {
                 $message = $exception instanceof AwsException
@@ -319,28 +374,90 @@ class InmuebleImageService
             'thumbnail' => sprintf('%s_thumbnail.%s', $keyPrefix, $processedExtension),
         ];
 
-        $originalMime = $image->getMimeType() ?: $image->getClientMimeType() ?: 'image/' . $originalExtension;
-        $this->uploadUploadedFileToS3($image, $paths['original'], $originalMime);
+        Log::debug('Nombres de archivo calculados para la imagen.', [
+            'key_prefix' => $keyPrefix,
+            'paths' => $paths,
+        ]);
 
+        $originalSize = $this->resolveUploadedFileSize($image);
+        $originalMime = $image->getMimeType() ?: $image->getClientMimeType() ?: 'image/' . $originalExtension;
+        Log::debug('Iniciando subida de imagen original.', [
+            'path' => $paths['original'],
+            'mime_type' => $originalMime,
+            'tamano_bytes' => $originalSize,
+        ]);
+        $this->uploadUploadedFileToS3($image, $paths['original'], $originalMime);
+        Log::debug('Imagen original subida.', [
+            'path' => $paths['original'],
+        ]);
+
+        Log::debug('Generando variante normalizada.', [
+            'destino' => $paths['normalized'],
+        ]);
         $normalizedVariant = $this->createNormalizedVariant($image);
         $normalizedContents = (string) ($normalizedVariant['contents'] ?? '');
         $this->ensureVariantContentsNotEmpty($normalizedContents, 'normalized');
+        Log::debug('Variante normalizada generada.', [
+            'destino' => $paths['normalized'],
+            'tamano_bytes' => strlen($normalizedContents),
+            'dimensiones' => [
+                'ancho' => $normalizedVariant['width'] ?? null,
+                'alto' => $normalizedVariant['height'] ?? null,
+            ],
+        ]);
         $this->uploadContentsToS3($normalizedContents, $paths['normalized'], 'image/jpeg');
+        Log::debug('Variante normalizada subida.', [
+            'destino' => $paths['normalized'],
+        ]);
 
+        Log::debug('Generando variante con marca de agua.', [
+            'destino' => $paths['watermarked'],
+        ]);
         $watermarkedVariant = $this->createWatermarkedVariant($normalizedContents);
         $watermarkedContents = (string) ($watermarkedVariant['contents'] ?? '');
         $this->ensureVariantContentsNotEmpty($watermarkedContents, 'watermarked');
+        Log::debug('Variante con marca de agua generada.', [
+            'destino' => $paths['watermarked'],
+            'tamano_bytes' => strlen($watermarkedContents),
+            'dimensiones' => [
+                'ancho' => $watermarkedVariant['width'] ?? ($normalizedVariant['width'] ?? null),
+                'alto' => $watermarkedVariant['height'] ?? ($normalizedVariant['height'] ?? null),
+            ],
+        ]);
         $this->uploadContentsToS3($watermarkedContents, $paths['watermarked'], 'image/jpeg');
+        Log::debug('Variante con marca de agua subida.', [
+            'destino' => $paths['watermarked'],
+        ]);
 
+        Log::debug('Generando miniatura.', [
+            'destino' => $paths['thumbnail'],
+        ]);
         $thumbnailVariant = $this->createThumbnailVariant($normalizedContents);
         $thumbnailContents = (string) ($thumbnailVariant['contents'] ?? '');
         $this->ensureVariantContentsNotEmpty($thumbnailContents, 'thumbnail');
+        Log::debug('Miniatura generada.', [
+            'destino' => $paths['thumbnail'],
+            'tamano_bytes' => strlen($thumbnailContents),
+            'dimensiones' => [
+                'ancho' => $thumbnailVariant['width'] ?? null,
+                'alto' => $thumbnailVariant['height'] ?? null,
+            ],
+        ]);
         $this->uploadContentsToS3($thumbnailContents, $paths['thumbnail'], 'image/jpeg');
+        Log::debug('Miniatura subida.', [
+            'destino' => $paths['thumbnail'],
+        ]);
 
-        $originalSize = $this->resolveUploadedFileSize($image);
         $normalizedSize = strlen($normalizedContents);
         $watermarkedSize = strlen($watermarkedContents);
         $thumbnailSize = strlen($thumbnailContents);
+
+        Log::debug('Tamaños finales calculados para la imagen.', [
+            'original' => $originalSize,
+            'normalized' => $normalizedSize,
+            'watermarked' => $watermarkedSize,
+            'thumbnail' => $thumbnailSize,
+        ]);
 
         $metadata = [
             'original_name' => $originalName,
