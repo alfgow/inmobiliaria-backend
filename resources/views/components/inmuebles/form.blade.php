@@ -320,30 +320,86 @@
                     class="sr-only"
                 >
                 <div
-                    class="flex cursor-pointer flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-gray-700 bg-gray-850/70 px-6 py-10 text-center transition focus:outline-none focus:ring-2 focus:ring-indigo-400/40 focus:ring-offset-2 focus:ring-offset-gray-950 hover:border-indigo-400/60 hover:bg-gray-850/80"
+                    class="flex cursor-pointer flex-col gap-6 rounded-2xl border border-dashed border-gray-700 bg-gray-850/70 px-6 py-8 text-center transition focus:outline-none focus:ring-2 focus:ring-indigo-400/40 focus:ring-offset-2 focus:ring-offset-gray-950 hover:border-indigo-400/60 hover:bg-gray-850/80"
                     data-gallery-dropzone
                     role="button"
                     tabindex="0"
                     aria-controls="imagenes"
                     aria-label="Agregar imágenes a la galería"
                 >
-                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-800/80 text-indigo-300">
-                        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5m-15 12.75h13.5A1.5 1.5 0 0 0 20.25 18V6a1.5 1.5 0 0 0-1.5-1.5H5.25A1.5 1.5 0 0 0 3.75 6v12a1.5 1.5 0 0 0 1.5 1.5Zm5.25-3.75h4.5a1.5 1.5 0 0 0 1.29-2.295l-2.25-3.75a1.5 1.5 0 0 0-2.58 0l-2.25 3.75A1.5 1.5 0 0 0 9 15.75Z" />
-                        </svg>
+                    <div class="flex flex-col items-center justify-center gap-4" data-gallery-empty-state>
+                        <div class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-800/80 text-indigo-300">
+                            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5m-15 12.75h13.5A1.5 1.5 0 0 0 20.25 18V6a1.5 1.5 0 0 0-1.5-1.5H5.25A1.5 1.5 0 0 0 3.75 6v12a1.5 1.5 0 0 0 1.5 1.5Zm5.25-3.75h4.5a1.5 1.5 0 0 0 1.29-2.295l-2.25-3.75a1.5 1.5 0 0 0-2.58 0l-2.25 3.75A1.5 1.5 0 0 0 9 15.75Z" />
+                            </svg>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-sm font-medium text-gray-100">Arrastra y suelta tus fotos</p>
+                            <p class="text-xs text-gray-400">También puedes hacer clic para seleccionarlas desde tu dispositivo</p>
+                        </div>
+                        <span class="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-medium text-indigo-200">
+                            <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10 4v9m0 0 3-3m-3 3-3-3" />
+                            </svg>
+                            Seleccionar imágenes
+                        </span>
                     </div>
-                    <div class="space-y-1">
-                        <p class="text-sm font-medium text-gray-100">Arrastra y suelta tus fotos</p>
-                        <p class="text-xs text-gray-400">También puedes hacer clic para seleccionarlas desde tu dispositivo</p>
+                    <div class="hidden w-full space-y-3 text-left" data-gallery-previews-wrapper>
+                        <p class="text-xs text-gray-400">Arrastra las fotos para cambiar el orden. La primera será la portada.</p>
+                        <div
+                            class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+                            data-gallery-previews-container
+                            data-gallery-watermark-url="{{ $watermarkPreviewUrl ?? '' }}"
+                        >
+                            <template data-gallery-preview-template>
+                                <div
+                                    class="group relative flex cursor-grab flex-col gap-3 rounded-xl border border-gray-800 bg-gray-900/70 p-3 shadow-lg shadow-black/30 transition hover:border-indigo-400/60"
+                                    data-gallery-preview
+                                >
+                                    <div class="absolute right-2 top-2 flex items-center gap-2">
+                                        <span
+                                            class="hidden rounded-full bg-indigo-500 px-2 py-0.5 text-[10px] font-semibold text-white shadow-lg shadow-indigo-500/40"
+                                            data-gallery-cover-badge
+                                        >
+                                            Portada
+                                        </span>
+                                        <button
+                                            type="button"
+                                            class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-sm text-red-200 transition hover:bg-black/80 hover:text-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
+                                            aria-label="Eliminar imagen"
+                                            data-gallery-remove
+                                        >
+                                            <svg class="h-3 w-3" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m6 6 8 8m0-8-8 8" />
+                                            </svg>
+                                        </button>
+                                    </div>
+
+                                    <div class="relative flex h-32 items-center justify-center overflow-hidden rounded-lg bg-gray-850/80 text-sm text-gray-400">
+                                        <div data-gallery-loading>Procesando vista previa...</div>
+                                        <img
+                                            data-gallery-preview-image
+                                            alt="Vista previa de la imagen"
+                                            class="hidden h-full w-full object-cover"
+                                        >
+                                        <img
+                                            data-gallery-preview-watermark
+                                            alt=""
+                                            class="hidden pointer-events-none absolute inset-0 h-full w-full select-none object-cover"
+                                        >
+                                        <p class="hidden absolute inset-x-0 bottom-0 bg-black/70 px-3 py-2 text-[11px] text-red-300" data-gallery-error></p>
+                                    </div>
+
+                                    <div class="flex flex-col gap-1 text-left text-xs">
+                                        <span class="truncate font-medium text-gray-100" data-gallery-filename></span>
+                                        <span class="text-[11px] text-gray-400">Arrastra para reordenar</span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
                     </div>
-                    <span class="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-medium text-indigo-200">
-                        <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 4v9m0 0 3-3m-3 3-3-3" />
-                        </svg>
-                        Seleccionar imágenes
-                    </span>
                     <p class="text-xs text-gray-400 transition-colors" data-gallery-counter>0 de 10 imágenes seleccionadas</p>
-                    <p class="text-[11px] text-gray-500">Formatos permitidos: JPG y PNG</p>
+                    <p class="text-xs text-gray-500">Formatos permitidos: JPG y PNG</p>
                 </div>
                 @error('imagenes')
                     <p class="text-sm text-red-400">{{ $message }}</p>
@@ -352,73 +408,6 @@
                     <p class="text-sm text-red-400">{{ $message }}</p>
                 @enderror
             </div>
-
-            <div
-                class="hidden grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-                data-gallery-previews-container
-                {{-- dejamos siempre el data-attr (vacío si no hay watermark) para simplificar el JS --}}
-                data-gallery-watermark-url="{{ $watermarkPreviewUrl ?? '' }}"
-            >
-                <template data-gallery-preview-template>
-                    <div
-                        class="group relative overflow-hidden rounded-2xl border border-gray-800 bg-gray-900/60 shadow-lg shadow-black/30 transition hover:border-indigo-400/60"
-                        data-gallery-preview
-                    >
-                        <div class="absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-3">
-                            <div class="flex items-center gap-2">
-                                <span
-                                    class="hidden rounded-full bg-indigo-500/90 px-3 py-1 text-xs font-semibold text-white shadow-lg shadow-indigo-500/40"
-                                    data-gallery-cover-badge
-                                >
-                                    Portada
-                                </span>
-                                <button
-                                    type="button"
-                                    class="inline-flex items-center gap-1 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-medium text-gray-200 transition hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black/30"
-                                    data-gallery-drag-handle
-                                >
-                                    <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M7 4h6M7 10h6M7 16h6" />
-                                    </svg>
-                                    Reordenar
-                                </button>
-                            </div>
-                            <button
-                                type="button"
-                                class="inline-flex items-center gap-1 rounded-full bg-black/60 px-3 py-1 text-xs font-medium text-red-200 transition hover:bg-black/80 hover:text-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black/30"
-                                data-gallery-remove
-                            >
-                                Eliminar
-                            </button>
-                        </div>
-
-                        <div class="flex h-48 items-center justify-center bg-gray-850/80 text-sm text-gray-400" data-gallery-loading>
-                            Procesando vista previa...
-                        </div>
-
-                        <img
-                            data-gallery-preview-image
-                            alt="Vista previa de la imagen"
-                            class="hidden h-48 w-full object-cover transition duration-300 group-hover:scale-105"
-                        >
-
-                        {{-- Overlay de marca de agua (PNG transparente a pantalla completa) --}}
-                        <img
-                            data-gallery-preview-watermark
-                            alt=""
-                            class="hidden pointer-events-none absolute inset-0 h-48 w-full select-none object-cover"
-                        >
-
-                        <p class="hidden px-3 pb-3 text-xs text-red-300" data-gallery-error></p>
-
-                        <div class="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col gap-1 bg-gradient-to-t from-black/80 to-transparent p-3 text-xs text-gray-200">
-                            <span class="truncate font-medium text-gray-100" data-gallery-filename></span>
-                            <span class="text-[11px] text-gray-300">Usa “Reordenar” para cambiar la posición</span>
-                        </div>
-                    </div>
-                </template>
-            </div>
-
             @if ($inmueble && $inmueble->images->isNotEmpty())
                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     @foreach ($inmueble->images as $imagen)
