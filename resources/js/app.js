@@ -22,64 +22,73 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    document.querySelectorAll("[data-searchable-select]").forEach((container) => {
-        const searchInput = container.querySelector("[data-search-input]");
-        const select = container.querySelector("select");
+    document
+        .querySelectorAll("[data-searchable-select]")
+        .forEach((container) => {
+            const searchInput = container.querySelector("[data-search-input]");
+            const select = container.querySelector("select");
 
-        if (!searchInput || !select) {
-            return;
-        }
-
-        const options = Array.from(select.options);
-
-        const filterOptions = () => {
-            const term = searchInput.value.trim().toLowerCase();
-
-            options.forEach((option) => {
-                if (option.value === "") {
-                    option.hidden = false;
-                    return;
-                }
-
-                const searchSource = option.dataset.searchable || option.textContent || "";
-                const matches = term === "" || searchSource.toLowerCase().includes(term);
-
-                option.hidden = !matches;
-            });
-
-            const selectedOption = select.selectedOptions[0];
-            if (selectedOption && selectedOption.hidden) {
-                select.value = "";
-            }
-        };
-
-        searchInput.addEventListener("input", filterOptions);
-
-        searchInput.addEventListener("search", filterOptions);
-
-        searchInput.addEventListener("keydown", (event) => {
-            if (event.key !== "Enter") {
+            if (!searchInput || !select) {
                 return;
             }
 
-            event.preventDefault();
+            const options = Array.from(select.options);
 
-            const firstVisibleOption = options.find((option) => !option.hidden && option.value !== "");
+            const filterOptions = () => {
+                const term = searchInput.value.trim().toLowerCase();
 
-            if (firstVisibleOption) {
-                select.value = firstVisibleOption.value;
-                select.dispatchEvent(new Event("change", { bubbles: true }));
-            }
-        });
-
-        searchInput.addEventListener("blur", () => {
-            if (searchInput.value.trim() === "") {
                 options.forEach((option) => {
-                    option.hidden = false;
+                    if (option.value === "") {
+                        option.hidden = false;
+                        return;
+                    }
+
+                    const searchSource =
+                        option.dataset.searchable || option.textContent || "";
+                    const matches =
+                        term === "" ||
+                        searchSource.toLowerCase().includes(term);
+
+                    option.hidden = !matches;
                 });
-            }
+
+                const selectedOption = select.selectedOptions[0];
+                if (selectedOption && selectedOption.hidden) {
+                    select.value = "";
+                }
+            };
+
+            searchInput.addEventListener("input", filterOptions);
+
+            searchInput.addEventListener("search", filterOptions);
+
+            searchInput.addEventListener("keydown", (event) => {
+                if (event.key !== "Enter") {
+                    return;
+                }
+
+                event.preventDefault();
+
+                const firstVisibleOption = options.find(
+                    (option) => !option.hidden && option.value !== ""
+                );
+
+                if (firstVisibleOption) {
+                    select.value = firstVisibleOption.value;
+                    select.dispatchEvent(
+                        new Event("change", { bubbles: true })
+                    );
+                }
+            });
+
+            searchInput.addEventListener("blur", () => {
+                if (searchInput.value.trim() === "") {
+                    options.forEach((option) => {
+                        option.hidden = false;
+                    });
+                }
+            });
         });
-    });
 
     document.querySelectorAll("form[data-swal-loader]").forEach((form) => {
         form.addEventListener("submit", () => {
@@ -109,10 +118,12 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             const title = form.dataset.swalTitle || "¿Estás seguro?";
-            const text = form.dataset.swalConfirm || "Esta acción no se puede deshacer.";
+            const text =
+                form.dataset.swalConfirm || "Esta acción no se puede deshacer.";
             const confirmButtonText =
                 form.dataset.swalConfirmButton || "Sí, continuar";
-            const cancelButtonText = form.dataset.swalCancelButton || "Cancelar";
+            const cancelButtonText =
+                form.dataset.swalCancelButton || "Cancelar";
 
             if (!window.Swal) {
                 const shouldSubmit = window.confirm(`${title}\n\n${text}`);
@@ -241,25 +252,38 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         document.addEventListener("keydown", (event) => {
-            if (event.key === "Escape" && sidebar.dataset.sidebarOpen === "true") {
+            if (
+                event.key === "Escape" &&
+                sidebar.dataset.sidebarOpen === "true"
+            ) {
                 closeSidebar();
             }
         });
     }
 
     const galleryInput = document.querySelector("[data-gallery-input]");
-    const previewsContainer = document.querySelector("[data-gallery-previews-container]");
+    const previewsContainer = document.querySelector(
+        "[data-gallery-previews-container]"
+    );
 
     if (galleryInput && previewsContainer) {
-        const template = previewsContainer.querySelector("template[data-gallery-preview-template]");
-        const watermarkUrl = previewsContainer.dataset.galleryWatermarkUrl || "";
+        const template = previewsContainer.querySelector(
+            "template[data-gallery-preview-template]"
+        );
+        const watermarkUrl =
+            previewsContainer.dataset.galleryWatermarkUrl || "";
         const dropzone = document.querySelector("[data-gallery-dropzone]");
-        const previewsWrapper = document.querySelector("[data-gallery-previews-wrapper]");
+        const previewsWrapper = document.querySelector(
+            "[data-gallery-previews-wrapper]"
+        );
         const counterElement = document.querySelector("[data-gallery-counter]");
-        const emptyState = dropzone?.querySelector("[data-gallery-empty-state]");
+        const emptyState = dropzone?.querySelector(
+            "[data-gallery-empty-state]"
+        );
         const MAX_FILES = 10;
         const canManageFiles =
-            typeof window !== "undefined" && typeof window.DataTransfer !== "undefined";
+            typeof window !== "undefined" &&
+            typeof window.DataTransfer !== "undefined";
 
         let selectedFiles = [];
         let dragSourceIndex = null;
@@ -296,8 +320,14 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             counterElement.textContent = `${selectedFiles.length} de ${MAX_FILES} imágenes seleccionadas`;
-            counterElement.classList.toggle("text-red-300", selectedFiles.length >= MAX_FILES);
-            counterElement.classList.toggle("text-gray-400", selectedFiles.length < MAX_FILES);
+            counterElement.classList.toggle(
+                "text-red-300",
+                selectedFiles.length >= MAX_FILES
+            );
+            counterElement.classList.toggle(
+                "text-gray-400",
+                selectedFiles.length < MAX_FILES
+            );
         };
 
         const createPreviewElement = () => {
@@ -309,7 +339,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const element = fragment.firstElementChild;
 
             if (!element) {
-                throw new Error("No se pudo crear el contenedor de la vista previa");
+                throw new Error(
+                    "No se pudo crear el contenedor de la vista previa"
+                );
             }
 
             return element;
@@ -339,9 +371,11 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         const renderPreviews = () => {
-            previewsContainer.querySelectorAll("[data-gallery-preview]").forEach((element) => {
-                element.remove();
-            });
+            previewsContainer
+                .querySelectorAll("[data-gallery-preview]")
+                .forEach((element) => {
+                    element.remove();
+                });
 
             selectedFiles.forEach((file, index) => {
                 const element = createPreviewElement();
@@ -349,12 +383,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 element.dataset.galleryIndex = String(index);
                 element.draggable = true;
 
-                const loadingIndicator = element.querySelector("[data-gallery-loading]");
-                const imgBase = element.querySelector("[data-gallery-preview-image]");
-                const imgWater = element.querySelector("[data-gallery-preview-watermark]");
+                const loadingIndicator = element.querySelector(
+                    "[data-gallery-loading]"
+                );
+                const imgBase = element.querySelector(
+                    "[data-gallery-preview-image]"
+                );
+                const imgWater = element.querySelector(
+                    "[data-gallery-preview-watermark]"
+                );
                 const errorEl = element.querySelector("[data-gallery-error]");
-                const coverBadge = element.querySelector("[data-gallery-cover-badge]");
-                const filenameEl = element.querySelector("[data-gallery-filename]");
+                const coverBadge = element.querySelector(
+                    "[data-gallery-cover-badge]"
+                );
+                const filenameEl = element.querySelector(
+                    "[data-gallery-filename]"
+                );
 
                 if (coverBadge) {
                     coverBadge.classList.toggle("hidden", index !== 0);
@@ -421,7 +465,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            const validFiles = files.filter((file) => file.type.startsWith("image/"));
+            const validFiles = files.filter((file) =>
+                file.type.startsWith("image/")
+            );
 
             if (validFiles.length === 0) {
                 return;
@@ -489,8 +535,10 @@ document.addEventListener("DOMContentLoaded", () => {
             dropzone.addEventListener("drop", handleFileDrop);
 
             dropzone.addEventListener("click", (event) => {
-                if (event.target instanceof Element
-                    && event.target.closest("[data-gallery-preview]")) {
+                if (
+                    event.target instanceof Element &&
+                    event.target.closest("[data-gallery-preview]")
+                ) {
                     return;
                 }
 
@@ -513,18 +561,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
         galleryInput.addEventListener("change", () => {
             const files = Array.from(galleryInput.files || []);
-
             addFilesToSelection(files);
 
-            if (canManageFiles) {
-                galleryInput.value = "";
-            }
+            // ⚠️ Quitar esto que vacía el input
+            // if (canManageFiles) {
+            //     galleryInput.value = "";
+            // }
+
+            updateFileInput(); // 👈 asegura que los selectedFiles estén en el input
         });
 
         previewsContainer.addEventListener("click", (event) => {
-            const removeButton = event.target instanceof Element
-                ? event.target.closest("[data-gallery-remove]")
-                : null;
+            const removeButton =
+                event.target instanceof Element
+                    ? event.target.closest("[data-gallery-remove]")
+                    : null;
 
             if (!removeButton) {
                 return;
@@ -639,7 +690,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     destinationIndex = targetIndex;
 
                     const rect = preview.getBoundingClientRect();
-                    const shouldPlaceAfter = event.clientY > rect.top + rect.height / 2;
+                    const shouldPlaceAfter =
+                        event.clientY > rect.top + rect.height / 2;
 
                     if (shouldPlaceAfter) {
                         destinationIndex += 1;
@@ -682,8 +734,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const related = event.relatedTarget;
 
-            if (related instanceof Element
-                && (related.closest("[data-gallery-preview]") || dropzone?.contains(related))) {
+            if (
+                related instanceof Element &&
+                (related.closest("[data-gallery-preview]") ||
+                    dropzone?.contains(related))
+            ) {
                 return;
             }
 

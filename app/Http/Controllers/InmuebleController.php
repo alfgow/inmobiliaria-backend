@@ -44,8 +44,8 @@ class InmuebleController extends Controller
                         ->orWhere('estado', 'like', "%{$search}%");
                 });
             })
-            ->when($operacion, fn (Builder $query) => $query->where('operacion', $operacion))
-            ->when($estatus, fn (Builder $query) => $query->where('estatus_id', $estatus))
+            ->when($operacion, fn(Builder $query) => $query->where('operacion', $operacion))
+            ->when($estatus, fn(Builder $query) => $query->where('estatus_id', $estatus))
             ->orderByDesc('destacado')
             ->orderByDesc('updated_at');
 
@@ -98,6 +98,7 @@ class InmuebleController extends Controller
      */
     public function store(StoreInmuebleRequest $request): RedirectResponse
     {
+
         $payload = $this->preparePayload($request->validated(), $request);
         $imagenes = $request->file('imagenes', []);
 
@@ -184,15 +185,17 @@ class InmuebleController extends Controller
         $payload['asesor_id'] = $request->user()->id;
         $payload['destacado'] = $request->boolean('destacado');
 
-        foreach ([
-            'habitaciones',
-            'banos',
-            'estacionamientos',
-            'metros_cuadrados',
-            'superficie_construida',
-            'superficie_terreno',
-            'anio_construccion',
-        ] as $numericField) {
+        foreach (
+            [
+                'habitaciones',
+                'banos',
+                'estacionamientos',
+                'metros_cuadrados',
+                'superficie_construida',
+                'superficie_terreno',
+                'anio_construccion',
+            ] as $numericField
+        ) {
             if (! array_key_exists($numericField, $payload)) {
                 continue;
             }
@@ -298,7 +301,7 @@ class InmuebleController extends Controller
         }
 
         return collect(preg_split('/\r\n|\r|\n/', (string) $value))
-            ->map(fn (string $item) => trim($item))
+            ->map(fn(string $item) => trim($item))
             ->filter()
             ->values()
             ->all();
@@ -331,5 +334,4 @@ class InmuebleController extends Controller
             $this->imageService->deleteImage($imagen);
         }
     }
-
 }
