@@ -356,7 +356,7 @@
                                     class="group relative flex cursor-grab flex-col gap-3 rounded-xl border border-gray-800 bg-gray-900/70 p-3 shadow-lg shadow-black/30 transition hover:border-indigo-400/60"
                                     data-gallery-preview
                                 >
-                                    <div class="absolute right-2 top-2 flex items-center gap-2">
+                                    <div class="absolute right-2 top-2 z-20 flex items-center gap-2">
                                         <span
                                             class="hidden rounded-full bg-indigo-500 px-2 py-0.5 text-[10px] font-semibold text-white shadow-lg shadow-indigo-500/40"
                                             data-gallery-cover-badge
@@ -365,7 +365,7 @@
                                         </span>
                                         <button
                                             type="button"
-                                            class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-sm text-red-200 transition hover:bg-black/80 hover:text-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
+                                            class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/80 text-sm text-red-200 shadow-lg shadow-black/40 transition hover:bg-black/80 hover:text-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
                                             aria-label="Eliminar imagen"
                                             data-gallery-remove
                                         >
