@@ -305,7 +305,7 @@ class InmuebleController extends Controller
     }
 
     /**
-     * Persist uploaded images in S3 (or the configured disk).
+     * Persist uploaded images for the property.
      *
      * @param  array<int, \Illuminate\Http\UploadedFile>  $imagenes
      */
@@ -315,9 +315,7 @@ class InmuebleController extends Controller
             return;
         }
 
-        $diskName = $this->resolveImageDisk();
-
-        $this->imageService->storeImages($inmueble, $imagenes, $diskName);
+        $this->imageService->storeImages($inmueble, $imagenes);
     }
 
     /**
@@ -334,25 +332,4 @@ class InmuebleController extends Controller
         }
     }
 
-    /**
-     * Determine which filesystem disk should be used for property images.
-     */
-    protected function resolveImageDisk(): string
-    {
-        $defaultDisk = (string) config('filesystems.default');
-
-        if ($defaultDisk === 's3') {
-            return 's3';
-        }
-
-        if (! empty(config('filesystems.disks.s3.bucket'))) {
-            return 's3';
-        }
-
-        if ($defaultDisk === 'local' || $defaultDisk === '') {
-            return 'public';
-        }
-
-        return $defaultDisk;
-    }
 }
