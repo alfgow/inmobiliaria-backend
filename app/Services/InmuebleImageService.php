@@ -178,7 +178,6 @@ class InmuebleImageService
                 'Bucket' => $this->s3Bucket,
                 'Key' => ltrim($key, '/'),
                 'Body' => $stream,
-                'ACL' => 'public-read',
                 'ContentType' => $mimeType,
             ]);
 
@@ -218,7 +217,6 @@ class InmuebleImageService
                 'Bucket' => $this->s3Bucket,
                 'Key' => ltrim($key, '/'),
                 'Body' => $contents,
-                'ACL' => 'public-read',
                 'ContentType' => $mimeType,
             ]);
 
