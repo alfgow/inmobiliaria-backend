@@ -86,63 +86,29 @@ class InmuebleImageService
             $baseName = 'imagen';
         }
 
-        $baseName .= '_' . Str::lower(Str::random(6));
+        $sanitizedBase = $baseName;
+        $fileName = sprintf('%s.%s', $sanitizedBase, $originalExtension);
+        $path = sprintf('%s/%s', $basePath, $fileName);
+        $counter = 1;
 
-        $paths = [
-            'original' => sprintf('%s/%s_original.%s', $basePath, $baseName, $originalExtension),
-            'normalized' => sprintf('%s/%s_normalized.jpg', $basePath, $baseName),
-            'watermarked' => sprintf('%s/%s_watermarked.jpg', $basePath, $baseName),
-            'thumbnail' => sprintf('%s/%s_thumbnail.jpg', $basePath, $baseName),
-        ];
+        while ($disk->exists($path)) {
+            $fileName = sprintf('%s_%d.%s', $sanitizedBase, $counter, $originalExtension);
+            $path = sprintf('%s/%s', $basePath, $fileName);
+            $counter++;
+        }
 
-        $disk->putFileAs($basePath, $image, basename($paths['original']), $visibility);
-        $originalUrl = $disk->url($paths['original']);
-
-        $normalizedData = $this->createNormalizedVariant($image);
-        $disk->put($paths['normalized'], $normalizedData['contents'], $visibility);
-        $normalizedUrl = $disk->url($paths['normalized']);
-
-        $watermarkData = $this->createWatermarkedVariant($normalizedData['contents']);
-        $disk->put($paths['watermarked'], $watermarkData['contents'], $visibility);
-        $watermarkUrl = $disk->url($paths['watermarked']);
-
-        $thumbnailData = $this->createThumbnailVariant($normalizedData['contents']);
-        $disk->put($paths['thumbnail'], $thumbnailData['contents'], $visibility);
-        $thumbnailUrl = $disk->url($paths['thumbnail']);
+        $disk->putFileAs($basePath, $image, $fileName, $visibility);
+        $fileUrl = $disk->url($path);
 
         $metadata = [
             'original_name' => $originalName,
             'size' => $image->getSize(),
             'mime_type' => $image->getMimeType(),
-            'variants' => [
-                'original' => [
-                    'path' => $paths['original'],
-                    'url' => $originalUrl,
-                ],
-                'normalized' => [
-                    'path' => $paths['normalized'],
-                    'url' => $normalizedUrl,
-                    'width' => $normalizedData['width'] ?? null,
-                    'height' => $normalizedData['height'] ?? null,
-                ],
-                'watermarked' => [
-                    'path' => $paths['watermarked'],
-                    'url' => $watermarkUrl,
-                    'width' => $watermarkData['width'] ?? null,
-                    'height' => $watermarkData['height'] ?? null,
-                ],
-                'thumbnail' => [
-                    'path' => $paths['thumbnail'],
-                    'url' => $thumbnailUrl,
-                    'width' => $thumbnailData['width'] ?? null,
-                    'height' => $thumbnailData['height'] ?? null,
-                ],
-            ],
         ];
 
         return [
-            'path' => $paths['watermarked'],
-            'url' => $watermarkUrl,
+            'path' => $path,
+            'url' => $fileUrl,
             'metadata' => $metadata,
         ];
     }
