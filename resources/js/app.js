@@ -253,6 +253,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (galleryInput && previewsContainer) {
         const template = previewsContainer.querySelector("template[data-gallery-preview-template]");
         const watermarkUrl = previewsContainer.dataset.galleryWatermarkUrl || "";
+        const dropzone = document.querySelector("[data-gallery-dropzone]");
+        const counterElement = document.querySelector("[data-gallery-counter]");
         const MAX_FILES = 10;
         const canManageFiles =
             typeof window !== "undefined" && typeof window.DataTransfer !== "undefined";
@@ -260,6 +262,42 @@ document.addEventListener("DOMContentLoaded", () => {
         let selectedFiles = [];
         let dragSourceIndex = null;
         let dragSourcePreview = null;
+        let dragInitiatedByHandle = false;
+
+        const setDropzoneActive = (isActive) => {
+            if (!dropzone) {
+                return;
+            }
+
+            dropzone.classList.toggle("border-indigo-400/70", isActive);
+            dropzone.classList.toggle("bg-gray-850/80", isActive);
+            dropzone.classList.toggle("shadow-lg", isActive);
+            dropzone.classList.toggle("shadow-indigo-500/30", isActive);
+        };
+
+        const isFileDragEvent = (event) => {
+            if (!event || !event.dataTransfer) {
+                return false;
+            }
+
+            const { types } = event.dataTransfer;
+
+            if (!types) {
+                return true;
+            }
+
+            return Array.from(types).includes("Files");
+        };
+
+        const updateFileCount = () => {
+            if (!counterElement) {
+                return;
+            }
+
+            counterElement.textContent = `${selectedFiles.length} de ${MAX_FILES} imágenes seleccionadas`;
+            counterElement.classList.toggle("text-red-300", selectedFiles.length >= MAX_FILES);
+            counterElement.classList.toggle("text-gray-400", selectedFiles.length < MAX_FILES);
+        };
 
         const createPreviewElement = () => {
             if (!(template instanceof HTMLTemplateElement)) {
@@ -278,6 +316,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const updateContainerVisibility = () => {
             previewsContainer.classList.toggle("hidden", selectedFiles.length === 0);
+            updateFileCount();
         };
 
         const updateFileInput = () => {
@@ -403,6 +442,61 @@ document.addEventListener("DOMContentLoaded", () => {
             return target.closest("[data-gallery-preview]");
         };
 
+        if (dropzone) {
+            const handleFileDrop = (event) => {
+                if (!isFileDragEvent(event)) {
+                    return;
+                }
+
+                event.preventDefault();
+                setDropzoneActive(false);
+
+                const files = Array.from(event.dataTransfer?.files || []);
+
+                addFilesToSelection(files);
+            };
+
+            ["dragenter", "dragover"].forEach((type) => {
+                dropzone.addEventListener(type, (event) => {
+                    if (!isFileDragEvent(event)) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    setDropzoneActive(true);
+                });
+            });
+
+            dropzone.addEventListener("dragleave", (event) => {
+                if (!isFileDragEvent(event)) {
+                    return;
+                }
+
+                const related = event.relatedTarget;
+
+                if (related instanceof Element && dropzone.contains(related)) {
+                    return;
+                }
+
+                setDropzoneActive(false);
+            });
+
+            dropzone.addEventListener("drop", handleFileDrop);
+
+            dropzone.addEventListener("click", () => {
+                galleryInput.click();
+            });
+
+            dropzone.addEventListener("keydown", (event) => {
+                if (event.key !== "Enter" && event.key !== " ") {
+                    return;
+                }
+
+                event.preventDefault();
+                galleryInput.click();
+            });
+        }
+
         galleryInput.addEventListener("change", () => {
             const files = Array.from(galleryInput.files || []);
 
@@ -410,6 +504,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (canManageFiles) {
                 galleryInput.value = "";
+            }
+        });
+
+        previewsContainer.addEventListener("mousedown", (event) => {
+            dragInitiatedByHandle = event.target instanceof Element
+                && Boolean(event.target.closest("[data-gallery-drag-handle]"));
+        });
+
+        previewsContainer.addEventListener("mouseup", () => {
+            dragInitiatedByHandle = false;
+        });
+
+        previewsContainer.addEventListener("mouseleave", (event) => {
+            if (event.buttons === 0) {
+                dragInitiatedByHandle = false;
             }
         });
 
@@ -452,6 +561,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
+            if (!dragInitiatedByHandle) {
+                event.preventDefault();
+                return;
+            }
+
             const preview = findPreviewElement(target);
 
             if (!preview) {
@@ -466,6 +580,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             dragSourceIndex = index;
             dragSourcePreview = preview;
+
+            dragInitiatedByHandle = false;
 
             preview.classList.add("opacity-50");
 
@@ -482,9 +598,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
             dragSourceIndex = null;
             dragSourcePreview = null;
+            dragInitiatedByHandle = false;
         });
 
         previewsContainer.addEventListener("dragover", (event) => {
+            if (isFileDragEvent(event)) {
+                event.preventDefault();
+                setDropzoneActive(true);
+                return;
+            }
+
             if (dragSourceIndex === null) {
                 return;
             }
@@ -497,6 +620,16 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         previewsContainer.addEventListener("drop", (event) => {
+            if (isFileDragEvent(event)) {
+                event.preventDefault();
+                setDropzoneActive(false);
+
+                const files = Array.from(event.dataTransfer?.files || []);
+
+                addFilesToSelection(files);
+                return;
+            }
+
             if (dragSourceIndex === null) {
                 return;
             }
@@ -548,6 +681,21 @@ document.addEventListener("DOMContentLoaded", () => {
             dragSourcePreview = null;
 
             renderPreviews();
+        });
+
+        previewsContainer.addEventListener("dragleave", (event) => {
+            if (!isFileDragEvent(event)) {
+                return;
+            }
+
+            const related = event.relatedTarget;
+
+            if (related instanceof Element
+                && (related.closest("[data-gallery-preview]") || dropzone?.contains(related))) {
+                return;
+            }
+
+            setDropzoneActive(false);
         });
 
         updateContainerVisibility();
