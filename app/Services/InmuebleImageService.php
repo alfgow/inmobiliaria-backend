@@ -5,26 +5,16 @@ namespace App\Services;
 use App\Models\Inmueble;
 use App\Models\InmuebleImage;
 use App\Support\AddressSlugger;
-use App\Support\WatermarkPathResolver;
+use Illuminate\Contracts\Filesystem\Filesystem;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Throwable;
 use RuntimeException;
 
 class InmuebleImageService
 {
-    /**
-     * @var object|null
-     */
-    protected $imageManager;
-
-    public function __construct($imageManager = null)
-    {
-        $this->imageManager = $imageManager ?: $this->resolveImageManager();
-    }
-
     /**
      * @param  array<int, UploadedFile>  $imagenes
      */
@@ -34,7 +24,8 @@ class InmuebleImageService
             return;
         }
 
-        $basePath = AddressSlugger::forInmueble($inmueble);
+        $disk = Storage::disk($diskName);
+        $basePath = $this->resolveBasePath($inmueble);
         $ordenBase = (int) $inmueble->images()->max('orden');
 
         foreach ($imagenes as $index => $imagen) {
@@ -42,7 +33,7 @@ class InmuebleImageService
                 continue;
             }
 
-            $filePayload = $this->storeSingleImage($imagen, $diskName, $basePath);
+            $filePayload = $this->storeSingleImage($disk, $imagen, $basePath);
 
             $inmueble->images()->create([
                 'disk' => $diskName,
@@ -66,50 +57,40 @@ class InmuebleImageService
         $image->delete();
     }
 
-    protected function storeSingleImage(UploadedFile $image, string $diskName, string $basePath): array
+    /**
+     * @param  Filesystem|FilesystemAdapter  $disk
+     */
+    protected function storeSingleImage($disk, UploadedFile $image, string $basePath): array
     {
-        $disk = Storage::disk($diskName);
         $visibility = ['visibility' => 'public'];
 
         $originalName = $image->getClientOriginalName() ?: $image->hashName();
-        $originalExtension = strtolower($image->getClientOriginalExtension() ?: $image->guessExtension() ?: 'jpg');
+        $extension = strtolower($image->getClientOriginalExtension() ?: $image->guessExtension() ?: 'jpg');
 
-        $baseName = Str::of(pathinfo($originalName, PATHINFO_FILENAME))
-            ->ascii()
-            ->lower()
-            ->replaceMatches('/[^a-z0-9]+/', '_')
-            ->trim('_')
-            ->replaceMatches('/_+/', '_')
-            ->toString();
+        $fileName = sprintf(
+            '%s_%s.%s',
+            Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) ?: 'imagen',
+            Str::random(12),
+            $extension
+        );
 
-        if ($baseName === '') {
-            $baseName = 'imagen';
+        $storedPath = $disk->putFileAs($basePath, $image, $fileName, $visibility);
+
+        if ($storedPath === false) {
+            throw new RuntimeException(sprintf('Unable to store image [%s].', $originalName));
         }
 
-        $sanitizedBase = $baseName;
-        $fileName = sprintf('%s.%s', $sanitizedBase, $originalExtension);
-        $path = sprintf('%s/%s', $basePath, $fileName);
-        $counter = 1;
-
-        while ($disk->exists($path)) {
-            $fileName = sprintf('%s_%d.%s', $sanitizedBase, $counter, $originalExtension);
-            $path = sprintf('%s/%s', $basePath, $fileName);
-            $counter++;
-        }
-
-        $disk->putFileAs($basePath, $image, $fileName, $visibility);
-        $fileUrl = $disk->url($path);
-
-        $metadata = [
-            'original_name' => $originalName,
-            'size' => $image->getSize(),
-            'mime_type' => $image->getMimeType(),
-        ];
+        $size = $this->resolveUploadedFileSize($image);
+        $mimeType = $image->getMimeType() ?: $image->getClientMimeType();
 
         return [
-            'path' => $path,
-            'url' => $fileUrl,
-            'metadata' => $metadata,
+            'path' => $storedPath,
+            'url' => $disk->url($storedPath),
+            'metadata' => $this->filterMetadata([
+                'original_name' => $originalName,
+                'size' => $size,
+                'mime_type' => $mimeType,
+            ]),
         ];
     }
 
@@ -132,252 +113,44 @@ class InmuebleImageService
         return array_values(array_unique($paths));
     }
 
-    protected function createNormalizedVariant(UploadedFile $source): array
+    protected function resolveBasePath(Inmueble $inmueble): string
     {
-        $width = (int) config('inmuebles.images.normalized.width', 1200);
-        $height = (int) config('inmuebles.images.normalized.height', 800);
-        $quality = (int) config('inmuebles.images.quality', 85);
+        $slug = AddressSlugger::forInmueble($inmueble);
 
-        if ($this->imageManager) {
-            $image = $this->imageManager->read($source->getPathname());
-            $this->resizeKeepingAspectRatio($image, $width, $height);
-
-            $encoded = $this->encodeJpeg($image, $quality);
-
-            return [
-                'contents' => $encoded,
-                'width' => $this->extractDimension($image, 'width'),
-                'height' => $this->extractDimension($image, 'height'),
-            ];
+        if ($slug !== '') {
+            return 'inmuebles/' . $slug;
         }
 
-        return [
-            'contents' => (string) file_get_contents($source->getPathname()),
-        ];
+        return 'inmuebles/inmueble_' . $inmueble->id;
     }
 
-    protected function createWatermarkedVariant(string $normalizedContents): array
+    protected function resolveUploadedFileSize(UploadedFile $file): ?int
     {
-        $quality = (int) config('inmuebles.images.quality', 85);
-        $watermark = $this->loadWatermarkImage();
-        $position = config('inmuebles.images.watermark.position', 'bottom-right');
-        $offsetX = (int) config('inmuebles.images.watermark.offset_x', 24);
-        $offsetY = (int) config('inmuebles.images.watermark.offset_y', 24);
+        $size = $file->getSize();
 
-        if ($this->imageManager) {
-            $image = $this->imageManager->read($normalizedContents);
-
-            if ($watermark) {
-                if (method_exists($image, 'place')) {
-                    $image = $image->place($watermark, $position, $offsetX, $offsetY);
-                } elseif (method_exists($image, 'insert')) {
-                    $image->insert($watermark, $position, $offsetX, $offsetY);
-                }
-            }
-
-            $encoded = $this->encodeJpeg($image, $quality);
-
-            return [
-                'contents' => $encoded,
-                'width' => $this->extractDimension($image, 'width'),
-                'height' => $this->extractDimension($image, 'height'),
-            ];
+        if (is_int($size)) {
+            return $size;
         }
 
-        return [
-            'contents' => $normalizedContents,
-        ];
-    }
+        $path = $file->getPathname();
 
-    protected function loadWatermarkImage(): ?object
-    {
-        if (! $this->imageManager) {
-            return null;
-        }
+        if ($path !== '' && is_file($path)) {
+            $fileSize = @filesize($path);
 
-        $contents = $this->resolveWatermarkContents();
-
-        if ($contents === null) {
-            return null;
-        }
-
-        try {
-            return $this->imageManager->read($contents);
-        } catch (Throwable $exception) {
-            report($exception);
-
-            return null;
-        }
-    }
-
-    protected function resolveWatermarkContents(): ?string
-    {
-        $path = WatermarkPathResolver::resolve(config('inmuebles.images.watermark.path'));
-
-        if ($path === null || $path === '') {
-            return null;
-        }
-
-        if (is_file($path)) {
-            $contents = file_get_contents($path);
-
-            return $contents === false ? null : (string) $contents;
-        }
-
-        $diskName = (string) config('inmuebles.images.watermark.disk', '');
-
-        if ($diskName !== '') {
-            try {
-                $disk = Storage::disk($diskName);
-
-                if (method_exists($disk, 'exists') && $disk->exists($path)) {
-                    $contents = $disk->get($path);
-
-                    if ($contents !== false && $contents !== null) {
-                        return (string) $contents;
-                    }
-                }
-            } catch (Throwable $exception) {
-                report($exception);
-            }
-        }
-
-        if (filter_var($path, FILTER_VALIDATE_URL)) {
-            try {
-                $contents = file_get_contents($path);
-
-                return $contents === false ? null : (string) $contents;
-            } catch (Throwable $exception) {
-                report($exception);
+            if ($fileSize !== false) {
+                return (int) $fileSize;
             }
         }
 
         return null;
     }
 
-    protected function createThumbnailVariant(string $normalizedContents): array
+    /**
+     * @param  array<string, mixed>  $metadata
+     * @return array<string, mixed>
+     */
+    protected function filterMetadata(array $metadata): array
     {
-        $width = (int) config('inmuebles.images.thumbnail.width', 300);
-        $height = (int) config('inmuebles.images.thumbnail.height', 200);
-        $quality = (int) config('inmuebles.images.quality', 85);
-
-        if ($this->imageManager) {
-            $image = $this->imageManager->read($normalizedContents);
-            $this->resizeKeepingAspectRatio($image, $width, $height);
-
-            $encoded = $this->encodeJpeg($image, $quality);
-
-            return [
-                'contents' => $encoded,
-                'width' => $this->extractDimension($image, 'width'),
-                'height' => $this->extractDimension($image, 'height'),
-            ];
-        }
-
-        return [
-            'contents' => $normalizedContents,
-        ];
-    }
-
-    protected function resizeKeepingAspectRatio($image, int $width, int $height): void
-    {
-        if (method_exists($image, 'scaleDown')) {
-            $image->scaleDown(width: $width, height: $height);
-
-            return;
-        }
-
-        if (method_exists($image, 'resize')) {
-            $image->resize($width, $height, function ($constraint): void {
-                if (is_object($constraint) && method_exists($constraint, 'aspectRatio')) {
-                    $constraint->aspectRatio();
-                }
-
-                if (is_object($constraint) && method_exists($constraint, 'upsize')) {
-                    $constraint->upsize();
-                }
-            });
-        }
-    }
-
-    protected function encodeJpeg($image, int $quality): string
-    {
-        if (method_exists($image, 'toJpeg')) {
-            $encoded = $image->toJpeg($quality);
-
-            if (is_object($encoded) && method_exists($encoded, 'toString')) {
-                return (string) $encoded->toString();
-            }
-
-            return (string) $encoded;
-        }
-
-        if (method_exists($image, 'encode')) {
-            $encoded = $image->encode('jpg', $quality);
-
-            return (string) $encoded;
-        }
-
-        throw new RuntimeException('Unable to encode image to JPEG format.');
-    }
-
-    protected function extractDimension($image, string $method): ?int
-    {
-        if (method_exists($image, $method)) {
-            $value = $image->{$method}();
-
-            return is_numeric($value) ? (int) $value : null;
-        }
-
-        return null;
-    }
-
-    protected function resolveImageManager(): ?object
-    {
-        $class = '\\Intervention\\Image\\ImageManager';
-
-        if (! class_exists($class)) {
-            return null;
-        }
-
-        try {
-            if (app()->bound($class)) {
-                return app($class);
-            }
-
-            $driver = $this->resolveImageDriver();
-
-            if ($driver !== null) {
-                return new $class($driver);
-            }
-
-            return app()->make($class);
-        } catch (\Throwable $exception) {
-            report($exception);
-
-            return null;
-        }
-    }
-
-    protected function resolveImageDriver(): ?object
-    {
-        $drivers = [
-            '\\Intervention\\Image\\Drivers\\Imagick\\Driver',
-            '\\Intervention\\Image\\Drivers\\Gd\\Driver',
-        ];
-
-        foreach ($drivers as $driverClass) {
-            if (! class_exists($driverClass)) {
-                continue;
-            }
-
-            try {
-                return new $driverClass();
-            } catch (\Throwable $exception) {
-                report($exception);
-            }
-        }
-
-        return null;
+        return array_filter($metadata, static fn ($value) => $value !== null && $value !== '');
     }
 }
