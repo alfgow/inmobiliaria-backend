@@ -81,8 +81,17 @@ class InmuebleImageService
 
                 $filePayload = $this->storeSingleImage($imagen, $keyPrefix);
 
+                $filename = basename($filePayload['path']);
+                $baseFolderNormalized = trim($baseFolder, '/');
+                $s3Key = $filePayload['path'];
+
+                if ($baseFolderNormalized !== '' && $filename !== '') {
+                    $s3Key = $baseFolderNormalized . '/' . $filename;
+                }
+
                 $records[] = [
                     'disk' => 's3',
+                    's3_key' => $s3Key,
                     'path' => $filePayload['path'],
                     'url' => $filePayload['url'],
                     'orden' => $sequence,
@@ -142,6 +151,12 @@ class InmuebleImageService
 
     protected function buildInmuebleFolder(Inmueble $inmueble): string
     {
+        $direccionSlug = $this->buildDireccionSlug($inmueble);
+
+        if ($direccionSlug !== null) {
+            return $direccionSlug;
+        }
+
         $segments = array_filter([
             $inmueble->direccion,
             $inmueble->ciudad,
@@ -157,6 +172,19 @@ class InmuebleImageService
         }
 
         return 'inmueble-' . $inmueble->id;
+    }
+
+    protected function buildDireccionSlug(Inmueble $inmueble): ?string
+    {
+        $direccion = trim((string) ($inmueble->direccion ?? ''));
+
+        if ($direccion === '') {
+            return null;
+        }
+
+        $slug = Str::slug($direccion, '-');
+
+        return $slug !== '' ? $slug : null;
     }
 
     protected function uploadUploadedFileToS3(UploadedFile $file, string $key, string $mimeType): void

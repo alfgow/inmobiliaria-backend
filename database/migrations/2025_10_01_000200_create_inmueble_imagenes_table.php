@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('inmueble_id')->constrained('inmuebles')->cascadeOnDelete();
             $table->string('disk', 50)->default('s3');
+            $table->string('s3_key');
             $table->string('path');
             $table->string('url');
             $table->unsignedInteger('orden')->default(0);

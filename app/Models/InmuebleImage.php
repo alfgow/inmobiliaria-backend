@@ -16,6 +16,7 @@ class InmuebleImage extends Model
     protected $fillable = [
         'inmueble_id',
         'disk',
+        's3_key',
         'path',
         'url',
         'orden',
