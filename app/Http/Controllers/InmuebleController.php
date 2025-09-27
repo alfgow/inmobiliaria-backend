@@ -40,7 +40,8 @@ class InmuebleController extends Controller
                     $subQuery
                         ->where('titulo', 'like', "%{$search}%")
                         ->orWhere('direccion', 'like', "%{$search}%")
-                        ->orWhere('ciudad', 'like', "%{$search}%")
+                        ->orWhere('colonia', 'like', "%{$search}%")
+                        ->orWhere('municipio', 'like', "%{$search}%")
                         ->orWhere('estado', 'like', "%{$search}%");
                 });
             })

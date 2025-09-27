@@ -18,7 +18,8 @@ return new class extends Migration
             $table->text('descripcion')->nullable();
             $table->decimal('precio', 12, 2);
             $table->string('direccion', 255);
-            $table->string('ciudad', 120)->nullable();
+            $table->string('colonia', 120)->nullable();
+            $table->string('municipio', 120)->nullable();
             $table->string('estado', 120)->nullable();
             $table->string('codigo_postal', 20)->nullable();
             $table->enum('tipo', [

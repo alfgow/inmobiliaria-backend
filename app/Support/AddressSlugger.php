@@ -12,7 +12,8 @@ class AddressSlugger
     {
         $components = Arr::where([
             $inmueble->direccion,
-            $inmueble->ciudad,
+            $inmueble->colonia,
+            $inmueble->municipio,
             $inmueble->estado,
         ], fn ($value) => filled($value));
 
