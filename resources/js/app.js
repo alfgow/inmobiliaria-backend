@@ -301,10 +301,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 return false;
             }
 
-            const { types } = event.dataTransfer;
+            const { files, types } = event.dataTransfer;
+
+            if (files && files.length > 0) {
+                return true;
+            }
 
             if (!types) {
-                return true;
+                return false;
             }
 
             return Array.from(types).includes("Files");
@@ -507,6 +511,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 const filenameEl = element.querySelector(
                     "[data-gallery-filename]"
                 );
+
+                if (imgBase) {
+                    imgBase.draggable = false;
+                }
+
+                if (imgWater) {
+                    imgWater.draggable = false;
+                }
 
                 if (coverBadge) {
                     coverBadge.classList.toggle("hidden", index !== 0);
@@ -746,59 +758,98 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         previewsContainer.addEventListener("dragenter", (event) => {
+            if (dragSourceIndex !== null) {
+                const target = event.target;
+
+                if (
+                    target instanceof Element &&
+                    target.dataset.galleryPlaceholder !== undefined
+                ) {
+                    return;
+                }
+
+                const preview = findPreviewElement(target);
+
+                updatePlaceholderPosition(preview, event);
+                return;
+            }
+
             if (isFileDragEvent(event)) {
                 return;
             }
-
-            if (dragSourceIndex === null) {
-                return;
-            }
-
-            const target = event.target;
-
-            if (
-                target instanceof Element &&
-                target.dataset.galleryPlaceholder !== undefined
-            ) {
-                return;
-            }
-
-            const preview = findPreviewElement(target);
-
-            updatePlaceholderPosition(preview, event);
         });
 
         previewsContainer.addEventListener("dragover", (event) => {
+            if (dragSourceIndex !== null) {
+                event.preventDefault();
+
+                if (event.dataTransfer) {
+                    event.dataTransfer.dropEffect = "move";
+                }
+
+                const target = event.target;
+
+                if (
+                    target instanceof Element &&
+                    target.dataset.galleryPlaceholder !== undefined
+                ) {
+                    return;
+                }
+
+                const preview = findPreviewElement(target);
+
+                updatePlaceholderPosition(preview, event);
+                return;
+            }
+
             if (isFileDragEvent(event)) {
                 event.preventDefault();
                 return;
             }
-
-            if (dragSourceIndex === null) {
-                return;
-            }
-
-            event.preventDefault();
-
-            if (event.dataTransfer) {
-                event.dataTransfer.dropEffect = "move";
-            }
-
-            const target = event.target;
-
-            if (
-                target instanceof Element &&
-                target.dataset.galleryPlaceholder !== undefined
-            ) {
-                return;
-            }
-
-            const preview = findPreviewElement(target);
-
-            updatePlaceholderPosition(preview, event);
         });
 
         previewsContainer.addEventListener("drop", (event) => {
+            if (dragSourceIndex !== null) {
+                event.preventDefault();
+
+                const placeholderIndex = getPlaceholderIndex();
+                removePlaceholder();
+
+                const [movedFile] = selectedFiles.splice(dragSourceIndex, 1);
+
+                if (!movedFile) {
+                    dragSourceIndex = null;
+                    dragSourcePreview = null;
+                    return;
+                }
+
+                let destinationIndex = placeholderIndex;
+
+                if (destinationIndex < 0) {
+                    destinationIndex = selectedFiles.length;
+                }
+
+                if (dragSourceIndex < destinationIndex) {
+                    destinationIndex -= 1;
+                }
+
+                if (destinationIndex > selectedFiles.length) {
+                    destinationIndex = selectedFiles.length;
+                }
+
+                selectedFiles.splice(destinationIndex, 0, movedFile);
+
+                if (dragSourcePreview) {
+                    dragSourcePreview.classList.remove("opacity-50");
+                }
+
+                dragSourceIndex = null;
+                dragSourcePreview = null;
+
+                renderPreviews();
+                return;
+            }
+
             if (isFileDragEvent(event)) {
                 event.preventDefault();
 
@@ -808,48 +859,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 removePlaceholder();
                 return;
             }
-
-            if (dragSourceIndex === null) {
-                return;
-            }
-
-            event.preventDefault();
-
-            const placeholderIndex = getPlaceholderIndex();
-            removePlaceholder();
-
-            const [movedFile] = selectedFiles.splice(dragSourceIndex, 1);
-
-            if (!movedFile) {
-                dragSourceIndex = null;
-                dragSourcePreview = null;
-                return;
-            }
-
-            let destinationIndex = placeholderIndex;
-
-            if (destinationIndex < 0) {
-                destinationIndex = selectedFiles.length;
-            }
-
-            if (dragSourceIndex < destinationIndex) {
-                destinationIndex -= 1;
-            }
-
-            if (destinationIndex > selectedFiles.length) {
-                destinationIndex = selectedFiles.length;
-            }
-
-            selectedFiles.splice(destinationIndex, 0, movedFile);
-
-            if (dragSourcePreview) {
-                dragSourcePreview.classList.remove("opacity-50");
-            }
-
-            dragSourceIndex = null;
-            dragSourcePreview = null;
-
-            renderPreviews();
         });
 
         previewsContainer.addEventListener("dragleave", (event) => {
