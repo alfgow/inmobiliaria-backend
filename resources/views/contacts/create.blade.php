@@ -84,12 +84,20 @@
                             >
                                 <option value="">Sin inmueble registrado</option>
                                 @foreach ($inmuebles as $inmueble)
+                                    @php
+                                        $fullAddress = collect([
+                                            $inmueble->direccion,
+                                            $inmueble->colonia,
+                                            $inmueble->municipio,
+                                            $inmueble->estado,
+                                        ])->filter()->join(', ');
+                                    @endphp
                                     <option
                                         value="{{ $inmueble->id }}"
-                                        data-searchable="{{ Str::lower($inmueble->titulo . ' ' . $inmueble->direccion) }}"
+                                        data-searchable="{{ Str::lower(trim($inmueble->titulo . ' ' . $fullAddress)) }}"
                                         @selected((string) old('inmueble_id') === (string) $inmueble->id)
                                     >
-                                        {{ $inmueble->titulo }} — {{ $inmueble->direccion }}
+                                        {{ $inmueble->titulo }}@if ($fullAddress !== '') — {{ $fullAddress }}@endif
                                     </option>
                                 @endforeach
                             </select>
