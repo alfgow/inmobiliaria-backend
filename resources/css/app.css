@@ -65,16 +65,6 @@ select:focus[data-flux-control] {
     @apply size-4;
 } */
 
-[data-searchable-select] select {
-    background-color: #1f2937;
-    color: #f9fafb;
-}
-
-[data-searchable-select] select option {
-    background-color: #111827;
-    color: #f9fafb;
-}
-
 select.bg-gray-850\/70 {
     background-color: rgba(17, 24, 39, 0.7);
     color: #f9fafb;

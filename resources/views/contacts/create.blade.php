@@ -68,15 +68,11 @@
 
                     <div class="space-y-2">
                         <label for="inmueble_id" class="block text-sm font-medium text-gray-300">Inmueble de interés</label>
-                        <div class="space-y-2" data-searchable-select>
-                            <input
-                                type="search"
-                                id="inmueble-search"
-                                data-search-input
-                                placeholder="Buscar por título o dirección"
-                                class="w-full rounded-xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
-                                autocomplete="off"
-                            >
+                        <div
+                            class="space-y-2"
+                            data-searchable-select
+                            data-search-placeholder="Buscar por título o dirección"
+                        >
                             <select
                                 id="inmueble_id"
                                 name="inmueble_id"
