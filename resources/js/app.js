@@ -401,27 +401,73 @@ document.addEventListener("DOMContentLoaded", () => {
             const placeholder = getPlaceholderElement();
             ensurePlaceholderHeight();
 
-            if (!preview || preview === placeholder) {
-                if (placeholder.parentNode !== previewsContainer) {
-                    previewsContainer.appendChild(placeholder);
+            let targetPreview = preview;
+            let deltaX = 0;
+            let deltaY = 0;
+
+            if (!targetPreview || targetPreview === placeholder) {
+                const previews = Array.from(
+                    previewsContainer.querySelectorAll("[data-gallery-preview]")
+                ).filter((element) => element !== placeholder);
+
+                if (previews.length === 0) {
+                    if (placeholder.parentNode !== previewsContainer) {
+                        previewsContainer.appendChild(placeholder);
+                    }
+                    return;
                 }
-                return;
+
+                let closestPreview = null;
+                let minDistance = Infinity;
+
+                previews.forEach((element) => {
+                    const rect = element.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    const offsetX = event.clientX - centerX;
+                    const offsetY = event.clientY - centerY;
+                    const distance = Math.hypot(offsetX, offsetY);
+
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closestPreview = element;
+                        deltaX = offsetX;
+                        deltaY = offsetY;
+                    }
+                });
+
+                if (!closestPreview) {
+                    if (placeholder.parentNode !== previewsContainer) {
+                        previewsContainer.appendChild(placeholder);
+                    }
+                    return;
+                }
+
+                targetPreview = closestPreview;
+            } else {
+                const rect = targetPreview.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                deltaX = event.clientX - centerX;
+                deltaY = event.clientY - centerY;
             }
 
-            const rect = preview.getBoundingClientRect();
-            const shouldPlaceAfter = event.clientY > rect.top + rect.height / 2;
+            const isHorizontalDominant = Math.abs(deltaX) > Math.abs(deltaY);
+            const shouldPlaceAfter = isHorizontalDominant
+                ? deltaX > 0
+                : deltaY > 0;
 
             if (shouldPlaceAfter) {
-                if (preview.nextSibling !== placeholder) {
-                    preview.after(placeholder);
-                    animatePreviewReorder(preview);
+                if (targetPreview.nextSibling !== placeholder) {
+                    targetPreview.after(placeholder);
+                    animatePreviewReorder(targetPreview);
                 }
                 return;
             }
 
-            if (preview.previousSibling !== placeholder) {
-                previewsContainer.insertBefore(placeholder, preview);
-                animatePreviewReorder(preview);
+            if (targetPreview.previousSibling !== placeholder) {
+                previewsContainer.insertBefore(placeholder, targetPreview);
+                animatePreviewReorder(targetPreview);
             }
         };
 
