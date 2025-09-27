@@ -460,6 +460,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     String(!canAddMore)
                 );
                 addMoreButton.disabled = !canAddMore;
+                const addMoreLabel = addMoreButton.querySelector(
+                    "[data-gallery-add-more-label]"
+                );
+                if (addMoreLabel && canAddMore) {
+                    addMoreLabel.textContent = hasFiles
+                        ? "Agregar más fotos"
+                        : "Seleccionar imágenes";
+                }
             }
             galleryInput.disabled = !canAddMore;
             updateFileCount();

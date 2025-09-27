@@ -337,12 +337,6 @@
                             <p class="text-sm font-medium text-gray-100">Arrastra y suelta tus fotos</p>
                             <p class="text-xs text-gray-400">También puedes hacer clic para seleccionarlas desde tu dispositivo</p>
                         </div>
-                        <span class="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-medium text-indigo-200">
-                            <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M10 4v9m0 0 3-3m-3 3-3-3" />
-                            </svg>
-                            Seleccionar imágenes
-                        </span>
                     </div>
                     <div class="hidden w-full space-y-3 text-left" data-gallery-previews-wrapper>
                         <p class="text-xs text-gray-400">Arrastra las fotos para cambiar el orden. La primera será la portada.</p>
@@ -407,7 +401,7 @@
                         <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M10 4v9m0 0 3-3m-3 3-3-3" />
                         </svg>
-                        Seleccionar imágenes
+                        <span data-gallery-add-more-label>Seleccionar imágenes</span>
                     </button>
                     <p class="text-xs text-gray-400 transition-colors" data-gallery-counter>0 de 10 imágenes seleccionadas</p>
                     <p class="text-xs text-gray-500">Formatos permitidos: JPG y PNG</p>
