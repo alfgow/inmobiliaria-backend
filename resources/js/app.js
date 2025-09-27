@@ -231,8 +231,65 @@ document.addEventListener("DOMContentLoaded", () => {
             return values;
         };
 
+        const debounce = (fn, delay = 250) => {
+            let timeoutId;
+
+            return (...args) => {
+                if (timeoutId) {
+                    window.clearTimeout(timeoutId);
+                }
+
+                timeoutId = window.setTimeout(() => {
+                    fn(...args);
+                }, delay);
+            };
+        };
+
         let isUpdating = false;
         let activeRequestToken = 0;
+        let activeOptionsRequestToken = 0;
+
+        const fetchOptions = async (type, searchTerm = "") => {
+            const params = new URLSearchParams({ type });
+            const trimmedSearch = (searchTerm || "").trim();
+
+            if (trimmedSearch !== "") {
+                params.set("search", trimmedSearch);
+            }
+
+            fieldOrder.forEach((fieldKey) => {
+                const field = fields[fieldKey];
+
+                if (!field) {
+                    return;
+                }
+
+                const value = field.select.value;
+
+                if (value) {
+                    params.set(fieldKey, value);
+                }
+            });
+
+            const url = `${normalizedBaseUrl}?${params.toString()}`;
+            const response = await fetch(url, {
+                headers: { Accept: "application/json" },
+            });
+
+            if (!response.ok) {
+                throw new Error(
+                    `No se pudieron obtener opciones de códigos postales (${response.status})`
+                );
+            }
+
+            const payload = await response.json();
+
+            if (!payload || !Array.isArray(payload.data)) {
+                return [];
+            }
+
+            return payload.data;
+        };
 
         const repopulateField = (
             key,
@@ -345,6 +402,25 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         };
 
+        const requestOptionsUpdate = async (type, searchTerm = "") => {
+            const requestToken = ++activeOptionsRequestToken;
+
+            try {
+                const values = await fetchOptions(type, searchTerm);
+
+                if (requestToken !== activeOptionsRequestToken) {
+                    return;
+                }
+
+                repopulateField(type, values, { triggered: true });
+            } catch (error) {
+                console.error(
+                    "No fue posible obtener las opciones de códigos postales.",
+                    error
+                );
+            }
+        };
+
         const fetchCombinations = async (type, value) => {
             const params = new URLSearchParams({ type, value });
             const url = `${resolveUrl}?${params.toString()}`;
@@ -430,6 +506,23 @@ document.addEventListener("DOMContentLoaded", () => {
             fields[key].select.addEventListener("change", () => {
                 handleChange(key);
             });
+
+            const { searchable } = fields[key];
+
+            if (searchable && searchable.searchInput) {
+                const debouncedFetch = debounce((term) => {
+                    requestOptionsUpdate(key, term);
+                });
+
+                const triggerFetch = () => {
+                    const searchTerm = searchable.searchInput.value || "";
+
+                    debouncedFetch(searchTerm);
+                };
+
+                searchable.searchInput.addEventListener("focus", triggerFetch);
+                searchable.searchInput.addEventListener("input", triggerFetch);
+            }
         });
 
         const initialField = fieldOrder.find((key) => {
@@ -438,6 +531,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (initialField) {
             handleChange(initialField);
+        }
+
+        const firstAvailableField = fieldOrder.find((key) => {
+            return fields[key];
+        });
+
+        if (firstAvailableField) {
+            const initialSearchTerm = fields[firstAvailableField]?.searchable?.searchInput
+                ? fields[firstAvailableField].searchable.searchInput.value || ""
+                : "";
+
+            requestOptionsUpdate(firstAvailableField, initialSearchTerm);
         }
     };
 
