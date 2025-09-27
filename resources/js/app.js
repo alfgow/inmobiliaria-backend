@@ -422,6 +422,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 };
 
                 choices.searchInput.addEventListener("focus", triggerFetch);
+                choices.searchInput.addEventListener("input", triggerFetch);
+                choices.searchInput.addEventListener("search", triggerFetch);
                 choices.searchInput.addEventListener("keydown", (event) => {
                     if (event.key !== "Enter") {
                         return;
