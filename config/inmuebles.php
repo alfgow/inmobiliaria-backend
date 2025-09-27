@@ -2,6 +2,8 @@
 
 return [
     'images' => [
+        // Tiempo de vida de las URLs temporales generadas para las imágenes.
+        'url_ttl_minutes' => (int) env('INMUEBLES_IMAGE_URL_TTL_MINUTES', 60),
         'quality' => (int) env('INMUEBLES_IMAGE_QUALITY', 85),
         'normalized' => [
             'width' => (int) env('INMUEBLES_IMAGE_WIDTH', 1200),

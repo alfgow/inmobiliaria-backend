@@ -64,6 +64,9 @@ class InmuebleManagementTest extends TestCase
 
         $image = InmuebleImage::first();
         $this->assertNotNull($image);
+        $this->assertNull($image->getRawOriginal('url'));
+        $this->assertNotEmpty($image->url);
+        $this->assertNotEmpty($image->temporaryVariantUrl('watermarked'));
 
         $expectedSlug = 'av_del_sol_123_cancun_quintana_roo';
         $this->assertStringStartsWith($expectedSlug . '/', $image->path);
@@ -122,7 +125,7 @@ class InmuebleManagementTest extends TestCase
         $image = $inmueble->images()->create([
             'disk' => 's3',
             'path' => $existingPaths['watermarked'],
-            'url' => Storage::disk('s3')->url($existingPaths['watermarked']),
+            'url' => null,
             'orden' => 1,
             'metadata' => [
                 'variants' => [
@@ -199,7 +202,7 @@ class InmuebleManagementTest extends TestCase
         $inmueble->images()->create([
             'disk' => 's3',
             'path' => $existingPaths['watermarked'],
-            'url' => Storage::disk('s3')->url($existingPaths['watermarked']),
+            'url' => null,
             'orden' => 1,
             'metadata' => [
                 'variants' => [

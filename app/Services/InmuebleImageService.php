@@ -93,7 +93,7 @@ class InmuebleImageService
                     'disk' => 's3',
                     's3_key' => $s3Key,
                     'path' => $filePayload['path'],
-                    'url' => $filePayload['url'],
+                    'url' => null,
                     'orden' => $sequence,
                     'metadata' => $filePayload['metadata'],
                 ];
@@ -313,28 +313,6 @@ class InmuebleImageService
         }
     }
 
-    protected function buildPublicUrl(string $key): string
-    {
-        $key = ltrim($key, '/');
-        $customUrl = config('filesystems.disks.s3.url') ?? env('AWS_URL');
-
-        if (is_string($customUrl) && $customUrl !== '') {
-            return rtrim($customUrl, '/') . '/' . $key;
-        }
-
-        if ($this->s3Endpoint) {
-            $base = rtrim($this->s3Endpoint, '/');
-
-            if ($this->s3PathStyle) {
-                return sprintf('%s/%s/%s', $base, $this->s3Bucket, $key);
-            }
-
-            return sprintf('%s/%s', $base, $key);
-        }
-
-        return sprintf('https://%s.s3.%s.amazonaws.com/%s', $this->s3Bucket, $this->s3Region, $key);
-    }
-
     protected function resolveS3Configuration(): array
     {
         $diskConfig = (array) config('filesystems.disks.s3', []);
@@ -492,13 +470,11 @@ class InmuebleImageService
             'variants' => [
                 'original' => $this->filterVariantMetadata([
                     'path' => $paths['original'],
-                    'url' => $this->buildPublicUrl($paths['original']),
                     'size' => $originalSize,
                     'mime_type' => $originalMime,
                 ]),
                 'normalized' => $this->filterVariantMetadata([
                     'path' => $paths['normalized'],
-                    'url' => $this->buildPublicUrl($paths['normalized']),
                     'width' => $normalizedVariant['width'] ?? null,
                     'height' => $normalizedVariant['height'] ?? null,
                     'size' => $normalizedSize,
@@ -506,7 +482,6 @@ class InmuebleImageService
                 ]),
                 'watermarked' => $this->filterVariantMetadata([
                     'path' => $paths['watermarked'],
-                    'url' => $this->buildPublicUrl($paths['watermarked']),
                     'width' => $watermarkedVariant['width'] ?? ($normalizedVariant['width'] ?? null),
                     'height' => $watermarkedVariant['height'] ?? ($normalizedVariant['height'] ?? null),
                     'size' => $watermarkedSize,
@@ -514,21 +489,19 @@ class InmuebleImageService
                 ]),
                 'thumbnail' => $this->filterVariantMetadata([
                     'path' => $paths['thumbnail'],
-                    'url' => $this->buildPublicUrl($paths['thumbnail']),
                     'width' => $thumbnailVariant['width'] ?? null,
                     'height' => $thumbnailVariant['height'] ?? null,
                     'size' => $thumbnailSize,
                     'mime_type' => 'image/jpeg',
                 ]),
-            ],
-        ];
+        ],
+    ];
 
-        return [
-            'path' => $paths['watermarked'],
-            'url' => $this->buildPublicUrl($paths['watermarked']),
-            'metadata' => $metadata,
-            'stored_keys' => array_values(array_unique($paths)),
-        ];
+    return [
+        'path' => $paths['watermarked'],
+        'metadata' => $metadata,
+        'stored_keys' => array_values(array_unique($paths)),
+    ];
     }
 
     protected function collectPathsForDeletion(InmuebleImage $image): array
