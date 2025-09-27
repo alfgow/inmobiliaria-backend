@@ -154,7 +154,8 @@ class InmuebleImageService
     {
         $segments = array_values(array_filter([
             $this->buildDireccionSlug($inmueble),
-            $this->normalizeSlugComponent($inmueble->ciudad),
+            $this->normalizeSlugComponent($inmueble->colonia),
+            $this->normalizeSlugComponent($inmueble->municipio),
             $this->normalizeSlugComponent($inmueble->estado),
         ]));
 
@@ -164,7 +165,8 @@ class InmuebleImageService
             if ($tituloSlug !== null) {
                 $segments = array_values(array_filter([
                     $tituloSlug,
-                    $this->normalizeSlugComponent($inmueble->ciudad),
+                    $this->normalizeSlugComponent($inmueble->colonia),
+                    $this->normalizeSlugComponent($inmueble->municipio),
                     $this->normalizeSlugComponent($inmueble->estado),
                 ]));
             }

@@ -126,7 +126,10 @@
                                     <span class="rounded-full bg-gray-800/80 px-3 py-1">{{ $inmueble->tipo }}</span>
                                 </div>
                                 <h2 class="text-xl font-semibold text-white">{{ $inmueble->titulo }}</h2>
-                                <p class="text-sm text-gray-400">{{ $inmueble->direccion }}{{ $inmueble->ciudad ? ', ' . $inmueble->ciudad : '' }}</p>
+                                @php
+                                    $location = collect([$inmueble->colonia, $inmueble->municipio, $inmueble->estado])->filter()->join(', ');
+                                @endphp
+                                <p class="text-sm text-gray-400">{{ $inmueble->direccion }}@if ($location){{ ', ' . $location }}@endif</p>
                             </div>
 
                             <div class="flex flex-wrap items-center gap-3 text-sm text-gray-300">

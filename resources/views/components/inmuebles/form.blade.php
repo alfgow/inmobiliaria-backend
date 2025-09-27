@@ -75,17 +75,30 @@
                     @enderror
                 </div>
 
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
                     <div class="space-y-2">
-                        <label for="ciudad" class="text-sm font-medium">Ciudad</label>
+                        <label for="colonia" class="text-sm font-medium">Colonia</label>
                         <input
                             type="text"
-                            id="ciudad"
-                            name="ciudad"
-                            value="{{ old('ciudad', optional($inmueble)->ciudad) }}"
+                            id="colonia"
+                            name="colonia"
+                            value="{{ old('colonia', optional($inmueble)->colonia) }}"
                             class="w-full rounded-2xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
                         >
-                        @error('ciudad')
+                        @error('colonia')
+                            <p class="text-sm text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div class="space-y-2">
+                        <label for="municipio" class="text-sm font-medium">Municipio</label>
+                        <input
+                            type="text"
+                            id="municipio"
+                            name="municipio"
+                            value="{{ old('municipio', optional($inmueble)->municipio) }}"
+                            class="w-full rounded-2xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                        >
+                        @error('municipio')
                             <p class="text-sm text-red-400">{{ $message }}</p>
                         @enderror
                     </div>

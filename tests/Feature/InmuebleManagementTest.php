@@ -38,7 +38,8 @@ class InmuebleManagementTest extends TestCase
             'titulo' => 'Casa en la playa',
             'precio' => '12000000',
             'direccion' => 'Av. del Sol 123',
-            'ciudad' => 'Cancún',
+            'colonia' => 'Centro',
+            'municipio' => 'Benito Juárez',
             'estado' => 'Quintana Roo',
             'codigo_postal' => '77500',
             'tipo' => 'Casa',
@@ -68,7 +69,7 @@ class InmuebleManagementTest extends TestCase
         $this->assertNotEmpty($image->url);
         $this->assertNotEmpty($image->temporaryVariantUrl('watermarked'));
 
-        $expectedSlug = 'av_del_sol_123_cancun_quintana_roo';
+        $expectedSlug = 'av_del_sol_123_centro_benito_juarez_quintana_roo';
         $this->assertStringStartsWith($expectedSlug . '/', $image->path);
         $this->assertStringContainsString('_watermarked.jpg', $image->path);
 
@@ -102,7 +103,8 @@ class InmuebleManagementTest extends TestCase
             'titulo' => 'Departamento céntrico',
             'precio' => 8500000,
             'direccion' => 'Av. Reforma 101',
-            'ciudad' => 'CDMX',
+            'colonia' => 'Colonia Juárez',
+            'municipio' => 'Cuauhtémoc',
             'estado' => 'Ciudad de México',
             'codigo_postal' => '06500',
             'tipo' => 'Departamento',
@@ -110,7 +112,7 @@ class InmuebleManagementTest extends TestCase
             'estatus_id' => $status->id,
         ]);
 
-        $basePath = 'departamento_centrico_cdmx_ciudad_de_mexico';
+        $basePath = 'av_reforma_101_colonia_juarez_cuauhtemoc_ciudad_de_mexico';
         $existingPaths = [
             'original' => "$basePath/original_original.jpg",
             'normalized' => "$basePath/original_normalized.jpg",
@@ -141,7 +143,8 @@ class InmuebleManagementTest extends TestCase
             'titulo' => 'Departamento remodelado',
             'precio' => '9500000',
             'direccion' => 'Av. Reforma 101',
-            'ciudad' => 'CDMX',
+            'colonia' => 'Colonia Juárez',
+            'municipio' => 'Cuauhtémoc',
             'estado' => 'Ciudad de México',
             'codigo_postal' => '06500',
             'tipo' => 'Departamento',
@@ -179,7 +182,8 @@ class InmuebleManagementTest extends TestCase
             'titulo' => 'Loft minimalista',
             'precio' => 4500000,
             'direccion' => 'Calle Arte 55',
-            'ciudad' => 'Guadalajara',
+            'colonia' => 'Americana',
+            'municipio' => 'Guadalajara',
             'estado' => 'Jalisco',
             'codigo_postal' => '44100',
             'tipo' => 'Departamento',
@@ -187,7 +191,7 @@ class InmuebleManagementTest extends TestCase
             'estatus_id' => $status->id,
         ]);
 
-        $slugPath = 'calle_arte_55_guadalajara_jalisco';
+        $slugPath = 'calle_arte_55_americana_guadalajara_jalisco';
         $existingPaths = [
             'original' => "$slugPath/loft_original.jpg",
             'normalized' => "$slugPath/loft_normalized.jpg",

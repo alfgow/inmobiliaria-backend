@@ -15,20 +15,22 @@ class AddressSluggerTest extends TestCase
     {
         $inmueble = Inmueble::factory()->create([
             'direccion' => 'Av. Masaryk 123',
-            'ciudad' => 'Polanco',
+            'colonia' => 'Polanco',
+            'municipio' => 'Miguel Hidalgo',
             'estado' => 'CDMX',
         ]);
 
         $slug = AddressSlugger::forInmueble($inmueble);
 
-        $this->assertSame('av_masaryk_123_polanco_cdmx', $slug);
+        $this->assertSame('av_masaryk_123_polanco_miguel_hidalgo_cdmx', $slug);
     }
 
     public function test_fallback_to_identifier_when_address_missing(): void
     {
         $inmueble = Inmueble::factory()->create([
             'direccion' => null,
-            'ciudad' => null,
+            'colonia' => null,
+            'municipio' => null,
             'estado' => null,
         ]);
 
