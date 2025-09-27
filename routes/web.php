@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CodigoPostalController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\InmuebleController;
 use Illuminate\Support\Facades\Route;
@@ -50,6 +51,18 @@ Route::middleware(['auth'])->group(function () {
         ->name('contactos.intereses.store');
 
     Route::resource('inmuebles', InmuebleController::class)->except(['show']);
+
+    Route::prefix('catalogos')->name('catalogos.')->group(function () {
+        Route::get('codigos-postales', [CodigoPostalController::class, 'index'])
+            ->name('codigos-postales.index');
+        Route::get('codigos-postales/resolve', [CodigoPostalController::class, 'resolve'])
+            ->name('codigos-postales.resolve');
+    });
+
+    Route::get('codigos-postales', [CodigoPostalController::class, 'index'])
+        ->name('codigos-postales.index');
+    Route::get('codigos-postales/resolve', [CodigoPostalController::class, 'resolve'])
+        ->name('codigos-postales.resolve');
 });
 
 require __DIR__ . '/auth.php';
