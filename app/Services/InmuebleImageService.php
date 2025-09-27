@@ -152,24 +152,26 @@ class InmuebleImageService
 
     protected function buildInmuebleFolder(Inmueble $inmueble): string
     {
-        $direccionSlug = $this->buildDireccionSlug($inmueble);
+        $segments = array_values(array_filter([
+            $this->buildDireccionSlug($inmueble),
+            $this->normalizeSlugComponent($inmueble->ciudad),
+            $this->normalizeSlugComponent($inmueble->estado),
+        ]));
 
-        if ($direccionSlug !== null) {
-            return $direccionSlug;
+        if (empty($segments)) {
+            $tituloSlug = $this->normalizeSlugComponent($inmueble->titulo);
+
+            if ($tituloSlug !== null) {
+                $segments = array_values(array_filter([
+                    $tituloSlug,
+                    $this->normalizeSlugComponent($inmueble->ciudad),
+                    $this->normalizeSlugComponent($inmueble->estado),
+                ]));
+            }
         }
 
-        $segments = array_filter([
-            $inmueble->direccion,
-            $inmueble->ciudad,
-            $inmueble->estado,
-        ], fn ($value) => filled($value));
-
         if (! empty($segments)) {
-            $folder = Str::slug(implode(' ', $segments), '-');
-
-            if ($folder !== '') {
-                return $folder;
-            }
+            return implode('_', $segments);
         }
 
         return 'inmueble-' . $inmueble->id;
@@ -177,13 +179,18 @@ class InmuebleImageService
 
     protected function buildDireccionSlug(Inmueble $inmueble): ?string
     {
-        $direccion = trim((string) ($inmueble->direccion ?? ''));
+        return $this->normalizeSlugComponent($inmueble->direccion);
+    }
 
-        if ($direccion === '') {
+    protected function normalizeSlugComponent(?string $value): ?string
+    {
+        $value = trim((string) ($value ?? ''));
+
+        if ($value === '') {
             return null;
         }
 
-        $slug = Str::slug($direccion, '-');
+        $slug = Str::slug($value, '_');
 
         return $slug !== '' ? $slug : null;
     }
@@ -323,7 +330,7 @@ class InmuebleImageService
         $paths = [
             'original' => sprintf('%s_original.%s', $keyPrefix, $originalExtension),
             'normalized' => sprintf('%s_normalized.%s', $keyPrefix, $processedExtension),
-            'watermarked' => sprintf('%s.%s', $keyPrefix, $processedExtension),
+            'watermarked' => sprintf('%s_watermarked.%s', $keyPrefix, $processedExtension),
             'thumbnail' => sprintf('%s_thumbnail.%s', $keyPrefix, $processedExtension),
         ];
 
