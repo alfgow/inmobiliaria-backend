@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Support\S3Configuration;
+use Aws\S3\S3Client;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,6 +13,8 @@ use Throwable;
 class InmuebleImage extends Model
 {
     use HasFactory;
+
+    protected static ?S3Client $s3ClientInstance = null;
 
     protected $table = 'inmueble_imagenes';
 
@@ -72,6 +76,10 @@ class InmuebleImage extends Model
             return null;
         }
 
+        if ($this->disk === 's3') {
+            return $this->generateS3Url($path);
+        }
+
         $disk = Storage::disk($this->disk);
         $expiresAt = now()->addMinutes($this->urlTtlMinutes());
 
@@ -88,6 +96,48 @@ class InmuebleImage extends Model
         }
 
         return null;
+    }
+
+    protected function generateS3Url(string $path): ?string
+    {
+        try {
+            $config = S3Configuration::resolve();
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return null;
+        }
+
+        $key = $this->s3_key ?: $path;
+        $key = ltrim($key, '/');
+
+        try {
+            $client = $this->resolveS3Client($config['client']);
+            $command = $client->getCommand('GetObject', [
+                'Bucket' => $config['bucket'],
+                'Key' => $key,
+            ]);
+
+            $expiresAt = now()->addMinutes($this->urlTtlMinutes());
+            $request = $client->createPresignedRequest($command, $expiresAt);
+
+            return (string) $request->getUri();
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return null;
+        }
+    }
+
+    protected function resolveS3Client(array $config): S3Client
+    {
+        if (static::$s3ClientInstance instanceof S3Client) {
+            return static::$s3ClientInstance;
+        }
+
+        static::$s3ClientInstance = new S3Client($config);
+
+        return static::$s3ClientInstance;
     }
 
     protected function urlTtlMinutes(): int
