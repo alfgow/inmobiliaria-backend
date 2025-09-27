@@ -20,10 +20,10 @@
             @csrf
 
             <x-inmuebles.form
-                :statuses="$statuses"
                 :tipos="$tipos"
                 :operaciones="$operaciones"
                 :watermark-preview-url="$watermarkPreviewUrl"
+                :show-status-selector="false"
             />
 
             <div class="flex flex-col items-stretch gap-3 border-t border-gray-800 pt-6 sm:flex-row sm:justify-between">

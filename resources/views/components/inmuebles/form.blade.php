@@ -1,6 +1,7 @@
 @props([
     'inmueble' => null,
     'statuses' => collect(),
+    'showStatusSelector' => true,
     'tipos' => [],
     'operaciones' => [],
     'watermarkPreviewUrl' => null,
@@ -117,7 +118,7 @@
                 </div>
             </div>
 
-            <div class="grid gap-5 lg:grid-cols-3">
+            <div class="grid gap-5 {{ $showStatusSelector ? 'lg:grid-cols-3' : 'lg:grid-cols-2' }}">
                 <div class="space-y-2">
                     <label for="tipo" class="text-sm font-medium">Tipo *</label>
                     <select
@@ -154,25 +155,27 @@
                     @enderror
                 </div>
 
-                <div class="space-y-2">
-                    <label for="estatus_id" class="text-sm font-medium">Estatus *</label>
-                    <select
-                        id="estatus_id"
-                        name="estatus_id"
-                        class="w-full rounded-2xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
-                        required
-                    >
-                        <option value="">Selecciona un estado</option>
-                        @foreach ($statuses as $status)
-                            <option value="{{ $status->id }}" @selected((int) old('estatus_id', optional($inmueble)->estatus_id) === $status->id)>
-                                {{ $status->nombre }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('estatus_id')
-                        <p class="text-sm text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
+                @if ($showStatusSelector)
+                    <div class="space-y-2">
+                        <label for="estatus_id" class="text-sm font-medium">Estatus *</label>
+                        <select
+                            id="estatus_id"
+                            name="estatus_id"
+                            class="w-full rounded-2xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                            required
+                        >
+                            <option value="">Selecciona un estado</option>
+                            @foreach ($statuses as $status)
+                                <option value="{{ $status->id }}" @selected((int) old('estatus_id', optional($inmueble)->estatus_id) === $status->id)>
+                                    {{ $status->nombre }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('estatus_id')
+                            <p class="text-sm text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+                @endif
             </div>
 
             <div class="space-y-2">

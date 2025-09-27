@@ -15,6 +15,8 @@ class UpdateInmuebleRequest extends StoreInmuebleRequest
     {
         $rules = parent::rules();
 
+        $rules['estatus_id'] = ['required', 'integer', Rule::exists('inmueble_estatus', 'id')];
+
         $rules['imagenes'] = ['nullable', 'array', 'max:10'];
         $rules['imagenes.*'] = ['image', 'max:5120'];
         $rules['imagenes_eliminar'] = ['nullable', 'array'];

@@ -33,7 +33,7 @@ class StoreInmuebleRequest extends FormRequest
             'codigo_postal' => ['nullable', 'string', 'max:20'],
             'tipo' => ['required', Rule::in(Inmueble::TIPOS)],
             'operacion' => ['required', Rule::in(Inmueble::OPERACIONES)],
-            'estatus_id' => ['required', 'integer', Rule::exists('inmueble_estatus', 'id')],
+            'estatus_id' => ['sometimes', 'integer', Rule::exists('inmueble_estatus', 'id')],
             'habitaciones' => ['nullable', 'integer', 'min:0', 'max:50'],
             'banos' => ['nullable', 'integer', 'min:0', 'max:50'],
             'estacionamientos' => ['nullable', 'integer', 'min:0', 'max:50'],
