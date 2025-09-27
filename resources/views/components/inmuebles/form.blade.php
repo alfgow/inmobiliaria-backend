@@ -80,7 +80,7 @@
                 </div>
 
                 <div
-                    class="grid grid-cols-1 gap-4 sm:grid-cols-4"
+                    class="grid grid-cols-1 gap-4"
                     data-postal-selector
                     data-postal-options-url="{{ url('/codigos-postales') }}"
                 >
