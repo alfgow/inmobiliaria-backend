@@ -22,72 +22,429 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    document
-        .querySelectorAll("[data-searchable-select]")
-        .forEach((container) => {
-            const searchInput = container.querySelector("[data-search-input]");
-            const select = container.querySelector("select");
+    const initializeSearchableSelect = (container) => {
+        if (!container || container.__searchableSelect) {
+            return container?.__searchableSelect || null;
+        }
 
-            if (!searchInput || !select) {
-                return;
-            }
+        const searchInput = container.querySelector("[data-search-input]");
+        const select = container.querySelector("select");
 
-            const options = Array.from(select.options);
+        if (!searchInput || !select) {
+            return null;
+        }
 
-            const filterOptions = () => {
-                const term = searchInput.value.trim().toLowerCase();
+        let options = Array.from(select.options);
+        let suppressChangeEvent = false;
 
-                options.forEach((option) => {
-                    if (option.value === "") {
-                        option.hidden = false;
-                        return;
-                    }
+        const filterOptions = () => {
+            const term = searchInput.value.trim().toLowerCase();
 
-                    const searchSource =
-                        option.dataset.searchable || option.textContent || "";
-                    const matches =
-                        term === "" ||
-                        searchSource.toLowerCase().includes(term);
-
-                    option.hidden = !matches;
-                });
-
-                const selectedOption = select.selectedOptions[0];
-                if (selectedOption && selectedOption.hidden) {
-                    select.value = "";
-                }
-            };
-
-            searchInput.addEventListener("input", filterOptions);
-
-            searchInput.addEventListener("search", filterOptions);
-
-            searchInput.addEventListener("keydown", (event) => {
-                if (event.key !== "Enter") {
+            options.forEach((option) => {
+                if (option.value === "") {
+                    option.hidden = false;
                     return;
                 }
 
-                event.preventDefault();
+                const searchSource =
+                    option.dataset.searchable || option.textContent || "";
+                const matches =
+                    term === "" ||
+                    searchSource.toLowerCase().includes(term);
 
-                const firstVisibleOption = options.find(
-                    (option) => !option.hidden && option.value !== ""
-                );
+                option.hidden = !matches;
+            });
 
-                if (firstVisibleOption) {
-                    select.value = firstVisibleOption.value;
+            const selectedOption = select.selectedOptions[0];
+            if (selectedOption && selectedOption.hidden) {
+                select.value = "";
+
+                if (!suppressChangeEvent) {
                     select.dispatchEvent(
                         new Event("change", { bubbles: true })
                     );
                 }
+            }
+        };
+
+        const refresh = ({ resetSearch = true, dispatchChange = true } = {}) => {
+            const previousValue = select.value;
+            const previousSuppressState = suppressChangeEvent;
+
+            suppressChangeEvent = !dispatchChange;
+            options = Array.from(select.options);
+            options.forEach((option) => {
+                option.hidden = false;
             });
 
-            searchInput.addEventListener("blur", () => {
-                if (searchInput.value.trim() === "") {
-                    options.forEach((option) => {
-                        option.hidden = false;
-                    });
-                }
+            if (resetSearch) {
+                searchInput.value = "";
+            }
+
+            filterOptions();
+            suppressChangeEvent = previousSuppressState;
+
+            if (dispatchChange && previousValue !== select.value) {
+                select.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+        };
+
+        const handleRefreshEvent = (event) => {
+            const detail = event?.detail || {};
+            refresh({
+                resetSearch:
+                    detail.resetSearch === undefined ? true : detail.resetSearch,
+                dispatchChange:
+                    detail.dispatchChange === undefined
+                        ? true
+                        : detail.dispatchChange,
             });
+        };
+
+        searchInput.addEventListener("input", filterOptions);
+        searchInput.addEventListener("search", filterOptions);
+
+        searchInput.addEventListener("keydown", (event) => {
+            if (event.key !== "Enter") {
+                return;
+            }
+
+            event.preventDefault();
+
+            const firstVisibleOption = options.find(
+                (option) => !option.hidden && option.value !== ""
+            );
+
+            if (firstVisibleOption) {
+                select.value = firstVisibleOption.value;
+                select.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+        });
+
+        searchInput.addEventListener("blur", () => {
+            if (searchInput.value.trim() === "") {
+                options.forEach((option) => {
+                    option.hidden = false;
+                });
+            }
+        });
+
+        container.addEventListener("searchable:refresh", handleRefreshEvent);
+
+        const observer = new MutationObserver(() => {
+            refresh({ resetSearch: true, dispatchChange: false });
+        });
+
+        observer.observe(select, { childList: true });
+
+        suppressChangeEvent = true;
+        filterOptions();
+        suppressChangeEvent = false;
+
+        const instance = {
+            refresh,
+            filter: filterOptions,
+            searchInput,
+            select,
+        };
+
+        container.__searchableSelect = instance;
+
+        return instance;
+    };
+
+    document
+        .querySelectorAll("[data-searchable-select]")
+        .forEach((container) => {
+            initializeSearchableSelect(container);
+        });
+
+    const initializePostalSelector = (container) => {
+        if (!container || container.__postalSelectorInitialized) {
+            return;
+        }
+
+        const baseUrl = container.dataset.postalOptionsUrl;
+
+        if (!baseUrl) {
+            return;
+        }
+
+        const normalizedBaseUrl = baseUrl.replace(/\/$/, "");
+        const resolveUrl = `${normalizedBaseUrl}/resolve`;
+        const fieldOrder = [
+            "codigo_postal",
+            "colonia",
+            "municipio",
+            "estado",
+        ];
+        const fields = {};
+
+        fieldOrder.forEach((key) => {
+            const select =
+                container.querySelector(`select[name="${key}"]`) ||
+                container.querySelector(`#${key}`);
+
+            if (!select) {
+                return;
+            }
+
+            const wrapper = select.closest("[data-searchable-select]");
+            const placeholderOption = select.querySelector("option[value='']");
+            const placeholderText = placeholderOption
+                ? placeholderOption.textContent || ""
+                : "Selecciona una opción";
+
+            fields[key] = {
+                select,
+                placeholder: placeholderText,
+                wrapper,
+                searchable: wrapper
+                    ? initializeSearchableSelect(wrapper)
+                    : null,
+            };
+        });
+
+        if (Object.keys(fields).length === 0) {
+            return;
+        }
+
+        container.__postalSelectorInitialized = true;
+
+        const uniqueValuesFromResults = (results, key) => {
+            const values = [];
+
+            results.forEach((item) => {
+                if (!item || item[key] === undefined || item[key] === null) {
+                    return;
+                }
+
+                const value = String(item[key]).trim();
+
+                if (!value || values.includes(value)) {
+                    return;
+                }
+
+                values.push(value);
+            });
+
+            return values;
+        };
+
+        let isUpdating = false;
+        let activeRequestToken = 0;
+
+        const repopulateField = (
+            key,
+            values,
+            { triggered = false, autoSelectSingle = false } = {}
+        ) => {
+            const field = fields[key];
+
+            if (!field) {
+                return { changed: false, newValue: "" };
+            }
+
+            const { select, placeholder, searchable } = field;
+            const previousValue = select.value;
+            const availableValues = Array.isArray(values) ? values : [];
+            const normalizedValues = [];
+
+            availableValues.forEach((value) => {
+                if (value === null || value === undefined) {
+                    return;
+                }
+
+                const normalized = String(value).trim();
+
+                if (!normalized || normalizedValues.includes(normalized)) {
+                    return;
+                }
+
+                normalizedValues.push(normalized);
+            });
+
+            let newValue = previousValue;
+
+            if (!normalizedValues.includes(previousValue)) {
+                if (autoSelectSingle && normalizedValues.length === 1) {
+                    newValue = normalizedValues[0];
+                } else {
+                    newValue = "";
+                }
+            }
+
+            if (triggered && previousValue && normalizedValues.includes(previousValue)) {
+                newValue = previousValue;
+            }
+
+            const fragment = document.createDocumentFragment();
+            const placeholderOption = document.createElement("option");
+
+            placeholderOption.value = "";
+            placeholderOption.textContent = placeholder || "Selecciona una opción";
+
+            if (!newValue) {
+                placeholderOption.selected = true;
+            }
+
+            fragment.appendChild(placeholderOption);
+
+            normalizedValues.forEach((value) => {
+                const option = document.createElement("option");
+
+                option.value = value;
+                option.textContent = value;
+                option.dataset.searchable = value.toLowerCase();
+
+                if (value === newValue) {
+                    option.selected = true;
+                }
+
+                fragment.appendChild(option);
+            });
+
+            select.innerHTML = "";
+            select.appendChild(fragment);
+            select.value = newValue;
+
+            if (searchable) {
+                searchable.refresh({ resetSearch: true, dispatchChange: false });
+            }
+
+            const changed = previousValue !== newValue;
+
+            if (changed && !triggered) {
+                select.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+
+            return { changed, newValue };
+        };
+
+        const applyResults = (results, triggeredKey) => {
+            const safeResults = Array.isArray(results) ? results : [];
+
+            isUpdating = true;
+
+            try {
+                fieldOrder.forEach((key) => {
+                    if (!fields[key]) {
+                        return;
+                    }
+
+                    const values = uniqueValuesFromResults(safeResults, key);
+                    const autoSelectSingle = key !== triggeredKey;
+
+                    repopulateField(key, values, {
+                        triggered: key === triggeredKey,
+                        autoSelectSingle,
+                    });
+                });
+            } finally {
+                isUpdating = false;
+            }
+        };
+
+        const fetchCombinations = async (type, value) => {
+            const params = new URLSearchParams({ type, value });
+            const url = `${resolveUrl}?${params.toString()}`;
+            const response = await fetch(url, {
+                headers: { Accept: "application/json" },
+            });
+
+            if (!response.ok) {
+                throw new Error(
+                    `No se pudo resolver la información postal (${response.status})`
+                );
+            }
+
+            const payload = await response.json();
+
+            if (!payload || !Array.isArray(payload.data)) {
+                return [];
+            }
+
+            return payload.data;
+        };
+
+        const handleChange = async (type) => {
+            if (isUpdating) {
+                return;
+            }
+
+            const field = fields[type];
+
+            if (!field) {
+                return;
+            }
+
+            const value = field.select.value;
+
+            if (!value) {
+                const fallback = fieldOrder.find((key) => {
+                    if (key === type || !fields[key]) {
+                        return false;
+                    }
+
+                    const fallbackField = fields[key];
+                    return Boolean(fallbackField.select.value);
+                });
+
+                if (fallback) {
+                    await handleChange(fallback);
+                } else {
+                    applyResults([], type);
+                }
+
+                return;
+            }
+
+            const requestToken = ++activeRequestToken;
+
+            try {
+                const results = await fetchCombinations(type, value);
+
+                if (requestToken !== activeRequestToken) {
+                    return;
+                }
+
+                if (!results || results.length === 0) {
+                    applyResults([], type);
+                    return;
+                }
+
+                applyResults(results, type);
+            } catch (error) {
+                console.error(
+                    "No fue posible actualizar la información del código postal.",
+                    error
+                );
+            }
+        };
+
+        fieldOrder.forEach((key) => {
+            if (!fields[key]) {
+                return;
+            }
+
+            fields[key].select.addEventListener("change", () => {
+                handleChange(key);
+            });
+        });
+
+        const initialField = fieldOrder.find((key) => {
+            return fields[key] && fields[key].select.value;
+        });
+
+        if (initialField) {
+            handleChange(initialField);
+        }
+    };
+
+    document
+        .querySelectorAll("[data-postal-selector]")
+        .forEach((container) => {
+            initializePostalSelector(container);
         });
 
     document.querySelectorAll("form[data-swal-loader]").forEach((form) => {
