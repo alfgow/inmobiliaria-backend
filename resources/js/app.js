@@ -294,11 +294,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const repopulateField = (
             key,
             values,
-            {
-                triggered = false,
-                autoSelectSingle = false,
-                autoSelectFirst = false,
-            } = {}
+            { triggered = false, autoSelectSingle = false } = {}
         ) => {
             const field = fields[key];
 
@@ -329,8 +325,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!normalizedValues.includes(previousValue)) {
                 if (autoSelectSingle && normalizedValues.length === 1) {
-                    newValue = normalizedValues[0];
-                } else if (autoSelectFirst && normalizedValues.length > 0) {
                     newValue = normalizedValues[0];
                 } else {
                     newValue = "";
@@ -418,16 +412,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
 
-                const { changed, newValue } = repopulateField(type, values, {
-                    triggered: true,
-                    autoSelectFirst: true,
-                });
-
-                if (changed && newValue) {
-                    fields[type]?.select.dispatchEvent(
-                        new Event("change", { bubbles: true })
-                    );
-                }
+                repopulateField(type, values, { triggered: true });
             } catch (error) {
                 console.error(
                     "No fue posible obtener las opciones de códigos postales.",
