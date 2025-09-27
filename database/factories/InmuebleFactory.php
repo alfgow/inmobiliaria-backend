@@ -28,7 +28,7 @@ class InmuebleFactory extends Factory
             'descripcion' => $this->faker->paragraph(),
             'precio' => $this->faker->randomFloat(2, 1000000, 20000000),
             'direccion' => $this->faker->streetAddress(),
-            'colonia' => $this->faker->streetName(),
+            'colonia' => $this->faker->words(2, true),
             'municipio' => $this->faker->city(),
             'estado' => $this->faker->state(),
             'codigo_postal' => $this->faker->postcode(),
