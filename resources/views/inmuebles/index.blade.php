@@ -127,9 +127,14 @@
                                 </div>
                                 <h2 class="text-xl font-semibold text-white">{{ $inmueble->titulo }}</h2>
                                 @php
-                                    $location = collect([$inmueble->colonia, $inmueble->municipio, $inmueble->estado])->filter()->join(', ');
+                                    $fullAddress = collect([
+                                        $inmueble->direccion,
+                                        $inmueble->colonia,
+                                        $inmueble->municipio,
+                                        $inmueble->estado,
+                                    ])->filter()->join(', ');
                                 @endphp
-                                <p class="text-sm text-gray-400">{{ $inmueble->direccion }}@if ($location){{ ', ' . $location }}@endif</p>
+                                <p class="text-sm text-gray-400">{{ $fullAddress }}</p>
                             </div>
 
                             <div class="flex flex-wrap items-center gap-3 text-sm text-gray-300">

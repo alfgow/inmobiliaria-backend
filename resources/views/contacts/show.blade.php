@@ -107,8 +107,16 @@
                                 >
                                     <option value="" disabled selected>Selecciona un inmueble</option>
                                     @foreach ($inmuebles as $inmueble)
-                                        <option value="{{ $inmueble->id }}" data-searchable="{{ Str::lower($inmueble->titulo . ' ' . $inmueble->direccion) }}">
-                                            {{ $inmueble->titulo }} — {{ $inmueble->direccion }}
+                                        @php
+                                            $fullAddress = collect([
+                                                $inmueble->direccion,
+                                                $inmueble->colonia,
+                                                $inmueble->municipio,
+                                                $inmueble->estado,
+                                            ])->filter()->join(', ');
+                                        @endphp
+                                        <option value="{{ $inmueble->id }}" data-searchable="{{ Str::lower(trim($inmueble->titulo . ' ' . $fullAddress)) }}">
+                                            {{ $inmueble->titulo }}@if ($fullAddress !== '') — {{ $fullAddress }}@endif
                                         </option>
                                     @endforeach
                                 </select>
@@ -130,7 +138,17 @@
                                     <h3 class="font-semibold text-indigo-200">{{ optional($interes->inmueble)->titulo ?? 'Inmueble sin título' }}</h3>
                                     <p class="text-sm text-gray-400">Registrado el {{ optional($interes->created_at)->format('d/m/Y H:i') ?? '—' }}</p>
                                     @if ($interes->inmueble)
-                                        <p class="mt-2 text-sm text-gray-300">{{ $interes->inmueble->direccion }} · {{ $interes->inmueble->tipo }} en {{ $interes->inmueble->operacion }}</p>
+                                        @php
+                                            $fullAddress = collect([
+                                                $interes->inmueble->direccion,
+                                                $interes->inmueble->colonia,
+                                                $interes->inmueble->municipio,
+                                                $interes->inmueble->estado,
+                                            ])->filter()->join(', ');
+                                        @endphp
+                                        <p class="mt-2 text-sm text-gray-300">
+                                            {{ $fullAddress !== '' ? $fullAddress : 'Dirección no disponible' }} · {{ $interes->inmueble->tipo }} en {{ $interes->inmueble->operacion }}
+                                        </p>
                                     @endif
                                 </article>
                             @empty
