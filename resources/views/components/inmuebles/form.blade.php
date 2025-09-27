@@ -94,15 +94,11 @@
                 <div class="grid gap-6 lg:grid-cols-12">
                     <div class="space-y-3 lg:col-span-6">
                         <label for="codigo_postal" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">C.P.</label>
-                        <div class="space-y-2" data-searchable-select>
-                            <input
-                                type="search"
-                                id="codigo-postal-search"
-                                data-search-input
-                                placeholder="Buscar C.P."
-                                class="{{ $formControlClasses }}"
-                                autocomplete="off"
-                            >
+                        <div
+                            class="space-y-2"
+                            data-searchable-select
+                            data-search-placeholder="Buscar C.P."
+                        >
                             <select
                                 id="codigo_postal"
                                 name="codigo_postal"
@@ -121,15 +117,11 @@
 
                     <div class="space-y-3 lg:col-span-6">
                         <label for="colonia" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Colonia</label>
-                        <div class="space-y-2" data-searchable-select>
-                            <input
-                                type="search"
-                                id="colonia-search"
-                                data-search-input
-                                placeholder="Buscar colonia"
-                                class="{{ $formControlClasses }}"
-                                autocomplete="off"
-                            >
+                        <div
+                            class="space-y-2"
+                            data-searchable-select
+                            data-search-placeholder="Buscar colonia"
+                        >
                             <select
                                 id="colonia"
                                 name="colonia"
@@ -151,15 +143,11 @@
                 <div class="grid gap-6 lg:grid-cols-12">
                     <div class="space-y-3 lg:col-span-6">
                         <label for="municipio" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Municipio</label>
-                        <div class="space-y-2" data-searchable-select>
-                            <input
-                                type="search"
-                                id="municipio-search"
-                                data-search-input
-                                placeholder="Buscar municipio"
-                                class="{{ $formControlClasses }}"
-                                autocomplete="off"
-                            >
+                        <div
+                            class="space-y-2"
+                            data-searchable-select
+                            data-search-placeholder="Buscar municipio"
+                        >
                             <select
                                 id="municipio"
                                 name="municipio"
@@ -178,15 +166,11 @@
 
                     <div class="space-y-3 lg:col-span-6">
                         <label for="estado" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Estado</label>
-                        <div class="space-y-2" data-searchable-select>
-                            <input
-                                type="search"
-                                id="estado-search"
-                                data-search-input
-                                placeholder="Buscar estado"
-                                class="{{ $formControlClasses }}"
-                                autocomplete="off"
-                            >
+                        <div
+                            class="space-y-2"
+                            data-searchable-select
+                            data-search-placeholder="Buscar estado"
+                        >
                             <select
                                 id="estado"
                                 name="estado"

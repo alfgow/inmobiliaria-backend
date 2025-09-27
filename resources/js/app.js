@@ -1,4 +1,6 @@
 import Chart from "chart.js/auto";
+import Choices from "choices.js";
+import "choices.js/styles.css";
 
 document.addEventListener("DOMContentLoaded", () => {
     const ctx = document.getElementById("chartDashboard");
@@ -22,141 +24,44 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    const initializeSearchableSelect = (container) => {
-        if (!container || container.__searchableSelect) {
-            return container?.__searchableSelect || null;
-        }
+    const choicesInstances = new Map();
 
-        const searchInput = container.querySelector("[data-search-input]");
-        const select = container.querySelector("select");
-
-        if (!searchInput || !select) {
+    const initializeChoicesSelect = (select) => {
+        if (!select) {
             return null;
         }
 
-        let options = Array.from(select.options);
-        let suppressChangeEvent = false;
+        if (select.__choicesInstance) {
+            choicesInstances.set(select, select.__choicesInstance);
+            return select.__choicesInstance;
+        }
 
-        const filterOptions = () => {
-            const term = searchInput.value.trim().toLowerCase();
+        const container = select.closest("[data-searchable-select]");
 
-            options.forEach((option) => {
-                if (option.value === "") {
-                    option.hidden = false;
-                    return;
-                }
+        if (!container) {
+            return null;
+        }
 
-                const searchSource =
-                    option.dataset.searchable || option.textContent || "";
-                const matches =
-                    term === "" ||
-                    searchSource.toLowerCase().includes(term);
+        const searchPlaceholder =
+            container.dataset.searchPlaceholder ||
+            select.dataset.searchPlaceholder ||
+            "Buscar...";
 
-                option.hidden = !matches;
-            });
-
-            const selectedOption = select.selectedOptions[0];
-            if (selectedOption && selectedOption.hidden) {
-                select.value = "";
-
-                if (!suppressChangeEvent) {
-                    select.dispatchEvent(
-                        new Event("change", { bubbles: true })
-                    );
-                }
-            }
-        };
-
-        const refresh = ({ resetSearch = true, dispatchChange = true } = {}) => {
-            const previousValue = select.value;
-            const previousSuppressState = suppressChangeEvent;
-
-            suppressChangeEvent = !dispatchChange;
-            options = Array.from(select.options);
-            options.forEach((option) => {
-                option.hidden = false;
-            });
-
-            if (resetSearch) {
-                searchInput.value = "";
-            }
-
-            filterOptions();
-            suppressChangeEvent = previousSuppressState;
-
-            if (dispatchChange && previousValue !== select.value) {
-                select.dispatchEvent(new Event("change", { bubbles: true }));
-            }
-        };
-
-        const handleRefreshEvent = (event) => {
-            const detail = event?.detail || {};
-            refresh({
-                resetSearch:
-                    detail.resetSearch === undefined ? true : detail.resetSearch,
-                dispatchChange:
-                    detail.dispatchChange === undefined
-                        ? true
-                        : detail.dispatchChange,
-            });
-        };
-
-        searchInput.addEventListener("input", filterOptions);
-        searchInput.addEventListener("search", filterOptions);
-
-        searchInput.addEventListener("keydown", (event) => {
-            if (event.key !== "Enter") {
-                return;
-            }
-
-            event.preventDefault();
-
-            const firstVisibleOption = options.find(
-                (option) => !option.hidden && option.value !== ""
-            );
-
-            if (firstVisibleOption) {
-                select.value = firstVisibleOption.value;
-                select.dispatchEvent(new Event("change", { bubbles: true }));
-            }
+        const instance = new Choices(select, {
+            searchPlaceholderValue: searchPlaceholder,
         });
 
-        searchInput.addEventListener("blur", () => {
-            if (searchInput.value.trim() === "") {
-                options.forEach((option) => {
-                    option.hidden = false;
-                });
-            }
-        });
-
-        container.addEventListener("searchable:refresh", handleRefreshEvent);
-
-        const observer = new MutationObserver(() => {
-            refresh({ resetSearch: true, dispatchChange: false });
-        });
-
-        observer.observe(select, { childList: true });
-
-        suppressChangeEvent = true;
-        filterOptions();
-        suppressChangeEvent = false;
-
-        const instance = {
-            refresh,
-            filter: filterOptions,
-            searchInput,
-            select,
-        };
-
-        container.__searchableSelect = instance;
+        select.__choicesInstance = instance;
+        container.dataset.choicesInitialized = "true";
+        choicesInstances.set(select, instance);
 
         return instance;
     };
 
     document
-        .querySelectorAll("[data-searchable-select]")
-        .forEach((container) => {
-            initializeSearchableSelect(container);
+        .querySelectorAll("[data-searchable-select] select")
+        .forEach((select) => {
+            initializeChoicesSelect(select);
         });
 
     const initializePostalSelector = (container) => {
@@ -189,7 +94,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            const wrapper = select.closest("[data-searchable-select]");
             const placeholderOption = select.querySelector("option[value='']");
             const placeholderText = placeholderOption
                 ? placeholderOption.textContent || ""
@@ -198,10 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
             fields[key] = {
                 select,
                 placeholder: placeholderText,
-                wrapper,
-                searchable: wrapper
-                    ? initializeSearchableSelect(wrapper)
-                    : null,
+                choices: initializeChoicesSelect(select),
             };
         });
 
@@ -302,7 +203,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return { changed: false, newValue: "" };
             }
 
-            const { select, placeholder, searchable } = field;
+            const { select, placeholder, choices } = field;
             const previousValue = select.value;
             const availableValues = Array.isArray(values) ? values : [];
             const normalizedValues = [];
@@ -365,8 +266,8 @@ document.addEventListener("DOMContentLoaded", () => {
             select.appendChild(fragment);
             select.value = newValue;
 
-            if (searchable) {
-                searchable.refresh({ resetSearch: true, dispatchChange: false });
+            if (choices) {
+                choices.refresh({ resetSearch: true, dispatchChange: false });
             }
 
             const changed = previousValue !== newValue;
@@ -507,21 +408,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 handleChange(key);
             });
 
-            const { searchable } = fields[key];
+            const { choices } = fields[key];
 
-            if (searchable && searchable.searchInput) {
+            if (choices && choices.searchInput) {
                 const debouncedFetch = debounce((term) => {
                     requestOptionsUpdate(key, term);
                 });
 
                 const triggerFetch = () => {
-                    const searchTerm = searchable.searchInput.value || "";
+                    const searchTerm = choices.searchInput.value || "";
 
                     debouncedFetch(searchTerm);
                 };
 
-                searchable.searchInput.addEventListener("focus", triggerFetch);
-                searchable.searchInput.addEventListener("keydown", (event) => {
+                choices.searchInput.addEventListener("focus", triggerFetch);
+                choices.searchInput.addEventListener("keydown", (event) => {
                     if (event.key !== "Enter") {
                         return;
                     }
@@ -545,8 +446,8 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         if (firstAvailableField) {
-            const initialSearchTerm = fields[firstAvailableField]?.searchable?.searchInput
-                ? fields[firstAvailableField].searchable.searchInput.value || ""
+            const initialSearchTerm = fields[firstAvailableField]?.choices?.searchInput
+                ? fields[firstAvailableField].choices.searchInput.value || ""
                 : "";
 
             requestOptionsUpdate(firstAvailableField, initialSearchTerm);

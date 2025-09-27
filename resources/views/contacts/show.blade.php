@@ -89,16 +89,12 @@
                             data-swal-loader="registrar-interes"
                         >
                             @csrf
-                            <div class="space-y-2" data-searchable-select>
+                            <div
+                                class="space-y-2"
+                                data-searchable-select
+                                data-search-placeholder="Buscar por título o dirección"
+                            >
                                 <label for="nuevo-inmueble" class="block text-sm font-medium text-gray-300">Agregar inmueble</label>
-                                <input
-                                    type="search"
-                                    id="nuevo-inmueble-buscar"
-                                    data-search-input
-                                    placeholder="Buscar por título o dirección"
-                                    class="w-full rounded-xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
-                                    autocomplete="off"
-                                >
                                 <select
                                     id="nuevo-inmueble"
                                     name="inmueble_id"
