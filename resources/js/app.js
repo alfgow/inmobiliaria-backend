@@ -521,7 +521,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 };
 
                 searchable.searchInput.addEventListener("focus", triggerFetch);
-                searchable.searchInput.addEventListener("input", triggerFetch);
+                searchable.searchInput.addEventListener("keydown", (event) => {
+                    if (event.key !== "Enter") {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    triggerFetch();
+                });
             }
         });
 
