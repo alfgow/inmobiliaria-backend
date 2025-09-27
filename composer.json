@@ -11,6 +11,7 @@
     "require": {
         "php": "^8.2",
         "aws/aws-sdk-php": "^3.356",
+        "league/flysystem-aws-s3-v3": "^3.25",
         "intervention/image": "^3.11",
         "laravel/fortify": "^1.30",
         "laravel/framework": "^12.0",
