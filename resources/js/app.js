@@ -283,6 +283,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const emptyState = dropzone?.querySelector(
             "[data-gallery-empty-state]"
         );
+        const addMoreButton = dropzone?.querySelector(
+            "[data-gallery-add-more]"
+        );
         const MAX_FILES = 10;
         const canManageFiles =
             typeof window !== "undefined" &&
@@ -352,10 +355,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const updateContainerVisibility = () => {
             const hasFiles = selectedFiles.length > 0;
+            const canAddMore = selectedFiles.length < MAX_FILES;
 
             previewsContainer.classList.toggle("hidden", !hasFiles);
             previewsWrapper?.classList.toggle("hidden", !hasFiles);
             emptyState?.classList.toggle("hidden", hasFiles);
+            addMoreButton?.classList.toggle("hidden", !canAddMore);
+            if (addMoreButton) {
+                addMoreButton.setAttribute(
+                    "aria-disabled",
+                    String(!canAddMore)
+                );
+                addMoreButton.disabled = !canAddMore;
+            }
+            galleryInput.disabled = !canAddMore;
             updateFileCount();
         };
 
@@ -497,6 +510,8 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         if (dropzone) {
+            const atMaxFiles = () => selectedFiles.length >= MAX_FILES;
+
             const handleFileDrop = (event) => {
                 if (!isFileDragEvent(event)) {
                     return;
@@ -504,6 +519,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 event.preventDefault();
                 setDropzoneActive(false);
+
+                if (atMaxFiles()) {
+                    return;
+                }
 
                 const files = Array.from(event.dataTransfer?.files || []);
 
@@ -545,6 +564,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
 
+                if (atMaxFiles()) {
+                    return;
+                }
+
                 galleryInput.click();
             });
 
@@ -558,6 +581,24 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 event.preventDefault();
+
+                if (atMaxFiles()) {
+                    return;
+                }
+
+                galleryInput.click();
+            });
+        }
+
+        if (addMoreButton) {
+            addMoreButton.addEventListener("click", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                if (selectedFiles.length >= MAX_FILES) {
+                    return;
+                }
+
                 galleryInput.click();
             });
         }

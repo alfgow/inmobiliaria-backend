@@ -398,6 +398,17 @@
                             </template>
                         </div>
                     </div>
+                    <button
+                        type="button"
+                        class="inline-flex items-center gap-2 self-center rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-medium text-indigo-200 transition hover:bg-indigo-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-950"
+                        data-gallery-add-more
+                        aria-disabled="false"
+                    >
+                        <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 4v9m0 0 3-3m-3 3-3-3" />
+                        </svg>
+                        Seleccionar imágenes
+                    </button>
                     <p class="text-xs text-gray-400 transition-colors" data-gallery-counter>0 de 10 imágenes seleccionadas</p>
                     <p class="text-xs text-gray-500">Formatos permitidos: JPG y PNG</p>
                 </div>
