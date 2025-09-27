@@ -83,10 +83,7 @@ class InmuebleController extends Controller
      */
     public function create(): View
     {
-        $statuses = InmuebleStatus::orderBy('orden')->orderBy('nombre')->get();
-
         return view('inmuebles.create', [
-            'statuses' => $statuses,
             'tipos' => Inmueble::TIPOS,
             'operaciones' => Inmueble::OPERACIONES,
             'watermarkPreviewUrl' => $this->getWatermarkPreviewUrl(),
@@ -101,6 +98,10 @@ class InmuebleController extends Controller
 
         $payload = $this->preparePayload($request->validated(), $request);
         $imagenes = $request->file('imagenes', []);
+
+        if (! array_key_exists('estatus_id', $payload) || $payload['estatus_id'] === null) {
+            $payload['estatus_id'] = 1;
+        }
 
         DB::transaction(function () use ($payload, $imagenes): void {
             $inmueble = Inmueble::create($payload);
