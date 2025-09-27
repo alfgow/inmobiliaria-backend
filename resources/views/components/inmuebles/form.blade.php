@@ -66,159 +66,140 @@
                 </div>
             </div>
 
-            <div class="grid gap-6 lg:grid-cols-12">
-                <div class="space-y-3 lg:col-span-7">
-                    <label for="direccion" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Dirección *</label>
-                    <input
-                        type="text"
-                        id="direccion"
-                        name="direccion"
-                        value="{{ old('direccion', optional($inmueble)->direccion) }}"
-                        placeholder="Calle y número"
-                        class="{{ $formControlClasses }}"
-                        required
-                    >
-                    @error('direccion')
-                        <p class="text-sm text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
+            <!-- Dirección -->
+<div class="grid gap-6 lg:grid-cols-12">
+    <div class="space-y-3 lg:col-span-12">
+        <label for="direccion" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Dirección *</label>
+        <input
+            type="text"
+            id="direccion"
+            name="direccion"
+            value="{{ old('direccion', optional($inmueble)->direccion) }}"
+            placeholder="Calle y número"
+            class="{{ $formControlClasses }}"
+            required
+        >
+        @error('direccion')
+            <p class="text-sm text-red-400">{{ $message }}</p>
+        @enderror
+    </div>
+</div>
 
-                <div
-                    class="grid grid-cols-1 gap-4 lg:col-span-5"
-                    data-postal-selector
-                    data-postal-options-url="{{ url('/codigos-postales') }}"
-                >
-                    <div class="space-y-3">
-                        <label for="codigo_postal" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">C.P.</label>
-                        <div class="space-y-2" data-searchable-select>
-                            <input
-                                type="search"
-                                id="codigo-postal-search"
-                                data-search-input
-                                placeholder="Buscar C.P."
-                                class="{{ $formControlClasses }}"
-                                autocomplete="off"
-                            >
-                            <select
-                                id="codigo_postal"
-                                name="codigo_postal"
-                                class="{{ $selectControlClasses }}"
-                            >
-                                <option value="">Selecciona una opción</option>
-                                @if ($selectedCodigoPostal)
-                                    <option
-                                        value="{{ $selectedCodigoPostal }}"
-                                        data-searchable="{{ strtolower($selectedCodigoPostal) }}"
-                                        selected
-                                    >
-                                        {{ $selectedCodigoPostal }}
-                                    </option>
-                                @endif
-                            </select>
-                        </div>
-                        @error('codigo_postal')
-                            <p class="text-sm text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div class="space-y-3">
-                        <label for="colonia" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Colonia</label>
-                        <div class="space-y-2" data-searchable-select>
-                            <input
-                                type="search"
-                                id="colonia-search"
-                                data-search-input
-                                placeholder="Buscar colonia"
-                                class="{{ $formControlClasses }}"
-                                autocomplete="off"
-                            >
-                            <select
-                                id="colonia"
-                                name="colonia"
-                                class="{{ $selectControlClasses }}"
-                            >
-                                <option value="">Selecciona una opción</option>
-                                @if ($selectedColonia)
-                                    <option
-                                        value="{{ $selectedColonia }}"
-                                        data-searchable="{{ strtolower($selectedColonia) }}"
-                                        selected
-                                    >
-                                        {{ $selectedColonia }}
-                                    </option>
-                                @endif
-                            </select>
-                        </div>
-                        @error('colonia')
-                            <p class="text-sm text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div class="space-y-3">
-                        <label for="municipio" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Municipio</label>
-                        <div class="space-y-2" data-searchable-select>
-                            <input
-                                type="search"
-                                id="municipio-search"
-                                data-search-input
-                                placeholder="Buscar municipio"
-                                class="{{ $formControlClasses }}"
-                                autocomplete="off"
-                            >
-                            <select
-                                id="municipio"
-                                name="municipio"
-                                class="{{ $selectControlClasses }}"
-                            >
-                                <option value="">Selecciona una opción</option>
-                                @if ($selectedMunicipio)
-                                    <option
-                                        value="{{ $selectedMunicipio }}"
-                                        data-searchable="{{ strtolower($selectedMunicipio) }}"
-                                        selected
-                                    >
-                                        {{ $selectedMunicipio }}
-                                    </option>
-                                @endif
-                            </select>
-                        </div>
-                        @error('municipio')
-                            <p class="text-sm text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div class="space-y-3">
-                        <label for="estado" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Estado</label>
-                        <div class="space-y-2" data-searchable-select>
-                            <input
-                                type="search"
-                                id="estado-search"
-                                data-search-input
-                                placeholder="Buscar estado"
-                                class="{{ $formControlClasses }}"
-                                autocomplete="off"
-                            >
-                            <select
-                                id="estado"
-                                name="estado"
-                                class="{{ $selectControlClasses }}"
-                            >
-                                <option value="">Selecciona una opción</option>
-                                @if ($selectedEstado)
-                                    <option
-                                        value="{{ $selectedEstado }}"
-                                        data-searchable="{{ strtolower($selectedEstado) }}"
-                                        selected
-                                    >
-                                        {{ $selectedEstado }}
-                                    </option>
-                                @endif
-                            </select>
-                        </div>
-                        @error('estado')
-                            <p class="text-sm text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-                </div>
-            </div>
+<!-- C.P. + Colonia -->
+<div class="grid gap-6 lg:grid-cols-12">
+    <div class="space-y-3 lg:col-span-6">
+        <label for="codigo_postal" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">C.P.</label>
+        <div class="space-y-2" data-searchable-select>
+            <input
+                type="search"
+                id="codigo-postal-search"
+                data-search-input
+                placeholder="Buscar C.P."
+                class="{{ $formControlClasses }}"
+                autocomplete="off"
+            >
+            <select
+                id="codigo_postal"
+                name="codigo_postal"
+                class="{{ $selectControlClasses }}"
+            >
+                <option value="">Selecciona una opción</option>
+                @if ($selectedCodigoPostal)
+                    <option value="{{ $selectedCodigoPostal }}" selected>{{ $selectedCodigoPostal }}</option>
+                @endif
+            </select>
+        </div>
+        @error('codigo_postal')
+            <p class="text-sm text-red-400">{{ $message }}</p>
+        @enderror
+    </div>
 
+    <div class="space-y-3 lg:col-span-6">
+        <label for="colonia" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Colonia</label>
+        <div class="space-y-2" data-searchable-select>
+            <input
+                type="search"
+                id="colonia-search"
+                data-search-input
+                placeholder="Buscar colonia"
+                class="{{ $formControlClasses }}"
+                autocomplete="off"
+            >
+            <select
+                id="colonia"
+                name="colonia"
+                class="{{ $selectControlClasses }}"
+            >
+                <option value="">Selecciona una opción</option>
+                @if ($selectedColonia)
+                    <option value="{{ $selectedColonia }}" selected>{{ $selectedColonia }}</option>
+                @endif
+            </select>
+        </div>
+        @error('colonia')
+            <p class="text-sm text-red-400">{{ $message }}</p>
+        @enderror
+    </div>
+</div>
+
+<!-- Municipio + Estado -->
+<div class="grid gap-6 lg:grid-cols-12">
+    <div class="space-y-3 lg:col-span-6">
+        <label for="municipio" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Municipio</label>
+        <div class="space-y-2" data-searchable-select>
+            <input
+                type="search"
+                id="municipio-search"
+                data-search-input
+                placeholder="Buscar municipio"
+                class="{{ $formControlClasses }}"
+                autocomplete="off"
+            >
+            <select
+                id="municipio"
+                name="municipio"
+                class="{{ $selectControlClasses }}"
+            >
+                <option value="">Selecciona una opción</option>
+                @if ($selectedMunicipio)
+                    <option value="{{ $selectedMunicipio }}" selected>{{ $selectedMunicipio }}</option>
+                @endif
+            </select>
+        </div>
+        @error('municipio')
+            <p class="text-sm text-red-400">{{ $message }}</p>
+        @enderror
+    </div>
+
+    <div class="space-y-3 lg:col-span-6">
+        <label for="estado" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Estado</label>
+        <div class="space-y-2" data-searchable-select>
+            <input
+                type="search"
+                id="estado-search"
+                data-search-input
+                placeholder="Buscar estado"
+                class="{{ $formControlClasses }}"
+                autocomplete="off"
+            >
+            <select
+                id="estado"
+                name="estado"
+                class="{{ $selectControlClasses }}"
+            >
+                <option value="">Selecciona una opción</option>
+                @if ($selectedEstado)
+                    <option value="{{ $selectedEstado }}" selected>{{ $selectedEstado }}</option>
+                @endif
+            </select>
+        </div>
+        @error('estado')
+            <p class="text-sm text-red-400">{{ $message }}</p>
+        @enderror
+    </div>
+</div>
+
+           
             <div class="grid gap-5 {{ $showStatusSelector ? 'lg:grid-cols-3' : 'lg:grid-cols-2' }}">
                 <div class="space-y-3">
                     <label for="tipo" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Tipo *</label>
