@@ -108,7 +108,7 @@
                     <article class="flex flex-col overflow-hidden rounded-3xl border border-gray-800 bg-gray-900/70 shadow-xl shadow-black/30 transition hover:-translate-y-1 hover:border-indigo-500/60">
                         <div class="relative h-56 w-full overflow-hidden">
                             @if ($inmueble->coverImage)
-                                <img src="{{ $inmueble->coverImage->url }}" alt="{{ $inmueble->titulo }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
+                                <img src="{{ $inmueble->coverImage->temporaryVariantUrl('watermarked') ?? $inmueble->coverImage->url }}" alt="{{ $inmueble->titulo }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
                             @else
                                 <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900 text-gray-500">
                                     <span class="text-4xl">🏠</span>

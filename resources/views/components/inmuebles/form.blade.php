@@ -413,7 +413,7 @@
                     @foreach ($inmueble->images as $imagen)
                         <label class="group relative block overflow-hidden rounded-2xl border border-gray-800 bg-gray-900/80 shadow-lg shadow-black/30">
                             <input type="checkbox" name="imagenes_eliminar[]" value="{{ $imagen->id }}" class="absolute right-3 top-3 h-4 w-4 rounded border-gray-600 bg-gray-800 text-red-500 focus:ring-red-400">
-                            <img src="{{ $imagen->url }}" alt="Imagen inmueble" class="h-48 w-full object-cover transition duration-300 group-hover:scale-105">
+                            <img src="{{ $imagen->temporaryVariantUrl('watermarked') ?? $imagen->url }}" alt="Imagen inmueble" class="h-48 w-full object-cover transition duration-300 group-hover:scale-105">
                             <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-sm text-gray-200">
                                 Marcar para eliminar
                             </div>
