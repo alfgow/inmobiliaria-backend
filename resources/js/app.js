@@ -294,6 +294,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let selectedFiles = [];
         let dragSourceIndex = null;
         let dragSourcePreview = null;
+        let dragPlaceholder = null;
 
         const setDropzoneActive = (isActive) => {
             if (!dropzone) {
@@ -353,6 +354,98 @@ document.addEventListener("DOMContentLoaded", () => {
             return element;
         };
 
+        const getPlaceholderElement = () => {
+            if (!dragPlaceholder) {
+                dragPlaceholder = document.createElement("div");
+                dragPlaceholder.dataset.galleryPlaceholder = "";
+                dragPlaceholder.className =
+                    "flex min-h-[8rem] items-center justify-center rounded-xl border-2 border-dashed border-indigo-400/70 bg-indigo-500/10 text-xs font-medium text-indigo-200 transition-all duration-200";
+                dragPlaceholder.textContent = "Suelta aquí";
+            }
+
+            return dragPlaceholder;
+        };
+
+        const ensurePlaceholderHeight = () => {
+            if (!dragSourcePreview) {
+                return;
+            }
+
+            const placeholder = getPlaceholderElement();
+            const height = dragSourcePreview.offsetHeight;
+            placeholder.style.height = height ? `${height}px` : "";
+        };
+
+        const removePlaceholder = () => {
+            if (dragPlaceholder && dragPlaceholder.parentNode) {
+                dragPlaceholder.parentNode.removeChild(dragPlaceholder);
+            }
+        };
+
+        const animatePreviewReorder = (element) => {
+            if (!(element instanceof Element)) {
+                return;
+            }
+
+            element.animate(
+                [
+                    { transform: "scale(1)" },
+                    { transform: "scale(0.97)" },
+                    { transform: "scale(1)" },
+                ],
+                {
+                    duration: 180,
+                    easing: "ease-out",
+                }
+            );
+        };
+
+        const updatePlaceholderPosition = (preview, event) => {
+            if (!previewsContainer || dragSourceIndex === null) {
+                return;
+            }
+
+            const placeholder = getPlaceholderElement();
+            ensurePlaceholderHeight();
+
+            if (!preview || preview === placeholder) {
+                if (placeholder.parentNode !== previewsContainer) {
+                    previewsContainer.appendChild(placeholder);
+                }
+                return;
+            }
+
+            const rect = preview.getBoundingClientRect();
+            const shouldPlaceAfter = event.clientY > rect.top + rect.height / 2;
+
+            if (shouldPlaceAfter) {
+                if (preview.nextSibling !== placeholder) {
+                    preview.after(placeholder);
+                    animatePreviewReorder(preview);
+                }
+                return;
+            }
+
+            if (preview.previousSibling !== placeholder) {
+                previewsContainer.insertBefore(placeholder, preview);
+                animatePreviewReorder(preview);
+            }
+        };
+
+        const getPlaceholderIndex = () => {
+            if (!dragPlaceholder || !previewsContainer.contains(dragPlaceholder)) {
+                return -1;
+            }
+
+            const items = Array.from(
+                previewsContainer.querySelectorAll(
+                    "[data-gallery-preview], [data-gallery-placeholder]"
+                )
+            );
+
+            return items.indexOf(dragPlaceholder);
+        };
+
         const updateContainerVisibility = () => {
             const hasFiles = selectedFiles.length > 0;
             const canAddMore = selectedFiles.length < MAX_FILES;
@@ -387,6 +480,8 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         const renderPreviews = () => {
+            removePlaceholder();
+
             previewsContainer
                 .querySelectorAll("[data-gallery-preview]")
                 .forEach((element) => {
@@ -672,6 +767,7 @@ document.addEventListener("DOMContentLoaded", () => {
             dragSourcePreview = preview;
 
             preview.classList.add("opacity-50");
+            ensurePlaceholderHeight();
 
             if (event.dataTransfer) {
                 event.dataTransfer.effectAllowed = "move";
@@ -686,6 +782,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
             dragSourceIndex = null;
             dragSourcePreview = null;
+            removePlaceholder();
+        });
+
+        previewsContainer.addEventListener("dragcancel", () => {
+            removePlaceholder();
+        });
+
+        previewsContainer.addEventListener("dragenter", (event) => {
+            if (isFileDragEvent(event)) {
+                setDropzoneActive(true);
+                return;
+            }
+
+            if (dragSourceIndex === null) {
+                return;
+            }
+
+            const target = event.target;
+
+            if (
+                target instanceof Element &&
+                target.dataset.galleryPlaceholder !== undefined
+            ) {
+                return;
+            }
+
+            const preview = findPreviewElement(target);
+
+            updatePlaceholderPosition(preview, event);
         });
 
         previewsContainer.addEventListener("dragover", (event) => {
@@ -704,6 +829,19 @@ document.addEventListener("DOMContentLoaded", () => {
             if (event.dataTransfer) {
                 event.dataTransfer.dropEffect = "move";
             }
+
+            const target = event.target;
+
+            if (
+                target instanceof Element &&
+                target.dataset.galleryPlaceholder !== undefined
+            ) {
+                return;
+            }
+
+            const preview = findPreviewElement(target);
+
+            updatePlaceholderPosition(preview, event);
         });
 
         previewsContainer.addEventListener("drop", (event) => {
@@ -714,6 +852,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const files = Array.from(event.dataTransfer?.files || []);
 
                 addFilesToSelection(files);
+                removePlaceholder();
                 return;
             }
 
@@ -723,25 +862,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             event.preventDefault();
 
-            const preview = findPreviewElement(event.target);
-
-            let destinationIndex = selectedFiles.length;
-
-            if (preview) {
-                const targetIndex = Number(preview.dataset.galleryIndex);
-
-                if (!Number.isNaN(targetIndex)) {
-                    destinationIndex = targetIndex;
-
-                    const rect = preview.getBoundingClientRect();
-                    const shouldPlaceAfter =
-                        event.clientY > rect.top + rect.height / 2;
-
-                    if (shouldPlaceAfter) {
-                        destinationIndex += 1;
-                    }
-                }
-            }
+            const placeholderIndex = getPlaceholderIndex();
+            removePlaceholder();
 
             const [movedFile] = selectedFiles.splice(dragSourceIndex, 1);
 
@@ -751,12 +873,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            if (destinationIndex > selectedFiles.length) {
+            let destinationIndex = placeholderIndex;
+
+            if (destinationIndex < 0) {
                 destinationIndex = selectedFiles.length;
             }
 
             if (dragSourceIndex < destinationIndex) {
                 destinationIndex -= 1;
+            }
+
+            if (destinationIndex > selectedFiles.length) {
+                destinationIndex = selectedFiles.length;
             }
 
             selectedFiles.splice(destinationIndex, 0, movedFile);
@@ -773,6 +901,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
         previewsContainer.addEventListener("dragleave", (event) => {
             if (!isFileDragEvent(event)) {
+                if (dragSourceIndex === null) {
+                    return;
+                }
+
+                const related = event.relatedTarget;
+
+                if (
+                    related instanceof Element &&
+                    previewsContainer.contains(related)
+                ) {
+                    return;
+                }
+
+                removePlaceholder();
                 return;
             }
 
