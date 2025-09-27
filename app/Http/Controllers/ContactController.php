@@ -25,9 +25,6 @@ class ContactController extends Controller
                         ->orWhere('email', 'like', "%{$search}%");
                 });
             })
-            ->when($search === '', function ($query) {
-                $query->whereRaw('0 = 1');
-            })
             ->orderByDesc('id')
             ->paginate(12)
             ->withQueryString();
