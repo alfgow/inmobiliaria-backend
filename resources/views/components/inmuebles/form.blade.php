@@ -10,6 +10,10 @@
 @php
     $amenidadesText = old('amenidades', optional($inmueble)->amenidadesAsText());
     $extrasText = old('extras', optional($inmueble)->extras ? collect($inmueble->extras)->join(PHP_EOL) : '');
+    $selectedCodigoPostal = old('codigo_postal', optional($inmueble)->codigo_postal);
+    $selectedColonia = old('colonia', optional($inmueble)->colonia);
+    $selectedMunicipio = old('municipio', optional($inmueble)->municipio);
+    $selectedEstado = old('estado', optional($inmueble)->estado);
 @endphp
 
 <div class="space-y-8">
@@ -75,56 +79,136 @@
                     @enderror
                 </div>
 
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
+                <div
+                    class="grid grid-cols-1 gap-4 sm:grid-cols-4"
+                    data-postal-selector
+                    data-postal-options-url="{{ url('/codigos-postales') }}"
+                >
+                    <div class="space-y-2">
+                        <label for="codigo_postal" class="text-sm font-medium">C.P.</label>
+                        <div class="space-y-2" data-searchable-select>
+                            <input
+                                type="search"
+                                id="codigo-postal-search"
+                                data-search-input
+                                placeholder="Buscar C.P."
+                                class="w-full rounded-2xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                                autocomplete="off"
+                            >
+                            <select
+                                id="codigo_postal"
+                                name="codigo_postal"
+                                class="w-full rounded-2xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                            >
+                                <option value="">Selecciona una opción</option>
+                                @if ($selectedCodigoPostal)
+                                    <option
+                                        value="{{ $selectedCodigoPostal }}"
+                                        data-searchable="{{ strtolower($selectedCodigoPostal) }}"
+                                        selected
+                                    >
+                                        {{ $selectedCodigoPostal }}
+                                    </option>
+                                @endif
+                            </select>
+                        </div>
+                        @error('codigo_postal')
+                            <p class="text-sm text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
                     <div class="space-y-2">
                         <label for="colonia" class="text-sm font-medium">Colonia</label>
-                        <input
-                            type="text"
-                            id="colonia"
-                            name="colonia"
-                            value="{{ old('colonia', optional($inmueble)->colonia) }}"
-                            class="w-full rounded-2xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
-                        >
+                        <div class="space-y-2" data-searchable-select>
+                            <input
+                                type="search"
+                                id="colonia-search"
+                                data-search-input
+                                placeholder="Buscar colonia"
+                                class="w-full rounded-2xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                                autocomplete="off"
+                            >
+                            <select
+                                id="colonia"
+                                name="colonia"
+                                class="w-full rounded-2xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                            >
+                                <option value="">Selecciona una opción</option>
+                                @if ($selectedColonia)
+                                    <option
+                                        value="{{ $selectedColonia }}"
+                                        data-searchable="{{ strtolower($selectedColonia) }}"
+                                        selected
+                                    >
+                                        {{ $selectedColonia }}
+                                    </option>
+                                @endif
+                            </select>
+                        </div>
                         @error('colonia')
                             <p class="text-sm text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
                     <div class="space-y-2">
                         <label for="municipio" class="text-sm font-medium">Municipio</label>
-                        <input
-                            type="text"
-                            id="municipio"
-                            name="municipio"
-                            value="{{ old('municipio', optional($inmueble)->municipio) }}"
-                            class="w-full rounded-2xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
-                        >
+                        <div class="space-y-2" data-searchable-select>
+                            <input
+                                type="search"
+                                id="municipio-search"
+                                data-search-input
+                                placeholder="Buscar municipio"
+                                class="w-full rounded-2xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                                autocomplete="off"
+                            >
+                            <select
+                                id="municipio"
+                                name="municipio"
+                                class="w-full rounded-2xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                            >
+                                <option value="">Selecciona una opción</option>
+                                @if ($selectedMunicipio)
+                                    <option
+                                        value="{{ $selectedMunicipio }}"
+                                        data-searchable="{{ strtolower($selectedMunicipio) }}"
+                                        selected
+                                    >
+                                        {{ $selectedMunicipio }}
+                                    </option>
+                                @endif
+                            </select>
+                        </div>
                         @error('municipio')
                             <p class="text-sm text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
                     <div class="space-y-2">
                         <label for="estado" class="text-sm font-medium">Estado</label>
-                        <input
-                            type="text"
-                            id="estado"
-                            name="estado"
-                            value="{{ old('estado', optional($inmueble)->estado) }}"
-                            class="w-full rounded-2xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
-                        >
+                        <div class="space-y-2" data-searchable-select>
+                            <input
+                                type="search"
+                                id="estado-search"
+                                data-search-input
+                                placeholder="Buscar estado"
+                                class="w-full rounded-2xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                                autocomplete="off"
+                            >
+                            <select
+                                id="estado"
+                                name="estado"
+                                class="w-full rounded-2xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                            >
+                                <option value="">Selecciona una opción</option>
+                                @if ($selectedEstado)
+                                    <option
+                                        value="{{ $selectedEstado }}"
+                                        data-searchable="{{ strtolower($selectedEstado) }}"
+                                        selected
+                                    >
+                                        {{ $selectedEstado }}
+                                    </option>
+                                @endif
+                            </select>
+                        </div>
                         @error('estado')
-                            <p class="text-sm text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div class="space-y-2">
-                        <label for="codigo_postal" class="text-sm font-medium">C.P.</label>
-                        <input
-                            type="text"
-                            id="codigo_postal"
-                            name="codigo_postal"
-                            value="{{ old('codigo_postal', optional($inmueble)->codigo_postal) }}"
-                            class="w-full rounded-2xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
-                        >
-                        @error('codigo_postal')
                             <p class="text-sm text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
