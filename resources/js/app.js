@@ -296,17 +296,6 @@ document.addEventListener("DOMContentLoaded", () => {
         let dragSourcePreview = null;
         let dragPlaceholder = null;
 
-        const setDropzoneActive = (isActive) => {
-            if (!dropzone) {
-                return;
-            }
-
-            dropzone.classList.toggle("border-indigo-400/70", isActive);
-            dropzone.classList.toggle("bg-gray-850/80", isActive);
-            dropzone.classList.toggle("shadow-lg", isActive);
-            dropzone.classList.toggle("shadow-indigo-500/30", isActive);
-        };
-
         const isFileDragEvent = (event) => {
             if (!event || !event.dataTransfer) {
                 return false;
@@ -614,50 +603,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (dropzone) {
             const atMaxFiles = () => selectedFiles.length >= MAX_FILES;
-
-            const handleFileDrop = (event) => {
-                if (!isFileDragEvent(event)) {
-                    return;
-                }
-
+            dropzone.addEventListener("drop", (event) => {
                 event.preventDefault();
-                setDropzoneActive(false);
-
-                if (atMaxFiles()) {
-                    return;
-                }
-
-                const files = Array.from(event.dataTransfer?.files || []);
-
-                addFilesToSelection(files);
-            };
-
-            ["dragenter", "dragover"].forEach((type) => {
-                dropzone.addEventListener(type, (event) => {
-                    if (!isFileDragEvent(event)) {
-                        return;
-                    }
-
-                    event.preventDefault();
-                    setDropzoneActive(true);
-                });
             });
-
-            dropzone.addEventListener("dragleave", (event) => {
-                if (!isFileDragEvent(event)) {
-                    return;
-                }
-
-                const related = event.relatedTarget;
-
-                if (related instanceof Element && dropzone.contains(related)) {
-                    return;
-                }
-
-                setDropzoneActive(false);
-            });
-
-            dropzone.addEventListener("drop", handleFileDrop);
 
             dropzone.addEventListener("click", (event) => {
                 if (
@@ -799,7 +747,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         previewsContainer.addEventListener("dragenter", (event) => {
             if (isFileDragEvent(event)) {
-                setDropzoneActive(true);
                 return;
             }
 
@@ -824,7 +771,6 @@ document.addEventListener("DOMContentLoaded", () => {
         previewsContainer.addEventListener("dragover", (event) => {
             if (isFileDragEvent(event)) {
                 event.preventDefault();
-                setDropzoneActive(true);
                 return;
             }
 
@@ -855,7 +801,6 @@ document.addEventListener("DOMContentLoaded", () => {
         previewsContainer.addEventListener("drop", (event) => {
             if (isFileDragEvent(event)) {
                 event.preventDefault();
-                setDropzoneActive(false);
 
                 const files = Array.from(event.dataTransfer?.files || []);
 
@@ -925,18 +870,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 removePlaceholder();
                 return;
             }
-
-            const related = event.relatedTarget;
-
-            if (
-                related instanceof Element &&
-                (related.closest("[data-gallery-preview]") ||
-                    dropzone?.contains(related))
-            ) {
-                return;
-            }
-
-            setDropzoneActive(false);
         });
 
         updateContainerVisibility();
