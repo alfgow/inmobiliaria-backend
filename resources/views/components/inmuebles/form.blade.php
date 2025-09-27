@@ -333,10 +333,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5m-15 12.75h13.5A1.5 1.5 0 0 0 20.25 18V6a1.5 1.5 0 0 0-1.5-1.5H5.25A1.5 1.5 0 0 0 3.75 6v12a1.5 1.5 0 0 0 1.5 1.5Zm5.25-3.75h4.5a1.5 1.5 0 0 0 1.29-2.295l-2.25-3.75a1.5 1.5 0 0 0-2.58 0l-2.25 3.75A1.5 1.5 0 0 0 9 15.75Z" />
                             </svg>
                         </div>
-                        <div class="space-y-1">
-                            <p class="text-sm font-medium text-gray-100">Arrastra y suelta tus fotos</p>
-                            <p class="text-xs text-gray-400">También puedes hacer clic para seleccionarlas desde tu dispositivo</p>
-                        </div>
+                        <p class="text-sm font-medium text-gray-100">Haz clic para seleccionar tus fotos</p>
                     </div>
                     <div class="hidden w-full space-y-3 text-left" data-gallery-previews-wrapper>
                         <p class="text-xs text-gray-400">Arrastra las fotos para cambiar el orden. La primera será la portada.</p>
