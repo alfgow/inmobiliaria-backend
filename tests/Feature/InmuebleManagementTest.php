@@ -6,6 +6,7 @@ use App\Models\Inmueble;
 use App\Models\InmuebleImage;
 use App\Models\InmuebleStatus;
 use App\Models\User;
+use App\Support\AddressSlugger;
 use Database\Seeders\InmuebleStatusSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -61,6 +62,8 @@ class InmuebleManagementTest extends TestCase
             'titulo' => 'Casa en la playa',
             'asesor_id' => $user->id,
             'operacion' => 'Venta',
+            'colonia' => 'Centro',
+            'municipio' => 'Benito Juárez',
         ]);
 
         $image = InmuebleImage::first();
@@ -69,7 +72,12 @@ class InmuebleManagementTest extends TestCase
         $this->assertNotEmpty($image->url);
         $this->assertNotEmpty($image->temporaryVariantUrl('watermarked'));
 
-        $expectedSlug = 'av_del_sol_123_centro_benito_juarez_quintana_roo';
+        $expectedSlug = AddressSlugger::fromArray([
+            'Av. del Sol 123',
+            'Centro',
+            'Benito Juárez',
+            'Quintana Roo',
+        ]);
         $this->assertStringStartsWith($expectedSlug . '/', $image->path);
         $this->assertStringContainsString('_watermarked.jpg', $image->path);
 
@@ -112,7 +120,12 @@ class InmuebleManagementTest extends TestCase
             'estatus_id' => $status->id,
         ]);
 
-        $basePath = 'av_reforma_101_colonia_juarez_cuauhtemoc_ciudad_de_mexico';
+        $basePath = AddressSlugger::fromArray([
+            'Av. Reforma 101',
+            'Colonia Juárez',
+            'Cuauhtémoc',
+            'Ciudad de México',
+        ]);
         $existingPaths = [
             'original' => "$basePath/original_original.jpg",
             'normalized' => "$basePath/original_normalized.jpg",
@@ -191,7 +204,12 @@ class InmuebleManagementTest extends TestCase
             'estatus_id' => $status->id,
         ]);
 
-        $slugPath = 'calle_arte_55_americana_guadalajara_jalisco';
+        $slugPath = AddressSlugger::fromArray([
+            'Calle Arte 55',
+            'Americana',
+            'Guadalajara',
+            'Jalisco',
+        ]);
         $existingPaths = [
             'original' => "$slugPath/loft_original.jpg",
             'normalized' => "$slugPath/loft_normalized.jpg",
