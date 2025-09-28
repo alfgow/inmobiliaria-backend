@@ -80,6 +80,38 @@ class InmuebleController extends Controller
     }
 
     /**
+     * Display the properties map view.
+     */
+    public function map(): View
+    {
+        $properties = Inmueble::query()
+            ->whereNotNull('latitud')
+            ->whereNotNull('longitud')
+            ->with('coverImage')
+            ->get()
+            ->map(function (Inmueble $inmueble): array {
+                $coverImage = $inmueble->coverImage;
+                $imageUrl = $coverImage?->temporaryVariantUrl('watermarked') ?? $coverImage?->url;
+
+                return [
+                    'id' => $inmueble->id,
+                    'title' => $inmueble->titulo,
+                    'latitude' => (float) $inmueble->latitud,
+                    'longitude' => (float) $inmueble->longitud,
+                    'address' => $inmueble->direccion,
+                    'price' => $inmueble->formattedPrice(),
+                    'image_url' => $imageUrl,
+                    'manage_url' => route('inmuebles.edit', $inmueble),
+                ];
+            })
+            ->values();
+
+        return view('inmuebles.map', [
+            'properties' => $properties,
+        ]);
+    }
+
+    /**
      * Show the form for creating a new property.
      */
     public function create(): View
