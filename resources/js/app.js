@@ -176,6 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const normalized = typeof value === "string" ? value.trim() : "";
             const previousValue = select.value;
+            let optionsSnapshot = null;
 
             if (normalized) {
                 let option = Array.from(select.options).find((item) => {
@@ -185,6 +186,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!option) {
                     option = new Option(normalized, normalized, true, true);
                     select.add(option);
+                    optionsSnapshot = Array.from(select.options).map((item) => ({
+                        value: item.value,
+                        label: item.label,
+                        selected: item.selected,
+                    }));
                 } else {
                     option.selected = true;
                 }
@@ -204,7 +210,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (choicesInstance) {
                 try {
-                    choicesInstance.removeActiveItems();
+                    if (optionsSnapshot) {
+                        choicesInstance.clearChoices();
+                        choicesInstance.setChoices(
+                            optionsSnapshot,
+                            "value",
+                            "label",
+                            true
+                        );
+                    } else {
+                        choicesInstance.removeActiveItems();
+                    }
 
                     if (normalized) {
                         choicesInstance.setChoiceByValue(normalized);
@@ -213,6 +229,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         if (placeholder) {
                             choicesInstance.setChoiceByValue(placeholder.value);
+                        } else {
+                            choicesInstance.removeActiveItems();
                         }
                     }
                 } catch (error) {
