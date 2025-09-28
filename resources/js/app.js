@@ -41,6 +41,134 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const choicesInstances = new Map();
 
+    const initializePropertiesMap = () => {
+        const container = document.getElementById("properties-map");
+
+        if (!container || container.__propertiesMapInitialized) {
+            return;
+        }
+
+        container.__propertiesMapInitialized = true;
+
+        const parseCoordinate = (value) => {
+            const numeric = Number.parseFloat(value);
+
+            return Number.isFinite(numeric) ? numeric : null;
+        };
+
+        const escapeHtml = (value) => {
+            return String(value ?? "").replace(/[&<>"']/g, (character) => {
+                switch (character) {
+                    case "&":
+                        return "&amp;";
+                    case "<":
+                        return "&lt;";
+                    case ">":
+                        return "&gt;";
+                    case '"':
+                        return "&quot;";
+                    case "'":
+                        return "&#039;";
+                    default:
+                        return character;
+                }
+            });
+        };
+
+        let properties = [];
+
+        try {
+            const raw = container.dataset.properties;
+
+            if (raw) {
+                const parsed = JSON.parse(raw);
+
+                if (Array.isArray(parsed)) {
+                    properties = parsed
+                        .map((property) => {
+                            const latitude = parseCoordinate(property?.latitude);
+                            const longitude = parseCoordinate(property?.longitude);
+
+                            if (latitude === null || longitude === null) {
+                                return null;
+                            }
+
+                            return {
+                                ...property,
+                                latitude,
+                                longitude,
+                            };
+                        })
+                        .filter(Boolean);
+                }
+            }
+        } catch (error) {
+            console.error(
+                "No fue posible parsear la información de inmuebles para el mapa.",
+                error,
+            );
+        }
+
+        const defaultCenter = [19.432608, -99.133209];
+        const hasProperties = properties.length > 0;
+        const startingPoint = hasProperties
+            ? [properties[0].latitude, properties[0].longitude]
+            : defaultCenter;
+
+        const map = L.map(container, {
+            attributionControl: true,
+            zoomControl: true,
+        });
+
+        map.setView(startingPoint, hasProperties ? 13 : 5);
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: "© OpenStreetMap contributors",
+            maxZoom: 19,
+        }).addTo(map);
+
+        const bounds = L.latLngBounds();
+
+        properties.forEach((property) => {
+            const position = [property.latitude, property.longitude];
+            const marker = L.marker(position).addTo(map);
+
+            bounds.extend(position);
+
+            const imageUrl = typeof property.image_url === "string" ? property.image_url : "";
+            const manageUrl = typeof property.manage_url === "string" ? property.manage_url : "";
+            const title = escapeHtml(property.title ?? "Inmueble");
+            const address = escapeHtml(property.address ?? "");
+            const price = escapeHtml(property.price ?? "");
+
+            const imageContent = imageUrl
+                ? `<img src="${imageUrl}" alt="${title}" class="mb-3 h-32 w-full rounded-lg object-cover" />`
+                : "";
+
+            const manageButton = manageUrl
+                ? `<a href="${manageUrl}" class="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-500">Gestionar inmueble</a>`
+                : "";
+
+            const popupContent = `
+                <div class="space-y-3 text-left">
+                    ${imageContent}
+                    <div>
+                        <h3 class="text-base font-semibold text-gray-900">${title}</h3>
+                        <p class="text-sm text-gray-600">${address}</p>
+                        <p class="text-sm font-semibold text-indigo-600">${price}</p>
+                    </div>
+                    ${manageButton}
+                </div>
+            `;
+
+            marker.bindPopup(popupContent);
+        });
+
+        if (hasProperties && bounds.isValid()) {
+            map.fitBounds(bounds, { padding: [40, 40] });
+        }
+    };
+
     const initializeInmuebleMap = () => {
         const direccionInput = document.querySelector("#direccion");
         const mapContainer = document.querySelector("#inmueble-map");
@@ -895,6 +1023,7 @@ document.addEventListener("DOMContentLoaded", () => {
             initializePostalSelector(container);
         });
 
+    initializePropertiesMap();
     initializeInmuebleMap();
 
     document.querySelectorAll("form[data-swal-loader]").forEach((form) => {

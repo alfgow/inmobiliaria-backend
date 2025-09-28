@@ -50,6 +50,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/contactos/{contact}/intereses', [ContactController::class, 'storeInterest'])
         ->name('contactos.intereses.store');
 
+    Route::get('/inmuebles/mapa', [InmuebleController::class, 'map'])
+        ->name('inmuebles.map');
     Route::resource('inmuebles', InmuebleController::class)->except(['show']);
 
     Route::prefix('catalogos')->name('catalogos.')->group(function () {
