@@ -13,6 +13,7 @@ L.Icon.Default.mergeOptions({
     iconRetinaUrl: markerIcon2x,
     iconUrl: markerIcon,
     shadowUrl: markerShadow,
+    imagePath: "",
 });
 
 document.addEventListener("DOMContentLoaded", () => {
