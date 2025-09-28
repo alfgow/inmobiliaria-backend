@@ -54,16 +54,17 @@
 
                 <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
                 @php
-                    $navLink = fn (string $route, string $label, string $pattern) => [
+                    $navLink = fn (string $route, string $label, string|array $patterns) => [
                         'url' => route($route),
                         'label' => $label,
-                        'active' => request()->routeIs($pattern),
+                        'active' => request()->routeIs(...(array) $patterns),
                     ];
 
                     $links = [
                         $navLink('dashboard', '📊 Dashboard', 'dashboard'),
                         $navLink('contactos.index', '🧑‍💼 Contactos', 'contactos.*'),
-                        $navLink('inmuebles.index', '🏠 Inmuebles', 'inmuebles.*'),
+                        $navLink('inmuebles.index', '🏠 Inmuebles', ['inmuebles.index', 'inmuebles.create', 'inmuebles.edit']),
+                        $navLink('inmuebles.map', '🗺️ Mapa de inmuebles', 'inmuebles.map'),
                     ];
                 @endphp
 
