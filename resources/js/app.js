@@ -316,8 +316,60 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        const geocoder = geocoderFactory();
         let activeGeocodeToken = 0;
+
+        const geocoders = [
+            geocoderFactory({
+                geocodingQueryParams: {
+                    countrycodes: "mx",
+                    viewbox: "-99.3645,19.049,-98.94,19.592",
+                    bounded: 1,
+                },
+            }),
+            geocoderFactory({
+                geocodingQueryParams: {
+                    countrycodes: "mx",
+                    viewbox: "-100.18,18.343,-98.61,20.364",
+                    bounded: 1,
+                },
+            }),
+            geocoderFactory({
+                geocodingQueryParams: {
+                    countrycodes: "mx",
+                },
+            }),
+            geocoderFactory(),
+        ].filter(Boolean);
+
+        const attemptScopedGeocode = (query, geocoderIndex, requestToken) => {
+            if (requestToken !== activeGeocodeToken) {
+                return;
+            }
+
+            if (geocoderIndex >= geocoders.length) {
+                return;
+            }
+
+            const currentGeocoder = geocoders[geocoderIndex];
+
+            if (!currentGeocoder || typeof currentGeocoder.geocode !== "function") {
+                attemptScopedGeocode(query, geocoderIndex + 1, requestToken);
+                return;
+            }
+
+            currentGeocoder.geocode(query, (results) => {
+                if (requestToken !== activeGeocodeToken) {
+                    return;
+                }
+
+                if (Array.isArray(results) && results.length > 0) {
+                    handleGeocodeResults(results);
+                    return;
+                }
+
+                attemptScopedGeocode(query, geocoderIndex + 1, requestToken);
+            });
+        };
 
         const handleGeocodeResults = async (results) => {
             if (!results || results.length === 0) {
@@ -369,13 +421,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const requestToken = ++activeGeocodeToken;
 
-            geocoder.geocode(trimmed, (results) => {
-                if (requestToken !== activeGeocodeToken) {
-                    return;
-                }
-
-                handleGeocodeResults(results);
-            });
+            attemptScopedGeocode(trimmed, 0, requestToken);
         };
 
         const debouncedGeocode = debounce((eventOrValue) => {
