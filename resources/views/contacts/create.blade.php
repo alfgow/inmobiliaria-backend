@@ -69,7 +69,7 @@
                     <div class="space-y-2">
                         <label for="inmueble_id" class="block text-sm font-medium text-gray-300">Inmueble de interés</label>
                         <div
-                            class="space-y-2"
+                            class="space-y-4"
                             data-searchable-select
                             data-search-placeholder="Buscar por título o dirección"
                         >
@@ -91,12 +91,20 @@
                                     <option
                                         value="{{ $inmueble->id }}"
                                         data-searchable="{{ Str::lower(trim($inmueble->titulo . ' ' . $fullAddress)) }}"
+                                        data-cover-image="{{ $inmueble->cover_image_url }}"
                                         @selected((string) old('inmueble_id') === (string) $inmueble->id)
                                     >
                                         {{ $inmueble->titulo }}@if ($fullAddress !== '') — {{ $fullAddress }}@endif
                                     </option>
                                 @endforeach
                             </select>
+                            <img
+                                data-property-preview
+                                data-placeholder="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
+                                src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
+                                alt="Vista previa del inmueble seleccionado"
+                                class="h-40 w-full rounded-xl border border-gray-700 bg-gray-850 object-cover"
+                            >
                         </div>
                         <p class="text-sm text-gray-400">Utiliza el buscador para registrar el inmueble de interés que quedará ligado al historial.</p>
                         @error('inmueble_id')

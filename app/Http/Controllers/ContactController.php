@@ -56,12 +56,34 @@ class ContactController extends Controller
             ? $requestedField
             : $this->detectPrefillField($prefillValue);
 
+        $inmuebles = Inmueble::query()
+            ->with('coverImage')
+            ->orderBy('titulo')
+            ->get([
+                'id',
+                'titulo',
+                'direccion',
+                'operacion',
+                'tipo',
+                'colonia',
+                'municipio',
+                'estado',
+            ])
+            ->map(function (Inmueble $inmueble) {
+                $coverImage = $inmueble->coverImage;
+
+                $inmueble->setAttribute(
+                    'cover_image_url',
+                    $coverImage?->temporaryVariantUrl('watermarked') ?? $coverImage?->url
+                );
+
+                return $inmueble;
+            });
+
         return view('contacts.create', [
             'prefill' => $prefillValue,
             'prefillField' => $prefillField,
-            'inmuebles' => Inmueble::query()
-                ->orderBy('titulo')
-                ->get(['id', 'titulo', 'direccion', 'operacion', 'tipo']),
+            'inmuebles' => $inmuebles,
         ]);
     }
 
