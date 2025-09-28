@@ -6,6 +6,7 @@ use App\Models\Contact;
 use App\Models\Inmueble;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -15,19 +16,30 @@ class ContactController extends Controller
     {
         $search = trim((string) $request->input('search'));
 
-        $contacts = Contact::query()
-            ->with(['latestInterest.inmueble', 'latestComment'])
-            ->when($search !== '', function ($query) use ($search) {
-                $query->where(function ($contactQuery) use ($search) {
+        if ($search === '') {
+            $contacts = new LengthAwarePaginator(
+                collect(),
+                0,
+                12,
+                1,
+                [
+                    'path' => LengthAwarePaginator::resolveCurrentPath(),
+                    'query' => $request->query(),
+                ]
+            );
+        } else {
+            $contacts = Contact::query()
+                ->with(['latestInterest.inmueble', 'latestComment'])
+                ->where(function ($contactQuery) use ($search) {
                     $contactQuery
                         ->where('nombre', 'like', "%{$search}%")
                         ->orWhere('telefono', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%");
-                });
-            })
-            ->orderByDesc('id')
-            ->paginate(12)
-            ->withQueryString();
+                })
+                ->orderByDesc('id')
+                ->paginate(12)
+                ->withQueryString();
+        }
 
         return view('contacts.index', [
             'contacts' => $contacts,
