@@ -85,6 +85,32 @@
                 </div>
             </div>
 
+            <div class="grid gap-6 lg:grid-cols-12">
+                <div class="space-y-3 lg:col-span-12">
+                    <div
+                        id="inmueble-map"
+                        data-postal-resolve-url="{{ route('codigos-postales.resolve') }}"
+                        class="h-64 w-full rounded-3xl border border-white/10 bg-gray-900/40 shadow-inner shadow-black/30"
+                    ></div>
+                    <input
+                        type="hidden"
+                        name="latitud"
+                        value="{{ old('latitud', optional($inmueble)->latitud) }}"
+                    >
+                    <input
+                        type="hidden"
+                        name="longitud"
+                        value="{{ old('longitud', optional($inmueble)->longitud) }}"
+                    >
+                    @error('latitud')
+                        <p class="text-sm text-red-400">{{ $message }}</p>
+                    @enderror
+                    @error('longitud')
+                        <p class="text-sm text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+
             <!-- C.P. + Colonia -->
             <section
                 class="space-y-6"

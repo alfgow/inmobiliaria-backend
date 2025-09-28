@@ -28,6 +28,8 @@ class StoreInmuebleRequest extends FormRequest
             'descripcion' => ['nullable', 'string'],
             'precio' => ['required', 'numeric', 'min:0', 'max:9999999999.99'],
             'direccion' => ['required', 'string', 'max:255'],
+            'latitud' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitud' => ['nullable', 'numeric', 'between:-180,180'],
             'colonia' => ['nullable', 'string', 'max:120'],
             'municipio' => ['nullable', 'string', 'max:120'],
             'estado' => ['nullable', 'string', 'max:120'],

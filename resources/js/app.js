@@ -1,6 +1,19 @@
 import Chart from "chart.js/auto";
 import Choices from "choices.js";
 import "choices.js/styles.css";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import "leaflet-control-geocoder/dist/Control.Geocoder.css";
+import "leaflet-control-geocoder";
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
+
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: markerIcon2x,
+    iconUrl: markerIcon,
+    shadowUrl: markerShadow,
+});
 
 document.addEventListener("DOMContentLoaded", () => {
     const ctx = document.getElementById("chartDashboard");
@@ -25,6 +38,360 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const choicesInstances = new Map();
+
+    const initializeInmuebleMap = () => {
+        const direccionInput = document.querySelector("#direccion");
+        const mapContainer = document.querySelector("#inmueble-map");
+
+        if (!direccionInput || !mapContainer) {
+            return;
+        }
+
+        if (mapContainer.__inmuebleMapInitialized) {
+            return;
+        }
+
+        mapContainer.__inmuebleMapInitialized = true;
+
+        const latInput = document.querySelector('input[name="latitud"]');
+        const lngInput = document.querySelector('input[name="longitud"]');
+        const resolveUrl = mapContainer.dataset.postalResolveUrl || "";
+
+        const parseCoordinate = (value) => {
+            const numericValue = parseFloat(value);
+
+            return Number.isFinite(numericValue) ? numericValue : null;
+        };
+
+        const defaultCenter = [19.432608, -99.133209];
+        const initialLat = parseCoordinate(latInput?.value);
+        const initialLng = parseCoordinate(lngInput?.value);
+        const hasInitialCoordinates =
+            initialLat !== null && initialLng !== null;
+        const startingPoint = hasInitialCoordinates
+            ? [initialLat, initialLng]
+            : defaultCenter;
+
+        const map = L.map(mapContainer, {
+            attributionControl: true,
+            zoomControl: true,
+        });
+
+        map.setView(startingPoint, hasInitialCoordinates ? 16 : 13);
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: "© OpenStreetMap contributors",
+            maxZoom: 19,
+        }).addTo(map);
+
+        const marker = L.marker(startingPoint, { draggable: false }).addTo(map);
+
+        const formatCoordinate = (coordinate) => {
+            return Number.isFinite(coordinate)
+                ? coordinate.toFixed(6)
+                : "";
+        };
+
+        const updateCoordinateInputs = (latlng) => {
+            if (!latlng) {
+                return;
+            }
+
+            if (latInput) {
+                latInput.value = formatCoordinate(latlng.lat);
+            }
+
+            if (lngInput) {
+                lngInput.value = formatCoordinate(latlng.lng);
+            }
+        };
+
+        if (hasInitialCoordinates) {
+            updateCoordinateInputs({ lat: initialLat, lng: initialLng });
+        }
+
+        const pickFirst = (...values) => {
+            for (const value of values) {
+                if (value === undefined || value === null) {
+                    continue;
+                }
+
+                const normalized = String(value).trim();
+
+                if (normalized !== "") {
+                    return normalized;
+                }
+            }
+
+            return "";
+        };
+
+        const extractAddressDetails = (result) => {
+            const address =
+                result?.properties?.address ||
+                result?.properties?.raw?.address ||
+                result?.address ||
+                {};
+
+            return {
+                codigo_postal: pickFirst(
+                    address.postcode,
+                    address.postalcode,
+                    address["postal-code"],
+                    address["postal_code"]
+                ),
+                colonia: pickFirst(
+                    address.neighbourhood,
+                    address.suburb,
+                    address.quarter,
+                    address.village,
+                    address.hamlet,
+                    address.residential
+                ),
+                municipio: pickFirst(
+                    address.city,
+                    address.town,
+                    address.municipality,
+                    address.county,
+                    address["state_district"],
+                    address.region
+                ),
+                estado: pickFirst(address.state, address["state_name"], address.region),
+            };
+        };
+
+        const selectIds = [
+            "codigo_postal",
+            "colonia",
+            "municipio",
+            "estado",
+        ];
+
+        const setSelectValue = (select, value) => {
+            if (!select) {
+                return;
+            }
+
+            const normalized = typeof value === "string" ? value.trim() : "";
+            const previousValue = select.value;
+
+            if (normalized) {
+                let option = Array.from(select.options).find((item) => {
+                    return item.value === normalized;
+                });
+
+                if (!option) {
+                    option = new Option(normalized, normalized, true, true);
+                    select.add(option);
+                } else {
+                    option.selected = true;
+                }
+
+                select.value = normalized;
+            } else {
+                select.value = "";
+
+                const placeholder = select.querySelector("option[value='']");
+
+                if (placeholder) {
+                    placeholder.selected = true;
+                }
+            }
+
+            const choicesInstance = choicesInstances.get(select);
+
+            if (choicesInstance) {
+                try {
+                    choicesInstance.removeActiveItems();
+
+                    if (normalized) {
+                        choicesInstance.setChoiceByValue(normalized);
+                    } else {
+                        const placeholder = select.querySelector("option[value='']");
+
+                        if (placeholder) {
+                            choicesInstance.setChoiceByValue(placeholder.value);
+                        }
+                    }
+                } catch (error) {
+                    console.warn(
+                        "No fue posible sincronizar la selección con Choices.js",
+                        error
+                    );
+                }
+            }
+
+            if (previousValue !== select.value) {
+                select.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+        };
+
+        const updatePostalSelects = (details) => {
+            if (!details) {
+                return;
+            }
+
+            selectIds.forEach((id) => {
+                const select = document.getElementById(id);
+
+                setSelectValue(select, details[id]);
+            });
+        };
+
+        const resolvePostalInformation = async (addressDetails) => {
+            if (!addressDetails) {
+                return;
+            }
+
+            const typePriority = [
+                "codigo_postal",
+                "colonia",
+                "municipio",
+                "estado",
+            ];
+            const selectedType = typePriority.find((key) => {
+                return Boolean(addressDetails[key]);
+            });
+
+            if (!resolveUrl || !selectedType) {
+                updatePostalSelects(addressDetails);
+                return;
+            }
+
+            const params = new URLSearchParams({
+                type: selectedType,
+                value: addressDetails[selectedType],
+            });
+
+            typePriority.forEach((key) => {
+                if (!addressDetails[key]) {
+                    return;
+                }
+
+                params.set(key, addressDetails[key]);
+            });
+
+            try {
+                const response = await fetch(
+                    `${resolveUrl}?${params.toString()}`,
+                    {
+                        headers: { Accept: "application/json" },
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(
+                        `No se pudo resolver la información postal (${response.status})`
+                    );
+                }
+
+                const payload = await response.json();
+                const results =
+                    payload && Array.isArray(payload.data) ? payload.data : [];
+
+                if (results.length > 0) {
+                    updatePostalSelects(results[0]);
+                    return;
+                }
+            } catch (error) {
+                console.error(
+                    "No fue posible obtener la información postal desde el geocodificador.",
+                    error
+                );
+            }
+
+            updatePostalSelects(addressDetails);
+        };
+
+        const geocoderFactory = L.Control?.Geocoder?.nominatim
+            ? L.Control.Geocoder.nominatim
+            : null;
+
+        if (!geocoderFactory) {
+            console.warn(
+                "Leaflet Control Geocoder no está disponible; no se inicializará el mapa del inmueble."
+            );
+            return;
+        }
+
+        const geocoder = geocoderFactory();
+        let activeGeocodeToken = 0;
+
+        const handleGeocodeResults = async (results) => {
+            if (!results || results.length === 0) {
+                return;
+            }
+
+            const [firstResult] = results;
+            const latlng =
+                firstResult?.center ||
+                firstResult?.latlng ||
+                firstResult?.location ||
+                null;
+
+            if (latlng) {
+                marker.setLatLng(latlng);
+                map.setView(latlng, Math.max(map.getZoom(), 16), {
+                    animate: true,
+                });
+                updateCoordinateInputs(latlng);
+            }
+
+            const addressDetails = extractAddressDetails(firstResult);
+
+            if (addressDetails) {
+                await resolvePostalInformation(addressDetails);
+            }
+        };
+
+        const debounce = (fn, delay = 600) => {
+            let timeoutId;
+
+            return (...args) => {
+                if (timeoutId) {
+                    window.clearTimeout(timeoutId);
+                }
+
+                timeoutId = window.setTimeout(() => {
+                    fn(...args);
+                }, delay);
+            };
+        };
+
+        const geocodeDireccion = (query) => {
+            const trimmed = (query || "").trim();
+
+            if (trimmed.length < 3) {
+                return;
+            }
+
+            const requestToken = ++activeGeocodeToken;
+
+            geocoder.geocode(trimmed, (results) => {
+                if (requestToken !== activeGeocodeToken) {
+                    return;
+                }
+
+                handleGeocodeResults(results);
+            });
+        };
+
+        const debouncedGeocode = debounce((eventOrValue) => {
+            const value =
+                typeof eventOrValue === "string"
+                    ? eventOrValue
+                    : eventOrValue?.target?.value;
+
+            geocodeDireccion(value || "");
+        });
+
+        direccionInput.addEventListener("input", debouncedGeocode);
+        direccionInput.addEventListener("change", debouncedGeocode);
+
+        if (!hasInitialCoordinates && direccionInput.value) {
+            geocodeDireccion(direccionInput.value);
+        }
+    };
 
     const initializeChoicesSelect = (select) => {
         if (!select) {
@@ -461,6 +828,8 @@ document.addEventListener("DOMContentLoaded", () => {
         .forEach((container) => {
             initializePostalSelector(container);
         });
+
+    initializeInmuebleMap();
 
     document.querySelectorAll("form[data-swal-loader]").forEach((form) => {
         form.addEventListener("submit", () => {
