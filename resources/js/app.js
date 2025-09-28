@@ -5,18 +5,9 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-control-geocoder/dist/Control.Geocoder.css";
 import "leaflet-control-geocoder";
-const markerIcon2x = new URL(
-    "leaflet/dist/images/marker-icon-2x.png",
-    import.meta.url
-).href;
-const markerIcon = new URL(
-    "leaflet/dist/images/marker-icon.png",
-    import.meta.url
-).href;
-const markerShadow = new URL(
-    "leaflet/dist/images/marker-shadow.png",
-    import.meta.url
-).href;
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: markerIcon2x,
