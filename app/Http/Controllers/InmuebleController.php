@@ -322,9 +322,11 @@ class InmuebleController extends Controller
 
         $now = now();
         $connection = DB::connection('as_db');
+        $conceptoVenta = 'Inmueble #' . $inmueble->id;
+
         $alreadyRegistered = $connection
             ->table('ventasvillanuevagarcia')
-            ->where('inmueble_id', $inmueble->id)
+            ->where('concepto_venta', $conceptoVenta)
             ->where('mes_venta', $now->month)
             ->where('year_venta', $now->year)
             ->exists();
@@ -334,7 +336,7 @@ class InmuebleController extends Controller
         }
 
         $connection->table('ventasvillanuevagarcia')->insert([
-            'inmueble_id' => $inmueble->id,
+            'concepto_venta' => $conceptoVenta,
             'id_usuario' => 1,
             'canal_venta' => 'Inmobiliaria: ' . $inmueble->operacion,
             'comision_asesor' => 0,
