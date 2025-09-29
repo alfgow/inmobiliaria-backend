@@ -322,7 +322,8 @@ class InmuebleController extends Controller
 
         $now = now();
         $connection = DB::connection('as_db');
-        $conceptoVenta = 'Inmueble #' . $inmueble->id;
+        $conceptoVenta = 'Comisión inmueble #' . $inmueble->id;
+        $montoVenta = number_format($commissionAmount, 2, '.', '');
 
         $alreadyRegistered = $connection
             ->table('ventasvillanuevagarcia')
@@ -339,8 +340,9 @@ class InmuebleController extends Controller
             'concepto_venta' => $conceptoVenta,
             'id_usuario' => 1,
             'canal_venta' => 'Inmobiliaria: ' . $inmueble->operacion,
+            'monto_venta' => $montoVenta,
             'comision_asesor' => 0,
-            'ganancia_neta' => number_format($commissionAmount, 2, '.', ''),
+            'ganancia_neta' => $montoVenta,
             'mes_venta' => $now->month,
             'year_venta' => $now->year,
             'fecha_venta' => $now,
