@@ -92,19 +92,64 @@
                                         value="{{ $inmueble->id }}"
                                         data-searchable="{{ Str::lower(trim($inmueble->titulo . ' ' . $fullAddress)) }}"
                                         data-cover-image="{{ $inmueble->cover_image_url }}"
+                                        data-title="{{ $inmueble->titulo }}"
+                                        data-operation="{{ $inmueble->operacion }}"
+                                        data-type="{{ $inmueble->tipo }}"
+                                        data-full-address="{{ $fullAddress }}"
+                                        data-price="{{ $inmueble->precio }}"
+                                        data-habitaciones="{{ $inmueble->habitaciones }}"
+                                        data-banos="{{ $inmueble->banos }}"
+                                        data-estacionamientos="{{ $inmueble->estacionamientos }}"
+                                        data-metros-cuadrados="{{ $inmueble->metros_cuadrados }}"
                                         @selected((string) old('inmueble_id') === (string) $inmueble->id)
                                     >
                                         {{ $inmueble->titulo }}@if ($fullAddress !== '') — {{ $fullAddress }}@endif
                                     </option>
                                 @endforeach
                             </select>
-                            <img
+                            <div
                                 data-property-preview
-                                data-placeholder="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
-                                src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
-                                alt="Vista previa del inmueble seleccionado"
-                                class="h-40 w-full rounded-xl border border-gray-700 bg-gray-850 object-cover"
+                                class="hidden flex-col gap-4 rounded-xl border border-gray-700 bg-gray-850/70 p-4"
                             >
+                                <div class="aspect-video w-full overflow-hidden rounded-lg border border-gray-800 bg-gray-900">
+                                    <img
+                                        data-property-preview-image
+                                        data-placeholder="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
+                                        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
+                                        alt="Vista previa del inmueble seleccionado"
+                                        class="h-full w-full object-cover"
+                                    >
+                                </div>
+                                <div class="space-y-3">
+                                    <div class="space-y-1">
+                                        <p data-property-preview-title class="text-lg font-semibold text-gray-100"></p>
+                                        <p data-property-preview-address class="text-sm text-gray-400"></p>
+                                    </div>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span data-property-preview-operation class="rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-medium text-indigo-300"></span>
+                                        <span data-property-preview-type class="rounded-full bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-300"></span>
+                                        <span data-property-preview-price class="ml-auto text-base font-semibold text-gray-100"></span>
+                                    </div>
+                                    <dl class="grid grid-cols-2 gap-3 text-sm text-gray-300">
+                                        <div>
+                                            <dt class="text-xs uppercase tracking-wide text-gray-500">Habitaciones</dt>
+                                            <dd data-property-preview-habitaciones class="font-semibold text-gray-100"></dd>
+                                        </div>
+                                        <div>
+                                            <dt class="text-xs uppercase tracking-wide text-gray-500">Baños</dt>
+                                            <dd data-property-preview-banos class="font-semibold text-gray-100"></dd>
+                                        </div>
+                                        <div>
+                                            <dt class="text-xs uppercase tracking-wide text-gray-500">Estacionamientos</dt>
+                                            <dd data-property-preview-estacionamientos class="font-semibold text-gray-100"></dd>
+                                        </div>
+                                        <div>
+                                            <dt class="text-xs uppercase tracking-wide text-gray-500">Metros cuadrados</dt>
+                                            <dd data-property-preview-metros class="font-semibold text-gray-100"></dd>
+                                        </div>
+                                    </dl>
+                                </div>
+                            </div>
                         </div>
                         <p class="text-sm text-gray-400">Utiliza el buscador para registrar el inmueble de interés que quedará ligado al historial.</p>
                         @error('inmueble_id')

@@ -630,30 +630,194 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        const preview = container.querySelector("[data-property-preview]");
+        const previewCard = container.querySelector("[data-property-preview]");
 
-        if (!preview) {
+        if (!previewCard) {
             return;
         }
 
-        const placeholder = preview.dataset.placeholder || "";
-        const selectedOption = select.selectedOptions?.[0];
-        const coverImageUrl = selectedOption?.dataset?.coverImage;
+        const imageElement = previewCard.querySelector(
+            "[data-property-preview-image]",
+        );
+        const titleElement = previewCard.querySelector(
+            "[data-property-preview-title]",
+        );
+        const addressElement = previewCard.querySelector(
+            "[data-property-preview-address]",
+        );
+        const operationElement = previewCard.querySelector(
+            "[data-property-preview-operation]",
+        );
+        const typeElement = previewCard.querySelector(
+            "[data-property-preview-type]",
+        );
+        const priceElement = previewCard.querySelector(
+            "[data-property-preview-price]",
+        );
+        const habitacionesElement = previewCard.querySelector(
+            "[data-property-preview-habitaciones]",
+        );
+        const banosElement = previewCard.querySelector(
+            "[data-property-preview-banos]",
+        );
+        const estacionamientosElement = previewCard.querySelector(
+            "[data-property-preview-estacionamientos]",
+        );
+        const metrosElement = previewCard.querySelector(
+            "[data-property-preview-metros]",
+        );
 
-        if (coverImageUrl) {
-            preview.src = coverImageUrl;
-            preview.dataset.state = "filled";
+        const selectedOption = select.value
+            ? select.selectedOptions?.[0] || null
+            : null;
+
+        const resetPreview = () => {
+            if (titleElement) {
+                titleElement.textContent = "";
+            }
+
+            if (addressElement) {
+                addressElement.textContent = "";
+            }
+
+            if (operationElement) {
+                operationElement.textContent = "";
+                operationElement.classList.add("hidden");
+            }
+
+            if (typeElement) {
+                typeElement.textContent = "";
+                typeElement.classList.add("hidden");
+            }
+
+            if (priceElement) {
+                priceElement.textContent = "";
+                priceElement.classList.add("hidden");
+            }
+
+            if (habitacionesElement) {
+                habitacionesElement.textContent = "";
+            }
+
+            if (banosElement) {
+                banosElement.textContent = "";
+            }
+
+            if (estacionamientosElement) {
+                estacionamientosElement.textContent = "";
+            }
+
+            if (metrosElement) {
+                metrosElement.textContent = "";
+            }
+
+            if (imageElement) {
+                const placeholder =
+                    imageElement.dataset.placeholder || "";
+
+                if (placeholder) {
+                    imageElement.src = placeholder;
+                } else {
+                    imageElement.removeAttribute("src");
+                }
+            }
+
+            previewCard.classList.add("hidden");
+            previewCard.classList.remove("flex");
+        };
+
+        if (!selectedOption || !selectedOption.value) {
+            resetPreview();
 
             return;
         }
 
-        if (placeholder !== "") {
-            preview.src = placeholder;
-        } else {
-            preview.removeAttribute("src");
+        const {
+            coverImage: coverImageUrl = "",
+            title = "",
+            fullAddress = "",
+            operation = "",
+            type = "",
+            price = "",
+            habitaciones = "",
+            banos = "",
+            estacionamientos = "",
+            metrosCuadrados = "",
+        } = selectedOption.dataset;
+
+        if (titleElement) {
+            titleElement.textContent = title || "";
         }
 
-        preview.dataset.state = "empty";
+        if (addressElement) {
+            addressElement.textContent = fullAddress || "";
+        }
+
+        if (operationElement) {
+            operationElement.textContent = operation || "";
+            operationElement.classList.toggle("hidden", !operation);
+        }
+
+        if (typeElement) {
+            typeElement.textContent = type || "";
+            typeElement.classList.toggle("hidden", !type);
+        }
+
+        if (priceElement) {
+            let formattedPrice = "";
+
+            if (price) {
+                const numericPrice = Number(price);
+
+                if (Number.isFinite(numericPrice)) {
+                    formattedPrice = new Intl.NumberFormat("es-MX", {
+                        style: "currency",
+                        currency: "MXN",
+                        maximumFractionDigits: 0,
+                    }).format(numericPrice);
+                } else {
+                    formattedPrice = price;
+                }
+            }
+
+            priceElement.textContent = formattedPrice;
+            priceElement.classList.toggle("hidden", !formattedPrice);
+        }
+
+        if (habitacionesElement) {
+            habitacionesElement.textContent = habitaciones || "-";
+        }
+
+        if (banosElement) {
+            banosElement.textContent = banos || "-";
+        }
+
+        if (estacionamientosElement) {
+            estacionamientosElement.textContent = estacionamientos || "-";
+        }
+
+        if (metrosElement) {
+            const formattedMetros = metrosCuadrados
+                ? `${metrosCuadrados} m²`
+                : "-";
+
+            metrosElement.textContent = formattedMetros;
+        }
+
+        if (imageElement) {
+            const placeholder = imageElement.dataset.placeholder || "";
+
+            if (coverImageUrl) {
+                imageElement.src = coverImageUrl;
+            } else if (placeholder) {
+                imageElement.src = placeholder;
+            } else {
+                imageElement.removeAttribute("src");
+            }
+        }
+
+        previewCard.classList.remove("hidden");
+        previewCard.classList.add("flex");
     };
 
     document

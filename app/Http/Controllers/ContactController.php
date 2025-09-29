@@ -68,6 +68,11 @@ class ContactController extends Controller
                 'colonia',
                 'municipio',
                 'estado',
+                'precio',
+                'habitaciones',
+                'banos',
+                'estacionamientos',
+                'metros_cuadrados',
             ])
             ->map(function (Inmueble $inmueble) {
                 $coverImage = $inmueble->coverImage;
