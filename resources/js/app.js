@@ -619,10 +619,60 @@ document.addEventListener("DOMContentLoaded", () => {
         return instance;
     };
 
+    const updateSearchableSelectPreview = (select) => {
+        if (!select) {
+            return;
+        }
+
+        const container = select.closest("[data-searchable-select]");
+
+        if (!container) {
+            return;
+        }
+
+        const preview = container.querySelector("[data-property-preview]");
+
+        if (!preview) {
+            return;
+        }
+
+        const placeholder = preview.dataset.placeholder || "";
+        const selectedOption = select.selectedOptions?.[0];
+        const coverImageUrl = selectedOption?.dataset?.coverImage;
+
+        if (coverImageUrl) {
+            preview.src = coverImageUrl;
+            preview.dataset.state = "filled";
+
+            return;
+        }
+
+        if (placeholder !== "") {
+            preview.src = placeholder;
+        } else {
+            preview.removeAttribute("src");
+        }
+
+        preview.dataset.state = "empty";
+    };
+
     document
         .querySelectorAll("[data-searchable-select] select")
         .forEach((select) => {
             initializeChoicesSelect(select);
+
+            if (select.__searchableSelectPreviewInitialized) {
+                updateSearchableSelectPreview(select);
+
+                return;
+            }
+
+            const handleChange = () => updateSearchableSelectPreview(select);
+
+            select.addEventListener("change", handleChange);
+            updateSearchableSelectPreview(select);
+
+            select.__searchableSelectPreviewInitialized = true;
         });
 
     const initializePostalSelector = (container) => {
