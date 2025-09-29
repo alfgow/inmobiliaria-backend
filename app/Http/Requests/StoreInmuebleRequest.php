@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Inmueble;
+use App\Support\InmuebleStatusClassifier;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -23,6 +24,8 @@ class StoreInmuebleRequest extends FormRequest
      */
     public function rules(): array
     {
+        $requiresCommission = $this->shouldRequireCommission();
+
         return [
             'titulo' => ['required', 'string', 'max:200'],
             'descripcion' => ['nullable', 'string'],
@@ -51,6 +54,32 @@ class StoreInmuebleRequest extends FormRequest
             'extras' => ['nullable', 'string', 'max:2000'],
             'imagenes' => ['nullable', 'array', 'max:10'],
             'imagenes.*' => ['image', 'max:5120'],
+            'commission_percentage' => [
+                $requiresCommission ? 'required' : 'nullable',
+                'numeric',
+                'min:0',
+            ],
+            'commission_amount' => [
+                $requiresCommission ? 'required' : 'nullable',
+                'numeric',
+                'min:0',
+            ],
+            'commission_status_id' => ['nullable', 'integer'],
+            'commission_status_name' => ['nullable', 'string', 'max:160'],
         ];
+    }
+
+    protected function shouldRequireCommission(): bool
+    {
+        return $this->shouldRequireCommissionForStatus($this->input('estatus_id'));
+    }
+
+    protected function shouldRequireCommissionForStatus(mixed $statusId): bool
+    {
+        if ($statusId === null || $statusId === '') {
+            return false;
+        }
+
+        return InmuebleStatusClassifier::isClosingStatusId((int) $statusId);
     }
 }

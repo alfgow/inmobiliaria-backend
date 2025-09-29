@@ -58,6 +58,10 @@ class Inmueble extends Model
         'tour_virtual_url',
         'amenidades',
         'extras',
+        'commission_percentage',
+        'commission_amount',
+        'commission_status_id',
+        'commission_status_name',
     ];
 
     protected $casts = [
@@ -74,6 +78,9 @@ class Inmueble extends Model
         'longitud' => 'decimal:7',
         'amenidades' => 'array',
         'extras' => 'array',
+        'commission_percentage' => 'decimal:2',
+        'commission_amount' => 'decimal:2',
+        'commission_status_id' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

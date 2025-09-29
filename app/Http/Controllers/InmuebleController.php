@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateInmuebleRequest;
 use App\Models\Inmueble;
 use App\Models\InmuebleStatus;
 use App\Services\InmuebleImageService;
+use App\Support\InmuebleStatusClassifier;
 use App\Support\WatermarkPathResolver;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Filesystem\FilesystemAdapter;
@@ -173,14 +174,45 @@ class InmuebleController extends Controller
         $imagenes = $request->file('imagenes', []);
         $imagenesEliminar = collect($request->input('imagenes_eliminar', []))->filter()->all();
 
-        DB::transaction(function () use ($inmueble, $payload, $imagenes, $imagenesEliminar): void {
+        $originalStatusId = (int) $inmueble->estatus_id;
+        $newStatusId = isset($payload['estatus_id']) ? (int) $payload['estatus_id'] : $originalStatusId;
+        $isClosingStatus = InmuebleStatusClassifier::isClosingStatusId($newStatusId);
+        $wasClosingStatus = InmuebleStatusClassifier::isClosingStatusId($originalStatusId);
+        $isTransitionToClosing = $isClosingStatus && ! $wasClosingStatus;
+
+        if ($isClosingStatus && array_key_exists('commission_percentage', $payload)) {
+            $commissionPercentage = $payload['commission_percentage'] !== null
+                ? (float) $payload['commission_percentage']
+                : null;
+            $currentPrice = array_key_exists('precio', $payload)
+                ? (float) $payload['precio']
+                : (float) $inmueble->precio;
+
+            if ($commissionPercentage !== null) {
+                $payload['commission_amount'] = round(($currentPrice * $commissionPercentage) / 100, 2);
+            }
+        }
+
+        DB::transaction(function () use (
+            $inmueble,
+            $payload,
+            $imagenes,
+            $imagenesEliminar,
+            $isTransitionToClosing,
+        ): void {
             $inmueble->update($payload);
 
             if (! empty($imagenesEliminar)) {
                 $this->deleteImages($inmueble, $imagenesEliminar);
             }
 
-            $this->storeImages($inmueble->fresh(), $imagenes);
+            $updatedInmueble = $inmueble->fresh();
+
+            $this->storeImages($updatedInmueble, $imagenes);
+
+            if ($isTransitionToClosing) {
+                $this->registerVenta($updatedInmueble);
+            }
         });
 
         return redirect()
@@ -219,23 +251,51 @@ class InmuebleController extends Controller
         $payload['asesor_id'] = $request->user()->id;
         $payload['destacado'] = $request->boolean('destacado');
 
-        foreach (
-            [
-                'habitaciones',
-                'banos',
-                'estacionamientos',
-                'metros_cuadrados',
-                'superficie_construida',
-                'superficie_terreno',
-                'anio_construccion',
-            ] as $numericField
-        ) {
+        foreach ([
+            'habitaciones',
+            'banos',
+            'estacionamientos',
+            'metros_cuadrados',
+            'superficie_construida',
+            'superficie_terreno',
+            'anio_construccion',
+            'commission_status_id',
+        ] as $numericField) {
             if (! array_key_exists($numericField, $payload)) {
                 continue;
             }
 
             if ($payload[$numericField] === '' || $payload[$numericField] === null) {
                 $payload[$numericField] = null;
+
+                continue;
+            }
+
+            if ($numericField === 'commission_status_id') {
+                $payload[$numericField] = (int) $payload[$numericField];
+            }
+        }
+
+        foreach (['commission_percentage', 'commission_amount'] as $decimalField) {
+            if (! array_key_exists($decimalField, $payload)) {
+                continue;
+            }
+
+            if ($payload[$decimalField] === '' || $payload[$decimalField] === null) {
+                $payload[$decimalField] = null;
+
+                continue;
+            }
+
+            $payload[$decimalField] = round((float) $payload[$decimalField], 2);
+        }
+
+        if (array_key_exists('commission_status_name', $payload)) {
+            if ($payload['commission_status_name'] === null) {
+                $payload['commission_status_name'] = null;
+            } else {
+                $trimmedName = trim((string) $payload['commission_status_name']);
+                $payload['commission_status_name'] = $trimmedName === '' ? null : $trimmedName;
             }
         }
 
@@ -245,6 +305,39 @@ class InmuebleController extends Controller
         unset($payload['imagenes']);
 
         return $payload;
+    }
+
+    protected function registerVenta(Inmueble $inmueble): void
+    {
+        $commissionAmount = (float) ($inmueble->commission_amount ?? 0);
+
+        if ($commissionAmount <= 0) {
+            return;
+        }
+
+        $now = now();
+        $connection = DB::connection('ventasvillanuevagarcia');
+        $alreadyRegistered = $connection
+            ->table('ventasvillanuevagarcia')
+            ->where('inmueble_id', $inmueble->id)
+            ->where('mes_venta', $now->month)
+            ->where('year_venta', $now->year)
+            ->exists();
+
+        if ($alreadyRegistered) {
+            return;
+        }
+
+        $connection->table('ventasvillanuevagarcia')->insert([
+            'inmueble_id' => $inmueble->id,
+            'id_usuario' => 1,
+            'canal_venta' => 'Inmobiliaria: ' . $inmueble->operacion,
+            'comision_asesor' => 0,
+            'ganancia_neta' => number_format($commissionAmount, 2, '.', ''),
+            'mes_venta' => $now->month,
+            'year_venta' => $now->year,
+            'fecha_venta' => $now,
+        ]);
     }
 
     private function getWatermarkPreviewUrl(): ?string
