@@ -1309,6 +1309,386 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
+    const statusSelect = document.getElementById("estatus_id");
+
+    if (statusSelect) {
+        const commissionPercentageInput = document.getElementById(
+            "commission_percentage",
+        );
+        const commissionAmountInput = document.getElementById(
+            "commission_amount",
+        );
+        const commissionStatusIdInput = document.getElementById(
+            "commission_status_id",
+        );
+        const commissionStatusNameInput = document.getElementById(
+            "commission_status_name",
+        );
+        const priceInput = document.getElementById("precio");
+        const closingKeywords = [
+            "vendido",
+            "rentado",
+            "arrendado",
+            "cerrado",
+        ];
+        const getStatusChoicesInstance = () => {
+            return (
+                choicesInstances.get(statusSelect) ||
+                statusSelect.__choicesInstance ||
+                null
+            );
+        };
+        let isRestoringStatus = false;
+        let previousStatusValue = statusSelect.value || "";
+
+        const parseNumericValue = (value) => {
+            if (typeof value === "number") {
+                return Number.isFinite(value) ? value : null;
+            }
+
+            if (typeof value !== "string") {
+                return null;
+            }
+
+            const normalized = value.replace(/,/g, ".").trim();
+
+            if (normalized === "") {
+                return null;
+            }
+
+            const numeric = Number.parseFloat(normalized);
+
+            return Number.isFinite(numeric) ? numeric : null;
+        };
+
+        const formatCurrency = (amount) => {
+            const numericAmount = parseNumericValue(amount) ?? 0;
+
+            return new Intl.NumberFormat("es-MX", {
+                style: "currency",
+                currency: "MXN",
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            }).format(numericAmount);
+        };
+
+        const computeCommissionAmount = (percentage) => {
+            const numericPercentage = parseNumericValue(percentage);
+            const price = parseNumericValue(priceInput?.value);
+
+            if (numericPercentage === null || price === null) {
+                return null;
+            }
+
+            return (price * numericPercentage) / 100;
+        };
+
+        const getOptionLabel = (option) => {
+            if (!option) {
+                return "";
+            }
+
+            const datasetName = option.dataset.statusName;
+
+            if (typeof datasetName === "string" && datasetName.trim() !== "") {
+                return datasetName.trim();
+            }
+
+            return (option.textContent || "").trim();
+        };
+
+        const isClosingStatus = (option) => {
+            if (!option) {
+                return false;
+            }
+
+            const label = getOptionLabel(option).toLowerCase();
+
+            return closingKeywords.some((keyword) => label.includes(keyword));
+        };
+
+        const updateHiddenCommissionFields = (
+            percentageValue,
+            amountValue,
+            statusIdValue,
+            statusLabelValue,
+        ) => {
+            if (commissionPercentageInput) {
+                const numericPercentage = parseNumericValue(percentageValue);
+                commissionPercentageInput.value =
+                    numericPercentage === null
+                        ? ""
+                        : String(numericPercentage);
+            }
+
+            if (commissionAmountInput) {
+                const numericAmount = parseNumericValue(amountValue);
+                commissionAmountInput.value =
+                    numericAmount === null
+                        ? ""
+                        : String(numericAmount.toFixed(2));
+            }
+
+            if (commissionStatusIdInput) {
+                commissionStatusIdInput.value = statusIdValue || "";
+            }
+
+            if (commissionStatusNameInput) {
+                commissionStatusNameInput.value = statusLabelValue || "";
+            }
+        };
+
+        const setStatusValueSilently = (value) => {
+            const normalizedValue = value || "";
+            isRestoringStatus = true;
+
+            const statusChoicesInstance = getStatusChoicesInstance();
+
+            if (statusChoicesInstance) {
+                try {
+                    if (normalizedValue === "") {
+                        statusChoicesInstance.removeActiveItems();
+                        const placeholderOption = statusSelect.querySelector(
+                            "option[value='']",
+                        );
+
+                        if (placeholderOption) {
+                            statusChoicesInstance.setChoiceByValue(
+                                placeholderOption.value,
+                            );
+                        }
+                    } else {
+                        statusChoicesInstance.setChoiceByValue(normalizedValue);
+                    }
+                } catch (error) {
+                    console.warn(
+                        "No fue posible sincronizar el estatus con Choices.js",
+                        error,
+                    );
+                }
+            }
+
+            statusSelect.value = normalizedValue;
+
+            window.setTimeout(() => {
+                isRestoringStatus = false;
+            }, 0);
+        };
+
+        const showCommissionModal = async (option) => {
+            const label = getOptionLabel(option);
+            const initialPercentage =
+                parseNumericValue(commissionPercentageInput?.value) ?? 0;
+
+            if (!window.Swal) {
+                const fallback = window.prompt(
+                    `Ingresa el porcentaje de comisión para "${label}"`,
+                    String(initialPercentage || ""),
+                );
+
+                if (fallback === null) {
+                    return { confirmed: false };
+                }
+
+                const percentage = parseNumericValue(fallback);
+
+                if (percentage === null || percentage < 0) {
+                    window.alert(
+                        "Debes ingresar un porcentaje de comisión válido.",
+                    );
+
+                    return { confirmed: false };
+                }
+
+                const amount = computeCommissionAmount(percentage) ?? 0;
+
+                updateHiddenCommissionFields(
+                    percentage,
+                    amount,
+                    option.value,
+                    label,
+                );
+
+                return { confirmed: true };
+            }
+
+            const result = await window.Swal.fire({
+                title: "Registrar comisión",
+                html: `
+                    <div class="space-y-3 text-left">
+                        <p class="text-sm text-gray-200">
+                            Define el porcentaje de comisión para el estatus <strong>${label}</strong>.
+                        </p>
+                        <label class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400" for="swal-commission-percentage">
+                            Porcentaje de comisión
+                        </label>
+                        <input
+                            id="swal-commission-percentage"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            class="swal2-input"
+                            value="${initialPercentage}"
+                        >
+                        <p class="text-sm text-gray-200">
+                            Ganancia estimada: <strong id="swal-commission-amount">${formatCurrency(
+                                computeCommissionAmount(initialPercentage) ?? 0,
+                            )}</strong>
+                        </p>
+                    </div>
+                `,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: "Guardar",
+                cancelButtonText: "Cancelar",
+                preConfirm: () => {
+                    const input = document.getElementById(
+                        "swal-commission-percentage",
+                    );
+
+                    if (!input) {
+                        return false;
+                    }
+
+                    const percentage = parseNumericValue(input.value);
+
+                    if (percentage === null || percentage < 0) {
+                        window.Swal.showValidationMessage(
+                            "Ingresa un porcentaje válido",
+                        );
+
+                        return false;
+                    }
+
+                    const amount = computeCommissionAmount(percentage) ?? 0;
+
+                    return {
+                        percentage,
+                        amount,
+                    };
+                },
+                didOpen: () => {
+                    const input = document.getElementById(
+                        "swal-commission-percentage",
+                    );
+                    const amountPreview = document.getElementById(
+                        "swal-commission-amount",
+                    );
+
+                    if (!input || !amountPreview) {
+                        return;
+                    }
+
+                    const updatePreview = () => {
+                        const amount =
+                            computeCommissionAmount(input.value) ?? 0;
+                        amountPreview.textContent = formatCurrency(amount);
+                    };
+
+                    input.addEventListener("input", updatePreview);
+                    updatePreview();
+                },
+            });
+
+            if (!result.isConfirmed || !result.value) {
+                return { confirmed: false };
+            }
+
+            const { percentage, amount } = result.value;
+
+            updateHiddenCommissionFields(
+                percentage,
+                amount,
+                option.value,
+                label,
+            );
+
+            return { confirmed: true };
+        };
+
+        const handleStatusChange = async () => {
+            const selectedOption = statusSelect.selectedOptions[0] || null;
+            const selectedValue = statusSelect.value || "";
+
+            if (isRestoringStatus) {
+                previousStatusValue = selectedValue;
+                return;
+            }
+
+            if (!selectedOption || selectedValue === "") {
+                updateHiddenCommissionFields("", "", "", "");
+                previousStatusValue = selectedValue;
+                return;
+            }
+
+            if (!isClosingStatus(selectedOption)) {
+                updateHiddenCommissionFields("", "", "", "");
+                previousStatusValue = selectedValue;
+                return;
+            }
+
+            const result = await showCommissionModal(selectedOption);
+
+            if (result.confirmed) {
+                previousStatusValue = selectedValue;
+                return;
+            }
+
+            setStatusValueSilently(previousStatusValue);
+
+            const previousOption = Array.from(statusSelect.options).find(
+                (option) => option.value === previousStatusValue,
+            );
+
+            if (!previousOption || !isClosingStatus(previousOption)) {
+                updateHiddenCommissionFields("", "", "", "");
+            }
+        };
+
+        const selectedOption = statusSelect.selectedOptions[0] || null;
+
+        if (selectedOption && isClosingStatus(selectedOption)) {
+            updateHiddenCommissionFields(
+                commissionPercentageInput?.value || "",
+                commissionAmountInput?.value || "",
+                selectedOption.value,
+                getOptionLabel(selectedOption),
+            );
+        }
+
+        statusSelect.addEventListener("change", handleStatusChange);
+
+        if (priceInput) {
+            priceInput.addEventListener("input", () => {
+                if (
+                    !commissionPercentageInput ||
+                    !commissionAmountInput ||
+                    !commissionStatusIdInput ||
+                    commissionStatusIdInput.value === ""
+                ) {
+                    return;
+                }
+
+                const percentage = parseNumericValue(
+                    commissionPercentageInput.value,
+                );
+
+                if (percentage === null) {
+                    return;
+                }
+
+                const amount = computeCommissionAmount(percentage);
+
+                if (amount === null) {
+                    commissionAmountInput.value = "";
+                    return;
+                }
+
+                commissionAmountInput.value = String(amount.toFixed(2));
+            });
+        }
+    }
+
     const sidebar = document.querySelector("[data-sidebar]");
 
     if (sidebar) {

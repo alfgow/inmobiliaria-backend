@@ -264,7 +264,11 @@
                         >
                             <option value="">Selecciona un estado</option>
                             @foreach ($statuses as $status)
-                                <option value="{{ $status->id }}" @selected((int) old('estatus_id', optional($inmueble)->estatus_id) === $status->id)>
+                                <option
+                                    value="{{ $status->id }}"
+                                    data-status-name="{{ $status->nombre }}"
+                                    @selected((int) old('estatus_id', optional($inmueble)->estatus_id) === $status->id)
+                                >
                                     {{ $status->nombre }}
                                 </option>
                             @endforeach
@@ -274,6 +278,31 @@
                         @enderror
                     </div>
                 @endif
+
+                <input
+                    type="hidden"
+                    id="commission_percentage"
+                    name="commission_percentage"
+                    value="{{ old('commission_percentage', optional($inmueble)->commission_percentage) }}"
+                >
+                <input
+                    type="hidden"
+                    id="commission_amount"
+                    name="commission_amount"
+                    value="{{ old('commission_amount', optional($inmueble)->commission_amount) }}"
+                >
+                <input
+                    type="hidden"
+                    id="commission_status_id"
+                    name="commission_status_id"
+                    value="{{ old('commission_status_id', optional($inmueble)->commission_status_id) }}"
+                >
+                <input
+                    type="hidden"
+                    id="commission_status_name"
+                    name="commission_status_name"
+                    value="{{ old('commission_status_name', optional($inmueble)->commission_status_name) }}"
+                >
             </div>
 
             <div class="space-y-3">
