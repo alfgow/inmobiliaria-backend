@@ -137,6 +137,8 @@ class InmuebleController extends Controller
             $payload['estatus_id'] = 1;
         }
 
+        $this->extractCommissionData($payload);
+
         DB::transaction(function () use ($payload, $imagenes): void {
             $inmueble = Inmueble::create($payload);
 
@@ -193,11 +195,14 @@ class InmuebleController extends Controller
             }
         }
 
+        $commissionData = $this->extractCommissionData($payload);
+
         DB::transaction(function () use (
             $inmueble,
             $payload,
             $imagenes,
             $imagenesEliminar,
+            $commissionData,
             $isTransitionToClosing,
         ): void {
             $inmueble->update($payload);
@@ -211,7 +216,7 @@ class InmuebleController extends Controller
             $this->storeImages($updatedInmueble, $imagenes);
 
             if ($isTransitionToClosing) {
-                $this->registerVenta($updatedInmueble);
+                $this->registerVenta($updatedInmueble, $commissionData);
             }
         });
 
@@ -307,16 +312,16 @@ class InmuebleController extends Controller
         return $payload;
     }
 
-    protected function registerVenta(Inmueble $inmueble): void
+    protected function registerVenta(Inmueble $inmueble, array $commissionData): void
     {
-        $commissionAmount = (float) ($inmueble->commission_amount ?? 0);
+        $commissionAmount = (float) ($commissionData['commission_amount'] ?? 0);
 
         if ($commissionAmount <= 0) {
             return;
         }
 
         $now = now();
-        $connection = DB::connection('ventasvillanuevagarcia');
+        $connection = DB::connection('as_db');
         $alreadyRegistered = $connection
             ->table('ventasvillanuevagarcia')
             ->where('inmueble_id', $inmueble->id)
@@ -338,6 +343,33 @@ class InmuebleController extends Controller
             'year_venta' => $now->year,
             'fecha_venta' => $now,
         ]);
+    }
+
+    /**
+     * Extract commission information from the payload while keeping it available for remote storage.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    private function extractCommissionData(array &$payload): array
+    {
+        $commissionFields = [
+            'commission_percentage',
+            'commission_amount',
+            'commission_status_id',
+            'commission_status_name',
+        ];
+
+        $commissionData = [];
+
+        foreach ($commissionFields as $field) {
+            if (array_key_exists($field, $payload)) {
+                $commissionData[$field] = $payload[$field];
+                unset($payload[$field]);
+            }
+        }
+
+        return $commissionData;
     }
 
     private function getWatermarkPreviewUrl(): ?string
