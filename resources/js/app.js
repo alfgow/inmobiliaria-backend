@@ -1783,9 +1783,36 @@ document.addEventListener("DOMContentLoaded", () => {
             return { confirmed: true };
         };
 
+        const getInmuebleUpdateForm = () => {
+            return document.getElementById("inmueble-update-form");
+        };
+
+        const submitInmuebleUpdateForm = () => {
+            const form = getInmuebleUpdateForm();
+
+            if (!form) {
+                return;
+            }
+
+            form.dataset.submitting = "true";
+
+            if (typeof form.requestSubmit === "function") {
+                form.requestSubmit();
+            } else {
+                form.submit();
+            }
+        };
+
         const handleStatusChange = async () => {
             const selectedOption = statusSelect.selectedOptions[0] || null;
             const selectedValue = statusSelect.value || "";
+
+            const form = getInmuebleUpdateForm();
+
+            if (form?.dataset.submitting === "true") {
+                previousStatusValue = selectedValue;
+                return;
+            }
 
             if (isRestoringStatus) {
                 previousStatusValue = selectedValue;
@@ -1807,6 +1834,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const result = await showCommissionModal(selectedOption);
 
             if (result.confirmed) {
+                submitInmuebleUpdateForm();
                 previousStatusValue = selectedValue;
                 return;
             }
