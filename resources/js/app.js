@@ -1899,6 +1899,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!isClosingStatus(selectedOption)) {
                 updateHiddenCommissionFields("", "", "", "");
+                submitInmuebleUpdateForm();
                 previousStatusValue = selectedValue;
                 return;
             }
