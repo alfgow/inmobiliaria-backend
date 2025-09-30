@@ -66,6 +66,9 @@
             method="POST"
             enctype="multipart/form-data"
             class="space-y-8"
+            data-swal-loader="actualizar-inmueble"
+            data-swal-loader-title="Guardando cambios"
+            data-swal-loader-text="Estamos aplicando las actualizaciones del inmueble..."
         >
             @csrf
             @method('PUT')
