@@ -265,7 +265,7 @@ class InmuebleController extends Controller
     protected function preparePayload(array $payload, Request $request): array
     {
         $payload['asesor_id'] = $request->user()->id;
-        $payload['destacado'] = $request->boolean('destacado');
+        $payload['destacado'] = array_key_exists('destacado', $payload) ? (bool) $payload['destacado'] : false;
 
         foreach ([
             'habitaciones',
