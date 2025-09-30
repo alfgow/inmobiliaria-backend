@@ -137,6 +137,12 @@ class InmuebleController extends Controller
             $payload['estatus_id'] = 1;
         }
 
+        $targetStatusId = isset($payload['estatus_id']) ? (int) $payload['estatus_id'] : null;
+
+        if (! InmuebleStatusClassifier::isAvailableStatusId($targetStatusId)) {
+            $payload['destacado'] = false;
+        }
+
         $this->extractCommissionData($payload);
 
         DB::transaction(function () use ($payload, $imagenes): void {
@@ -178,6 +184,11 @@ class InmuebleController extends Controller
 
         $originalStatusId = (int) $inmueble->estatus_id;
         $newStatusId = isset($payload['estatus_id']) ? (int) $payload['estatus_id'] : $originalStatusId;
+
+        if (! InmuebleStatusClassifier::isAvailableStatusId($newStatusId)) {
+            $payload['destacado'] = false;
+        }
+
         $isClosingStatus = InmuebleStatusClassifier::isClosingStatusId($newStatusId);
         $wasClosingStatus = InmuebleStatusClassifier::isClosingStatusId($originalStatusId);
         $isTransitionToClosing = $isClosingStatus && ! $wasClosingStatus;

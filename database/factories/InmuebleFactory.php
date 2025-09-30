@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Models\Inmueble;
 use App\Models\InmuebleStatus;
 use App\Models\User;
+use App\Support\InmuebleStatusClassifier;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -39,7 +40,9 @@ class InmuebleFactory extends Factory
             'banos' => $this->faker->numberBetween(1, 4),
             'estacionamientos' => $this->faker->numberBetween(0, 3),
             'metros_cuadrados' => $this->faker->randomFloat(2, 40, 500),
-            'destacado' => $this->faker->boolean(),
+            'destacado' => InmuebleStatusClassifier::isAvailableStatusName($status->nombre)
+                ? $this->faker->boolean()
+                : false,
         ];
     }
 }
