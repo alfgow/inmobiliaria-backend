@@ -12,6 +12,7 @@ use App\Support\WatermarkPathResolver;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -234,6 +235,17 @@ class InmuebleController extends Controller
         return redirect()
             ->route('inmuebles.edit', $inmueble)
             ->with('status', 'Inmueble actualizado correctamente.');
+    }
+
+    public function updateDestacado(Request $request, Inmueble $inmueble): JsonResponse
+    {
+        $destacado = $request->boolean('destacado');
+
+        $inmueble->update(['destacado' => $destacado]);
+
+        return response()->json([
+            'destacado' => $inmueble->destacado,
+        ]);
     }
 
     /**

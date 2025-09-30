@@ -333,11 +333,14 @@
     <span class="whitespace-nowrap">Destacar inmueble en listados</span>
     
     <input type="hidden" name="destacado" value="0">
-    <input 
-        type="checkbox" 
-        id="destacado" 
-        name="destacado" 
+    <input
+        type="checkbox"
+        id="destacado"
+        name="destacado"
         value="1"
+        @if ($inmueble)
+            data-update-url="{{ route('inmuebles.destacado', $inmueble) }}"
+        @endif
         @checked(old('destacado', optional($inmueble)->destacado) == 1)
         class="peer sr-only"
     />

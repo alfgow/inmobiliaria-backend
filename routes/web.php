@@ -52,6 +52,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/inmuebles/mapa', [InmuebleController::class, 'map'])
         ->name('inmuebles.map');
+    Route::patch('/inmuebles/{inmueble}/destacado', [InmuebleController::class, 'updateDestacado'])
+        ->name('inmuebles.destacado');
     Route::resource('inmuebles', InmuebleController::class)->except(['show']);
 
     Route::prefix('catalogos')->name('catalogos.')->group(function () {
