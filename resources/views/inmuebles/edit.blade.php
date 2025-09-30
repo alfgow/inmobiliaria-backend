@@ -9,13 +9,36 @@
                         <span class="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 px-3 py-1 text-indigo-200">
                             {{ $inmueble->operacion }} · {{ $inmueble->tipo }}
                         </span>
-                        <span class="inline-flex items-center gap-2 rounded-full bg-gray-950/70 px-3 py-1 text-gray-200">
-                            Estatus: <span class="font-semibold" style="color: {{ $inmueble->status->color }}">{{ $inmueble->status->nombre }}</span>
-                        </span>
+                        <div class="inline-flex items-center gap-3 rounded-full bg-gray-950/70 px-4 py-1.5 text-gray-200 shadow-inner shadow-black/20 backdrop-blur-sm">
+                            <span class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Estatus</span>
+                            <div class="relative">
+                                <select
+                                    id="estatus_id"
+                                    name="estatus_id"
+                                    form="inmueble-update-form"
+                                    class="appearance-none rounded-full border border-white/5 bg-gray-900/40 px-3 py-1 pr-8 text-sm font-semibold text-white shadow-sm shadow-black/30 transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
+                                >
+                                    <option value="">Selecciona un estado</option>
+                                    @foreach ($statuses as $status)
+                                        <option
+                                            value="{{ $status->id }}"
+                                            data-status-name="{{ $status->nombre }}"
+                                            @selected((int) old('estatus_id', $inmueble->estatus_id) === $status->id)
+                                        >
+                                            {{ $status->nombre }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <span class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-400">▾</span>
+                            </div>
+                        </div>
                         <span class="inline-flex items-center gap-2 rounded-full bg-gray-950/70 px-3 py-1 text-gray-200">
                             Actualizado {{ $inmueble->lastUpdatedDiff() ?? 'recién' }}
                         </span>
                     </div>
+                    @error('estatus_id')
+                        <p class="mt-2 text-sm text-red-400">{{ $message }}</p>
+                    @enderror
                 </div>
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
                     <a href="{{ route('inmuebles.index') }}" class="inline-flex items-center justify-center rounded-2xl border border-gray-700 px-5 py-3 text-sm font-medium text-gray-300 transition hover:border-gray-500 hover:text-white">Volver al listado</a>
@@ -36,7 +59,13 @@
             </div>
         @endif
 
-        <form action="{{ route('inmuebles.update', $inmueble) }}" method="POST" enctype="multipart/form-data" class="space-y-8">
+        <form
+            id="inmueble-update-form"
+            action="{{ route('inmuebles.update', $inmueble) }}"
+            method="POST"
+            enctype="multipart/form-data"
+            class="space-y-8"
+        >
             @csrf
             @method('PUT')
 
@@ -46,6 +75,7 @@
                 :tipos="$tipos"
                 :operaciones="$operaciones"
                 :watermark-preview-url="$watermarkPreviewUrl"
+                :show-status-selector="false"
             />
 
             <div class="flex flex-col items-stretch gap-3 border-t border-gray-800 pt-6 sm:flex-row sm:justify-between">
