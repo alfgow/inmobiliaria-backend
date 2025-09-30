@@ -3,12 +3,12 @@ import Chart from "chart.js/auto";
 import Choices from "choices.js";
 import "choices.js/styles.css";
 import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-import "leaflet-control-geocoder/dist/Control.Geocoder.css";
 import "leaflet-control-geocoder";
+import "leaflet-control-geocoder/dist/Control.Geocoder.css";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
+import "leaflet/dist/leaflet.css";
 
 delete L.Icon.Default.prototype._getIconUrl;
 
@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (destacadoCheckbox instanceof HTMLInputElement) {
         const hiddenInput = destacadoCheckbox.form?.querySelector(
-            'input[type="hidden"][name="destacado"]',
+            'input[type="hidden"][name="destacado"]'
         );
         const syncHiddenInput = (checked) => {
             if (hiddenInput) {
@@ -90,18 +90,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 await axios.patch(
                     updateUrl,
                     { destacado: nextState },
-                    { headers },
+                    { headers }
                 );
 
                 previousState = nextState;
             } catch (error) {
                 console.error(
                     "No fue posible actualizar el estado de destacado.",
-                    error,
+                    error
                 );
 
                 window.alert(
-                    "No fue posible actualizar el estado destacado del inmueble. Intenta nuevamente.",
+                    "No fue posible actualizar el estado destacado del inmueble. Intenta nuevamente."
                 );
 
                 destacadoCheckbox.checked = previousState;
@@ -157,8 +157,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (Array.isArray(parsed)) {
                     properties = parsed
                         .map((property) => {
-                            const latitude = parseCoordinate(property?.latitude);
-                            const longitude = parseCoordinate(property?.longitude);
+                            const latitude = parseCoordinate(
+                                property?.latitude
+                            );
+                            const longitude = parseCoordinate(
+                                property?.longitude
+                            );
 
                             if (latitude === null || longitude === null) {
                                 return null;
@@ -176,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
             console.error(
                 "No fue posible parsear la información de inmuebles para el mapa.",
-                error,
+                error
             );
         }
 
@@ -208,12 +212,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
         properties.forEach((property) => {
             const position = [property.latitude, property.longitude];
-            const marker = L.marker(position, property?.is_available ? { icon: availableMarkerIcon } : {}).addTo(map);
+            const marker = L.marker(
+                position,
+                property?.is_available ? { icon: availableMarkerIcon } : {}
+            ).addTo(map);
 
             bounds.extend(position);
 
-            const imageUrl = typeof property.image_url === "string" ? property.image_url : "";
-            const manageUrl = typeof property.manage_url === "string" ? property.manage_url : "";
+            const imageUrl =
+                typeof property.image_url === "string"
+                    ? property.image_url
+                    : "";
+            const manageUrl =
+                typeof property.manage_url === "string"
+                    ? property.manage_url
+                    : "";
             const title = escapeHtml(property.title ?? "Inmueble");
             const address = escapeHtml(property.address ?? "");
             const price = escapeHtml(property.price ?? "");
@@ -239,7 +252,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 : "";
 
             const manageButton = manageUrl
-                ? `<a href="${manageUrl}" class="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">Gestionar inmueble</a>`
+                ? `<a href="${manageUrl}" class="mt-3 w-full inline-flex items-center justify-center rounded-xl 
+         bg-indigo-600/90 px-4 py-2.5 text-sm font-medium text-white 
+         shadow-[0_8px_20px_rgba(79,70,229,0.35)] 
+         hover:bg-indigo-500/90 hover:shadow-[0_6px_16px_rgba(79,70,229,0.45)] 
+         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 
+         transition-all duration-300 ease-out">Gestionar inmueble</a>`
                 : "";
 
             const popupContent = `
@@ -313,9 +331,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const marker = L.marker(startingPoint, { draggable: false }).addTo(map);
 
         const formatCoordinate = (coordinate) => {
-            return Number.isFinite(coordinate)
-                ? coordinate.toFixed(6)
-                : "";
+            return Number.isFinite(coordinate) ? coordinate.toFixed(6) : "";
         };
 
         const updateCoordinateInputs = (latlng) => {
@@ -382,16 +398,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     address["state_district"],
                     address.region
                 ),
-                estado: pickFirst(address.state, address["state_name"], address.region),
+                estado: pickFirst(
+                    address.state,
+                    address["state_name"],
+                    address.region
+                ),
             };
         };
 
-        const selectIds = [
-            "codigo_postal",
-            "colonia",
-            "municipio",
-            "estado",
-        ];
+        const selectIds = ["codigo_postal", "colonia", "municipio", "estado"];
 
         const setSelectValue = (select, value) => {
             if (!select) {
@@ -410,11 +425,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!option) {
                     option = new Option(normalized, normalized, true, true);
                     select.add(option);
-                    optionsSnapshot = Array.from(select.options).map((item) => ({
-                        value: item.value,
-                        label: item.label,
-                        selected: item.selected,
-                    }));
+                    optionsSnapshot = Array.from(select.options).map(
+                        (item) => ({
+                            value: item.value,
+                            label: item.label,
+                            selected: item.selected,
+                        })
+                    );
                 } else {
                     option.selected = true;
                 }
@@ -449,7 +466,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (normalized) {
                         choicesInstance.setChoiceByValue(normalized);
                     } else {
-                        const placeholder = select.querySelector("option[value='']");
+                        const placeholder =
+                            select.querySelector("option[value='']");
 
                         if (placeholder) {
                             choicesInstance.setChoiceByValue(placeholder.value);
@@ -594,7 +612,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const currentGeocoder = geocoders[geocoderIndex];
 
-            if (!currentGeocoder || typeof currentGeocoder.geocode !== "function") {
+            if (
+                !currentGeocoder ||
+                typeof currentGeocoder.geocode !== "function"
+            ) {
                 attemptScopedGeocode(query, geocoderIndex + 1, requestToken);
                 return;
             }
@@ -733,34 +754,34 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const imageElement = previewCard.querySelector(
-            "[data-property-preview-image]",
+            "[data-property-preview-image]"
         );
         const titleElement = previewCard.querySelector(
-            "[data-property-preview-title]",
+            "[data-property-preview-title]"
         );
         const addressElement = previewCard.querySelector(
-            "[data-property-preview-address]",
+            "[data-property-preview-address]"
         );
         const operationElement = previewCard.querySelector(
-            "[data-property-preview-operation]",
+            "[data-property-preview-operation]"
         );
         const typeElement = previewCard.querySelector(
-            "[data-property-preview-type]",
+            "[data-property-preview-type]"
         );
         const priceElement = previewCard.querySelector(
-            "[data-property-preview-price]",
+            "[data-property-preview-price]"
         );
         const habitacionesElement = previewCard.querySelector(
-            "[data-property-preview-habitaciones]",
+            "[data-property-preview-habitaciones]"
         );
         const banosElement = previewCard.querySelector(
-            "[data-property-preview-banos]",
+            "[data-property-preview-banos]"
         );
         const estacionamientosElement = previewCard.querySelector(
-            "[data-property-preview-estacionamientos]",
+            "[data-property-preview-estacionamientos]"
         );
         const metrosElement = previewCard.querySelector(
-            "[data-property-preview-metros]",
+            "[data-property-preview-metros]"
         );
 
         const selectedOption = select.value
@@ -808,8 +829,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (imageElement) {
-                const placeholder =
-                    imageElement.dataset.placeholder || "";
+                const placeholder = imageElement.dataset.placeholder || "";
 
                 if (placeholder) {
                     imageElement.src = placeholder;
@@ -948,12 +968,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const normalizedBaseUrl = baseUrl.replace(/\/$/, "");
         const resolveUrl = `${normalizedBaseUrl}/resolve`;
-        const fieldOrder = [
-            "codigo_postal",
-            "colonia",
-            "municipio",
-            "estado",
-        ];
+        const fieldOrder = ["codigo_postal", "colonia", "municipio", "estado"];
         const fields = {};
 
         fieldOrder.forEach((key) => {
@@ -1103,7 +1118,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-            if (triggered && previousValue && normalizedValues.includes(previousValue)) {
+            if (
+                triggered &&
+                previousValue &&
+                normalizedValues.includes(previousValue)
+            ) {
                 newValue = previousValue;
             }
 
@@ -1111,7 +1130,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const placeholderOption = document.createElement("option");
 
             placeholderOption.value = "";
-            placeholderOption.textContent = placeholder || "Selecciona una opción";
+            placeholderOption.textContent =
+                placeholder || "Selecciona una opción";
 
             if (!newValue) {
                 placeholderOption.selected = true;
@@ -1319,7 +1339,8 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         if (firstAvailableField) {
-            const initialSearchTerm = fields[firstAvailableField]?.choices?.searchInput
+            const initialSearchTerm = fields[firstAvailableField]?.choices
+                ?.searchInput
                 ? fields[firstAvailableField].choices.searchInput.value || ""
                 : "";
 
@@ -1327,11 +1348,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    document
-        .querySelectorAll("[data-postal-selector]")
-        .forEach((container) => {
-            initializePostalSelector(container);
-        });
+    document.querySelectorAll("[data-postal-selector]").forEach((container) => {
+        initializePostalSelector(container);
+    });
 
     initializePropertiesMap();
     initializeInmuebleMap();
@@ -1345,8 +1364,11 @@ document.addEventListener("DOMContentLoaded", () => {
             form.dataset.swalLoaderActive = "true";
             form.dataset.submitting = "true";
 
-            const title = form.dataset.swalLoaderTitle || "Registrando contacto";
-            const text = form.dataset.swalLoaderText || "Estamos guardando la información...";
+            const title =
+                form.dataset.swalLoaderTitle || "Registrando contacto";
+            const text =
+                form.dataset.swalLoaderText ||
+                "Estamos guardando la información...";
 
             window.Swal.fire({
                 title,
@@ -1411,24 +1433,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if (statusSelect) {
         const operationSelect = document.getElementById("operacion");
         const commissionPercentageInput = document.getElementById(
-            "commission_percentage",
+            "commission_percentage"
         );
-        const commissionAmountInput = document.getElementById(
-            "commission_amount",
-        );
+        const commissionAmountInput =
+            document.getElementById("commission_amount");
         const commissionStatusIdInput = document.getElementById(
-            "commission_status_id",
+            "commission_status_id"
         );
         const commissionStatusNameInput = document.getElementById(
-            "commission_status_name",
+            "commission_status_name"
         );
         const priceInput = document.getElementById("precio");
-        const closingKeywords = [
-            "vendido",
-            "rentado",
-            "arrendado",
-            "cerrado",
-        ];
+        const closingKeywords = ["vendido", "rentado", "arrendado", "cerrado"];
         const getStatusChoicesInstance = () => {
             return (
                 choicesInstances.get(statusSelect) ||
@@ -1450,7 +1466,11 @@ document.addEventListener("DOMContentLoaded", () => {
             ];
 
             return possibleValues
-                .map((value) => String(value || "").toLowerCase().trim())
+                .map((value) =>
+                    String(value || "")
+                        .toLowerCase()
+                        .trim()
+                )
                 .filter((value) => value !== "");
         };
 
@@ -1524,14 +1544,12 @@ document.addEventListener("DOMContentLoaded", () => {
             percentageValue,
             amountValue,
             statusIdValue,
-            statusLabelValue,
+            statusLabelValue
         ) => {
             if (commissionPercentageInput) {
                 const numericPercentage = parseNumericValue(percentageValue);
                 commissionPercentageInput.value =
-                    numericPercentage === null
-                        ? ""
-                        : String(numericPercentage);
+                    numericPercentage === null ? "" : String(numericPercentage);
             }
 
             if (commissionAmountInput) {
@@ -1561,13 +1579,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 try {
                     if (normalizedValue === "") {
                         statusChoicesInstance.removeActiveItems();
-                        const placeholderOption = statusSelect.querySelector(
-                            "option[value='']",
-                        );
+                        const placeholderOption =
+                            statusSelect.querySelector("option[value='']");
 
                         if (placeholderOption) {
                             statusChoicesInstance.setChoiceByValue(
-                                placeholderOption.value,
+                                placeholderOption.value
                             );
                         }
                     } else {
@@ -1576,7 +1593,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 } catch (error) {
                     console.warn(
                         "No fue posible sincronizar el estatus con Choices.js",
-                        error,
+                        error
                     );
                 }
             }
@@ -1589,13 +1606,14 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         const notifyStatusFiltered = (statusLabel, operationValue) => {
-            const readableOperation =
-                (operationSelect?.selectedOptions?.[0]?.textContent ||
-                    operationSelect?.value ||
-                    operationValue ||
-                    "")
-                    .toString()
-                    .trim();
+            const readableOperation = (
+                operationSelect?.selectedOptions?.[0]?.textContent ||
+                operationSelect?.value ||
+                operationValue ||
+                ""
+            )
+                .toString()
+                .trim();
             const label = statusLabel ? `"${statusLabel}" ` : "";
             const operationLabel = readableOperation
                 ? `la operación ${readableOperation}`
@@ -1641,11 +1659,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (normalizedOperation === "renta") {
                     shouldHide = optionKeywords.some((keyword) =>
-                        keyword.includes("vendido"),
+                        keyword.includes("vendido")
                     );
                 } else if (normalizedOperation === "venta") {
                     shouldHide = optionKeywords.some((keyword) =>
-                        keyword.includes("rentado"),
+                        keyword.includes("rentado")
                     );
                 }
 
@@ -1666,7 +1684,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (trigger === "change") {
                     notifyStatusFiltered(
                         removedStatusLabel,
-                        normalizedOperation,
+                        normalizedOperation
                     );
                 }
             }
@@ -1682,7 +1700,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!window.Swal) {
                 const fallback = window.prompt(
                     `Ingresa el porcentaje de comisión para "${label}"`,
-                    String(initialPercentage || ""),
+                    String(initialPercentage || "")
                 );
 
                 if (fallback === null) {
@@ -1693,7 +1711,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (percentage === null || percentage < 0) {
                     window.alert(
-                        "Debes ingresar un porcentaje de comisión válido.",
+                        "Debes ingresar un porcentaje de comisión válido."
                     );
 
                     return { confirmed: false };
@@ -1705,7 +1723,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     percentage,
                     amount,
                     option.value,
-                    label,
+                    label
                 );
 
                 return { confirmed: true };
@@ -1752,7 +1770,9 @@ document.addEventListener("DOMContentLoaded", () => {
                                 </p>
                                 <p id="swal-commission-amount" class="mt-2 text-lg font-semibold text-white">
                                     ${formatCurrency(
-                                        computeCommissionAmount(initialPercentage) ?? 0,
+                                        computeCommissionAmount(
+                                            initialPercentage
+                                        ) ?? 0
                                     )}
                                 </p>
                             </div>
@@ -1775,13 +1795,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 buttonsStyling: false,
                 preConfirm: () => {
                     const input = document.getElementById(
-                        "swal-commission-percentage",
+                        "swal-commission-percentage"
                     );
                     const amountPreview = document.getElementById(
-                        "swal-commission-amount",
+                        "swal-commission-amount"
                     );
                     const operationAmount = document.getElementById(
-                        "swal-operation-amount",
+                        "swal-operation-amount"
                     );
 
                     if (!input || !amountPreview) {
@@ -1796,7 +1816,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         percentage > 100
                     ) {
                         window.Swal.showValidationMessage(
-                            "Ingresa un porcentaje entre 0 y 100",
+                            "Ingresa un porcentaje entre 0 y 100"
                         );
 
                         return false;
@@ -1808,7 +1828,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     if (operationAmount) {
                         operationAmount.textContent = formatCurrency(
-                            priceInput?.value,
+                            priceInput?.value
                         );
                     }
 
@@ -1819,13 +1839,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 },
                 didOpen: () => {
                     const input = document.getElementById(
-                        "swal-commission-percentage",
+                        "swal-commission-percentage"
                     );
                     const amountPreview = document.getElementById(
-                        "swal-commission-amount",
+                        "swal-commission-amount"
                     );
                     const operationAmount = document.getElementById(
-                        "swal-operation-amount",
+                        "swal-operation-amount"
                     );
 
                     if (!input || !amountPreview) {
@@ -1835,13 +1855,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     const updateOperationAmount = () => {
                         if (operationAmount) {
                             operationAmount.textContent = formatCurrency(
-                                priceInput?.value,
+                                priceInput?.value
                             );
                         }
                     };
 
                     const refreshPreview = () => {
-                        const amount = computeCommissionAmount(input.value) ?? 0;
+                        const amount =
+                            computeCommissionAmount(input.value) ?? 0;
                         amountPreview.textContent = formatCurrency(amount);
                     };
 
@@ -1860,7 +1881,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 },
                 willClose: () => {
                     if (priceInput && handlePriceChange) {
-                        priceInput.removeEventListener("input", handlePriceChange);
+                        priceInput.removeEventListener(
+                            "input",
+                            handlePriceChange
+                        );
                     }
                 },
             });
@@ -1875,7 +1899,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 percentage,
                 amount,
                 option.value,
-                label,
+                label
             );
 
             return { confirmed: true };
@@ -1941,7 +1965,7 @@ document.addEventListener("DOMContentLoaded", () => {
             setStatusValueSilently(previousStatusValue);
 
             const previousOption = Array.from(statusSelect.options).find(
-                (option) => option.value === previousStatusValue,
+                (option) => option.value === previousStatusValue
             );
 
             if (!previousOption || !isClosingStatus(previousOption)) {
@@ -1958,7 +1982,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 commissionPercentageInput?.value || "",
                 commissionAmountInput?.value || "",
                 selectedOption.value,
-                getOptionLabel(selectedOption),
+                getOptionLabel(selectedOption)
             );
         }
 
@@ -1982,7 +2006,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 const percentage = parseNumericValue(
-                    commissionPercentageInput.value,
+                    commissionPercentageInput.value
                 );
 
                 if (percentage === null) {
@@ -2314,7 +2338,10 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         const getPlaceholderIndex = () => {
-            if (!dragPlaceholder || !previewsContainer.contains(dragPlaceholder)) {
+            if (
+                !dragPlaceholder ||
+                !previewsContainer.contains(dragPlaceholder)
+            ) {
                 return -1;
             }
 
