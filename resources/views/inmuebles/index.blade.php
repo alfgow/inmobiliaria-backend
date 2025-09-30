@@ -113,6 +113,14 @@
                 @foreach ($inmuebles as $inmueble)
                     <article class="flex flex-col overflow-hidden rounded-3xl border border-gray-800 bg-gray-900/70 shadow-xl shadow-black/30 transition hover:-translate-y-1 hover:border-indigo-500/60">
                         <div class="relative h-56 w-full overflow-hidden">
+                            @if (\App\Support\InmuebleStatusClassifier::isClosingStatusId($inmueble->estatus_id))
+                                <span
+                                    class="absolute top-5 left-[-36px] w-[170px] rotate-[-12deg] px-6 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.3em] text-white shadow-lg shadow-black/20 md:top-6 md:left-[-40px] md:w-[190px] md:rotate-[-14deg] md:text-xs lg:top-8 lg:left-[-48px] lg:w-[210px] lg:rotate-[-16deg]"
+                                    style="background-color: {{ $inmueble->status->color }}"
+                                >
+                                    Cierre en proceso
+                                </span>
+                            @endif
                             @if ($inmueble->coverImage)
                                 <img src="{{ $inmueble->coverImage->temporaryVariantUrl('watermarked') ?? $inmueble->coverImage->url }}" alt="{{ $inmueble->titulo }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
                             @else
