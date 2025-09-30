@@ -1282,6 +1282,19 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         };
 
+        const resolveMinSearchLength = () => {
+            const raw = container.dataset.postalSearchMinLength;
+            const parsed = Number.parseInt(raw ?? "", 10);
+
+            if (Number.isFinite(parsed) && parsed >= 0) {
+                return parsed;
+            }
+
+            return 3;
+        };
+
+        const minSearchLength = resolveMinSearchLength();
+
         fieldOrder.forEach((key) => {
             if (!fields[key]) {
                 return;
@@ -1298,22 +1311,35 @@ document.addEventListener("DOMContentLoaded", () => {
                     requestOptionsUpdate(key, term);
                 });
 
-                const triggerFetch = () => {
-                    const searchTerm = choices.searchInput.value || "";
+                const triggerFetch = ({ force = false } = {}) => {
+                    const searchTerm = (choices.searchInput.value || "").trim();
+
+                    if (!force && searchTerm.length < minSearchLength) {
+                        return;
+                    }
 
                     debouncedFetch(searchTerm);
                 };
 
-                choices.searchInput.addEventListener("focus", triggerFetch);
-                choices.searchInput.addEventListener("input", triggerFetch);
-                choices.searchInput.addEventListener("search", triggerFetch);
+                const handleInput = () => {
+                    triggerFetch();
+                };
+
+                choices.searchInput.addEventListener("input", handleInput);
+                choices.searchInput.addEventListener("search", () => {
+                    triggerFetch({ force: true });
+                });
                 choices.searchInput.addEventListener("keydown", (event) => {
                     if (event.key !== "Enter") {
                         return;
                     }
 
                     event.preventDefault();
-                    triggerFetch();
+                    triggerFetch({ force: true });
+                });
+
+                choices.searchInput.addEventListener("blur", () => {
+                    triggerFetch({ force: true });
                 });
             }
         });
