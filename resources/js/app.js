@@ -1312,6 +1312,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const statusSelect = document.getElementById("estatus_id");
 
     if (statusSelect) {
+        const operationSelect = document.getElementById("operacion");
         const commissionPercentageInput = document.getElementById(
             "commission_percentage",
         );
@@ -1340,6 +1341,21 @@ document.addEventListener("DOMContentLoaded", () => {
         };
         let isRestoringStatus = false;
         let previousStatusValue = statusSelect.value || "";
+        const getOptionKeywords = (option) => {
+            if (!option) {
+                return [];
+            }
+
+            const possibleValues = [
+                option.dataset.statusSlug,
+                option.dataset.statusName,
+                option.textContent,
+            ];
+
+            return possibleValues
+                .map((value) => String(value || "").toLowerCase().trim())
+                .filter((value) => value !== "");
+        };
 
         const parseNumericValue = (value) => {
             if (typeof value === "number") {
@@ -1473,6 +1489,92 @@ document.addEventListener("DOMContentLoaded", () => {
             window.setTimeout(() => {
                 isRestoringStatus = false;
             }, 0);
+        };
+
+        const notifyStatusFiltered = (statusLabel, operationValue) => {
+            const readableOperation =
+                (operationSelect?.selectedOptions?.[0]?.textContent ||
+                    operationSelect?.value ||
+                    operationValue ||
+                    "")
+                    .toString()
+                    .trim();
+            const label = statusLabel ? `"${statusLabel}" ` : "";
+            const operationLabel = readableOperation
+                ? `la operación ${readableOperation}`
+                : "la operación seleccionada";
+            const message = `${
+                statusLabel
+                    ? `El estatus ${label}no es compatible con ${operationLabel}.`
+                    : `El estatus seleccionado no es compatible con ${operationLabel}.`
+            } Selecciona un nuevo estatus disponible.`;
+
+            if (window.Swal) {
+                window.Swal.fire({
+                    icon: "info",
+                    title: "Actualiza el estatus",
+                    text: message,
+                    confirmButtonText: "Entendido",
+                });
+                return;
+            }
+
+            window.alert(message);
+        };
+
+        const filterStatusOptionsByOperation = (trigger = "init") => {
+            const normalizedOperation = (operationSelect?.value || "")
+                .toString()
+                .trim()
+                .toLowerCase();
+            const selectedOption = statusSelect.selectedOptions[0] || null;
+            const selectedValue = statusSelect.value || "";
+            let removedStatusLabel = "";
+            let shouldResetStatus = false;
+
+            Array.from(statusSelect.options).forEach((option) => {
+                if (!option || option.value === "") {
+                    option.hidden = false;
+                    option.disabled = false;
+                    return;
+                }
+
+                const optionKeywords = getOptionKeywords(option);
+                let shouldHide = false;
+
+                if (normalizedOperation === "renta") {
+                    shouldHide = optionKeywords.some((keyword) =>
+                        keyword.includes("vendido"),
+                    );
+                } else if (normalizedOperation === "venta") {
+                    shouldHide = optionKeywords.some((keyword) =>
+                        keyword.includes("rentado"),
+                    );
+                }
+
+                option.hidden = shouldHide;
+                option.disabled = shouldHide;
+
+                if (shouldHide && option.value === selectedValue) {
+                    removedStatusLabel = getOptionLabel(option);
+                    shouldResetStatus = true;
+                }
+            });
+
+            if (shouldResetStatus) {
+                setStatusValueSilently("");
+                previousStatusValue = "";
+                updateHiddenCommissionFields("", "", "", "");
+
+                if (trigger === "change") {
+                    notifyStatusFiltered(
+                        removedStatusLabel,
+                        normalizedOperation,
+                    );
+                }
+            }
+
+            previousStatusValue = statusSelect.value || "";
         };
 
         const showCommissionModal = async (option) => {
@@ -1645,6 +1747,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         };
 
+        filterStatusOptionsByOperation("init");
+
         const selectedOption = statusSelect.selectedOptions[0] || null;
 
         if (selectedOption && isClosingStatus(selectedOption)) {
@@ -1657,6 +1761,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         statusSelect.addEventListener("change", handleStatusChange);
+
+        if (operationSelect) {
+            operationSelect.addEventListener("change", () => {
+                filterStatusOptionsByOperation("change");
+            });
+        }
 
         if (priceInput) {
             priceInput.addEventListener("input", () => {
