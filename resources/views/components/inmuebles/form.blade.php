@@ -259,7 +259,7 @@
                         <select
                             id="estatus_id"
                             name="estatus_id"
-                            class="{{ $selectControlClasses }}"
+                            class="estatus-select {{ $selectControlClasses }}"
                             required
                         >
                             <option value="">Selecciona un estado</option>
