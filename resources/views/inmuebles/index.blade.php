@@ -59,31 +59,37 @@
                 </div>
                 <div class="space-y-2">
                     <label for="operacion" class="text-sm font-medium text-gray-300">Operación</label>
-                    <select
-                        id="operacion"
-                        name="operacion"
-                        class="w-full rounded-2xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
-                    >
-                        <option value="">Todas</option>
-                        @foreach (\App\Models\Inmueble::OPERACIONES as $operacion)
-                            <option value="{{ $operacion }}" @selected($selectedOperacion === $operacion)>{{ $operacion }}</option>
-                        @endforeach
-                    </select>
+                    <div class="relative">
+                        <select
+                            id="operacion"
+                            name="operacion"
+                            class="estatus-select"
+                        >
+                            <option value="">Todas</option>
+                            @foreach (\App\Models\Inmueble::OPERACIONES as $operacion)
+                                <option value="{{ $operacion }}" @selected($selectedOperacion === $operacion)>{{ $operacion }}</option>
+                            @endforeach
+                        </select>
+                        <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-indigo-200/80">▾</span>
+                    </div>
                 </div>
                 <div class="space-y-2">
                     <label for="estatus" class="text-sm font-medium text-gray-300">Estatus</label>
-                    <select
-                        id="estatus"
-                        name="estatus"
-                        class="w-full rounded-2xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
-                    >
-                        <option value="">Todos</option>
-                        @foreach ($statuses as $status)
-                            <option value="{{ $status->id }}" @selected((string) $selectedStatus === (string) $status->id)>
-                                {{ $status->nombre }} ({{ $status->inmuebles_count }})
-                            </option>
-                        @endforeach
-                    </select>
+                    <div class="relative">
+                        <select
+                            id="estatus"
+                            name="estatus"
+                            class="estatus-select"
+                        >
+                            <option value="">Todos</option>
+                            @foreach ($statuses as $status)
+                                <option value="{{ $status->id }}" @selected((string) $selectedStatus === (string) $status->id)>
+                                    {{ $status->nombre }} ({{ $status->inmuebles_count }})
+                                </option>
+                            @endforeach
+                        </select>
+                        <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-indigo-200/80">▾</span>
+                    </div>
                 </div>
                 <div class="flex items-end gap-3">
                     <button type="submit" class="w-full rounded-2xl bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:bg-indigo-400">

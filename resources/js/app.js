@@ -1667,12 +1667,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 confirmButtonText: "Guardar",
                 cancelButtonText: "Cancelar",
                 customClass: {
-                    popup: "bg-gray-950 text-gray-100 border border-gray-900/60 rounded-3xl",
-                    title: "text-gray-100 text-lg font-semibold",
+                    popup: "swal-dark-popup",
+                    title: "swal-dark-title",
+                    htmlContainer: "swal-dark-content",
                     confirmButton:
-                        "swal2-confirm rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-400",
+                        "swal2-confirm rounded-2xl bg-indigo-500 px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:bg-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/60",
                     cancelButton:
-                        "swal2-cancel rounded-lg bg-gray-700 px-4 py-2 text-sm font-semibold text-gray-100 transition hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500",
+                        "swal2-cancel rounded-2xl border border-white/10 bg-slate-800/70 px-6 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500/60",
                 },
                 buttonsStyling: false,
                 preConfirm: () => {

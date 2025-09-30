@@ -16,7 +16,7 @@
                                     id="estatus_id"
                                     name="estatus_id"
                                     form="inmueble-update-form"
-                                    class="appearance-none rounded-full border border-white/5 bg-gray-900/40 px-3 py-1 pr-8 text-sm font-semibold text-white shadow-sm shadow-black/30 transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40"
+                                    class="estatus-select"
                                 >
                                     <option value="">Selecciona un estado</option>
                                     @foreach ($statuses as $status)
@@ -30,7 +30,7 @@
                                         </option>
                                     @endforeach
                                 </select>
-                                <span class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-400">▾</span>
+                                <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-indigo-200/80">▾</span>
                             </div>
                         </div>
                         <span class="inline-flex items-center gap-2 rounded-full bg-gray-950/70 px-3 py-1 text-gray-200">
