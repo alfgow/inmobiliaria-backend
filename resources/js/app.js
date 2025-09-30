@@ -1,3 +1,4 @@
+import axios from "axios";
 import Chart from "chart.js/auto";
 import Choices from "choices.js";
 import "choices.js/styles.css";
@@ -40,6 +41,76 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const choicesInstances = new Map();
+
+    const destacadoCheckbox = document.getElementById("destacado");
+
+    if (destacadoCheckbox instanceof HTMLInputElement) {
+        const hiddenInput = destacadoCheckbox.form?.querySelector(
+            'input[type="hidden"][name="destacado"]',
+        );
+        const syncHiddenInput = (checked) => {
+            if (hiddenInput) {
+                hiddenInput.value = checked ? "1" : "0";
+            }
+        };
+        const getCsrfToken = () => {
+            return (
+                document
+                    .querySelector('meta[name="csrf-token"]')
+                    ?.getAttribute("content") || ""
+            );
+        };
+
+        let previousState = destacadoCheckbox.checked;
+
+        syncHiddenInput(previousState);
+
+        destacadoCheckbox.addEventListener("change", async () => {
+            const updateUrl = destacadoCheckbox.dataset.updateUrl || "";
+            const nextState = destacadoCheckbox.checked;
+
+            syncHiddenInput(nextState);
+
+            if (!updateUrl) {
+                previousState = nextState;
+
+                return;
+            }
+
+            const headers = { Accept: "application/json" };
+            const csrfToken = getCsrfToken();
+
+            if (csrfToken) {
+                headers["X-CSRF-TOKEN"] = csrfToken;
+            }
+
+            try {
+                destacadoCheckbox.dataset.updating = "true";
+
+                await axios.patch(
+                    updateUrl,
+                    { destacado: nextState },
+                    { headers },
+                );
+
+                previousState = nextState;
+            } catch (error) {
+                console.error(
+                    "No fue posible actualizar el estado de destacado.",
+                    error,
+                );
+
+                window.alert(
+                    "No fue posible actualizar el estado destacado del inmueble. Intenta nuevamente.",
+                );
+
+                destacadoCheckbox.checked = previousState;
+                syncHiddenInput(previousState);
+            } finally {
+                delete destacadoCheckbox.dataset.updating;
+            }
+        });
+    }
 
     const initializePropertiesMap = () => {
         const container = document.getElementById("properties-map");
