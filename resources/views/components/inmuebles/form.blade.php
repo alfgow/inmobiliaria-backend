@@ -341,9 +341,9 @@
         @checked(old('destacado', optional($inmueble)->destacado) == 1)
         class="peer sr-only"
     />
-    <div class="w-11 h-6 bg-gray-600 rounded-full peer-checked:bg-green-500 relative transition">
+    <div class="w-11 h-6 bg-gray-600 rounded-full peer-checked:bg-green-500 relative transition peer-checked:[&>.toggle-knob]:translate-x-5">
         <!-- Bolita -->
-        <div class="w-5 h-5 bg-white rounded-full absolute left-0.5 top-0.5 transform transition peer-checked:translate-x-6"></div>
+        <div class="toggle-knob w-5 h-5 bg-white rounded-full absolute left-0.5 top-0.5 transform transition"></div>
     </div>
 </label>
 
