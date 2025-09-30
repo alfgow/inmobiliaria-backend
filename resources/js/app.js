@@ -1614,55 +1614,105 @@ document.addEventListener("DOMContentLoaded", () => {
                 return { confirmed: true };
             }
 
+            let handlePriceChange;
+
             const result = await window.Swal.fire({
                 title: "Registrar comisión",
                 html: `
-                    <div class="space-y-3 text-left">
-                        <p class="text-sm text-gray-200">
-                            Define el porcentaje de comisión para el estatus <strong>${label}</strong>.
-                        </p>
-                        <label class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400" for="swal-commission-percentage">
-                            Porcentaje de comisión
-                        </label>
-                        <input
-                            id="swal-commission-percentage"
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            class="swal2-input"
-                            value="${initialPercentage}"
-                        >
-                        <p class="text-sm text-gray-200">
-                            Ganancia estimada: <strong id="swal-commission-amount">${formatCurrency(
-                                computeCommissionAmount(initialPercentage) ?? 0,
-                            )}</strong>
-                        </p>
+                    <div class="space-y-4 text-left">
+                        <div class="rounded-2xl bg-gray-900 p-5 text-gray-100 shadow-xl">
+                            <div class="space-y-4">
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">
+                                        Monto de operación
+                                    </p>
+                                    <p id="swal-operation-amount" class="mt-1 text-lg font-semibold text-white">
+                                        ${formatCurrency(priceInput?.value)}
+                                    </p>
+                                </div>
+                                <div class="flex items-center justify-between gap-3 border-t border-gray-800 pt-4">
+                                    <label class="text-sm font-medium text-gray-300" for="swal-commission-percentage">
+                                        Porcentaje de comisión
+                                    </label>
+                                    <div class="flex items-center gap-2">
+                                        <input
+                                            id="swal-commission-percentage"
+                                            type="number"
+                                            min="0"
+                                            max="100"
+                                            step="0.01"
+                                            maxlength="3"
+                                            class="w-16 rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-center text-sm text-gray-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                            value="${initialPercentage}"
+                                        >
+                                        <span class="text-sm font-semibold text-gray-400">%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-5 rounded-lg border border-gray-800 bg-gray-950/70 p-4">
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">
+                                    Ganancia estimada
+                                </p>
+                                <p id="swal-commission-amount" class="mt-2 text-lg font-semibold text-white">
+                                    ${formatCurrency(
+                                        computeCommissionAmount(initialPercentage) ?? 0,
+                                    )}
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 `,
                 focusConfirm: false,
                 showCancelButton: true,
                 confirmButtonText: "Guardar",
                 cancelButtonText: "Cancelar",
+                customClass: {
+                    popup: "bg-gray-950 text-gray-100 border border-gray-900/60 rounded-3xl",
+                    title: "text-gray-100 text-lg font-semibold",
+                    confirmButton:
+                        "swal2-confirm rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-400",
+                    cancelButton:
+                        "swal2-cancel rounded-lg bg-gray-700 px-4 py-2 text-sm font-semibold text-gray-100 transition hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500",
+                },
+                buttonsStyling: false,
                 preConfirm: () => {
                     const input = document.getElementById(
                         "swal-commission-percentage",
                     );
+                    const amountPreview = document.getElementById(
+                        "swal-commission-amount",
+                    );
+                    const operationAmount = document.getElementById(
+                        "swal-operation-amount",
+                    );
 
-                    if (!input) {
+                    if (!input || !amountPreview) {
                         return false;
                     }
 
                     const percentage = parseNumericValue(input.value);
 
-                    if (percentage === null || percentage < 0) {
+                    if (
+                        percentage === null ||
+                        percentage < 0 ||
+                        percentage > 100
+                    ) {
                         window.Swal.showValidationMessage(
-                            "Ingresa un porcentaje válido",
+                            "Ingresa un porcentaje entre 0 y 100",
                         );
 
                         return false;
                     }
 
                     const amount = computeCommissionAmount(percentage) ?? 0;
+
+                    amountPreview.textContent = formatCurrency(amount);
+
+                    if (operationAmount) {
+                        operationAmount.textContent = formatCurrency(
+                            priceInput?.value,
+                        );
+                    }
 
                     return {
                         percentage,
@@ -1676,19 +1726,44 @@ document.addEventListener("DOMContentLoaded", () => {
                     const amountPreview = document.getElementById(
                         "swal-commission-amount",
                     );
+                    const operationAmount = document.getElementById(
+                        "swal-operation-amount",
+                    );
 
                     if (!input || !amountPreview) {
                         return;
                     }
 
-                    const updatePreview = () => {
-                        const amount =
-                            computeCommissionAmount(input.value) ?? 0;
+                    const updateOperationAmount = () => {
+                        if (operationAmount) {
+                            operationAmount.textContent = formatCurrency(
+                                priceInput?.value,
+                            );
+                        }
+                    };
+
+                    const refreshPreview = () => {
+                        const amount = computeCommissionAmount(input.value) ?? 0;
                         amountPreview.textContent = formatCurrency(amount);
                     };
 
-                    input.addEventListener("input", updatePreview);
-                    updatePreview();
+                    handlePriceChange = () => {
+                        updateOperationAmount();
+                        refreshPreview();
+                    };
+
+                    input.addEventListener("input", refreshPreview);
+                    updateOperationAmount();
+                    refreshPreview();
+
+                    if (priceInput) {
+                        priceInput.addEventListener("input", handlePriceChange);
+                    }
+                },
+                willClose: () => {
+                    if (priceInput && handlePriceChange) {
+                        priceInput.removeEventListener("input", handlePriceChange);
+                    }
                 },
             });
 
