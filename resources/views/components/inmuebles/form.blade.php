@@ -329,17 +329,25 @@
                     <h2 class="text-lg font-semibold text-gray-100">Características</h2>
                     <p class="text-sm text-gray-400">Detalle los elementos que ayudan a tomar decisiones rápidas.</p>
                 </div>
-                <label for="destacado-switch" class="inline-flex items-center gap-3 text-sm font-medium text-gray-300">
-                    <input type="hidden" name="destacado" value="0">
-                    <flux:switch
-                        id="destacado-switch"
-                        name="destacado"
-                        value="1"
-                        @checked(old('destacado', optional($inmueble)->destacado))
-                        class="!h-6 !w-11"
-                    />
-                    <span>Destacar inmueble en listados</span>
-                </label>
+                <label for="destacado" class="flex items-center justify-between gap-4 text-sm font-medium text-gray-300 cursor-pointer">
+    <span class="whitespace-nowrap">Destacar inmueble en listados</span>
+    
+    <input type="hidden" name="destacado" value="0">
+    <input 
+        type="checkbox" 
+        id="destacado" 
+        name="destacado" 
+        value="1"
+        @checked(old('destacado', optional($inmueble)->destacado) == 1)
+        class="peer sr-only"
+    />
+    <div class="w-11 h-6 bg-gray-600 rounded-full peer-checked:bg-green-500 relative transition">
+        <!-- Bolita -->
+        <div class="w-5 h-5 bg-white rounded-full absolute left-0.5 top-0.5 transform transition peer-checked:translate-x-6"></div>
+    </div>
+</label>
+
+
             </div>
 
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
