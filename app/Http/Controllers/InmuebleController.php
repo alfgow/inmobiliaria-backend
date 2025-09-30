@@ -89,11 +89,15 @@ class InmuebleController extends Controller
         $properties = Inmueble::query()
             ->whereNotNull('latitud')
             ->whereNotNull('longitud')
-            ->with('coverImage')
+            ->with(['coverImage', 'status'])
             ->get()
             ->map(function (Inmueble $inmueble): array {
                 $coverImage = $inmueble->coverImage;
                 $imageUrl = $coverImage?->temporaryVariantUrl('watermarked') ?? $coverImage?->url;
+                $status = $inmueble->status;
+                $statusId = $inmueble->estatus_id !== null
+                    ? (int) $inmueble->estatus_id
+                    : null;
 
                 return [
                     'id' => $inmueble->id,
@@ -104,6 +108,13 @@ class InmuebleController extends Controller
                     'price' => $inmueble->formattedPrice(),
                     'image_url' => $imageUrl,
                     'manage_url' => route('inmuebles.edit', $inmueble),
+                    'status' => $status
+                        ? [
+                            'name' => $status->nombre,
+                            'color' => $status->color,
+                        ]
+                        : null,
+                    'is_available' => InmuebleStatusClassifier::isAvailableStatusId($statusId),
                 ];
             })
             ->values();

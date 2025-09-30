@@ -199,10 +199,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }).addTo(map);
 
         const bounds = L.latLngBounds();
+        const availableMarkerIcon = L.divIcon({
+            className: "property-marker property-marker--available",
+            iconSize: [30, 42],
+            iconAnchor: [15, 42],
+            popupAnchor: [0, -32],
+        });
 
         properties.forEach((property) => {
             const position = [property.latitude, property.longitude];
-            const marker = L.marker(position).addTo(map);
+            const marker = L.marker(position, property?.is_available ? { icon: availableMarkerIcon } : {}).addTo(map);
 
             bounds.extend(position);
 
@@ -211,20 +217,39 @@ document.addEventListener("DOMContentLoaded", () => {
             const title = escapeHtml(property.title ?? "Inmueble");
             const address = escapeHtml(property.address ?? "");
             const price = escapeHtml(property.price ?? "");
+            const statusNameRaw =
+                property?.status && typeof property.status.name === "string"
+                    ? property.status.name
+                    : "";
+            const statusColorRaw =
+                property?.status && typeof property.status.color === "string"
+                    ? property.status.color
+                    : "";
+            const statusName = escapeHtml(statusNameRaw);
+            const statusColor = statusColorRaw.trim();
+            const statusBadgeStyle = statusColor
+                ? ` style="background-color: ${escapeHtml(statusColor)}"`
+                : "";
+            const statusBadge = statusName
+                ? `<span class="property-status-badge"${statusBadgeStyle}>${statusName}</span>`
+                : "";
 
             const imageContent = imageUrl
                 ? `<img src="${imageUrl}" alt="${title}" class="mb-3 h-32 w-full rounded-lg object-cover" />`
                 : "";
 
             const manageButton = manageUrl
-                ? `<a href="${manageUrl}" class="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-500">Gestionar inmueble</a>`
+                ? `<a href="${manageUrl}" class="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">Gestionar inmueble</a>`
                 : "";
 
             const popupContent = `
                 <div class="space-y-3 text-left">
                     ${imageContent}
                     <div>
-                        <h3 class="text-base font-semibold text-gray-900">${title}</h3>
+                        <div class="flex items-center justify-between gap-2">
+                            <h3 class="text-base font-semibold text-gray-900">${title}</h3>
+                            ${statusBadge}
+                        </div>
                         <p class="text-sm text-gray-600">${address}</p>
                         <p class="text-sm font-semibold text-indigo-600">${price}</p>
                     </div>
