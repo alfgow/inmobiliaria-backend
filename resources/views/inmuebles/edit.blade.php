@@ -23,6 +23,7 @@
                                         <option
                                             value="{{ $status->id }}"
                                             data-status-name="{{ $status->nombre }}"
+                                            data-status-slug="{{ \Illuminate\Support\Str::slug($status->nombre) }}"
                                             @selected((int) old('estatus_id', $inmueble->estatus_id) === $status->id)
                                         >
                                             {{ $status->nombre }}
