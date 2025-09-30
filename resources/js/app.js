@@ -525,14 +525,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 value: addressDetails[selectedType],
             });
 
-            typePriority.forEach((key) => {
-                if (!addressDetails[key]) {
-                    return;
-                }
-
-                params.set(key, addressDetails[key]);
-            });
-
             try {
                 const response = await fetch(
                     `${resolveUrl}?${params.toString()}`,
