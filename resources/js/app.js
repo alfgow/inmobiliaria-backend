@@ -1313,10 +1313,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.querySelectorAll("form[data-swal-loader]").forEach((form) => {
         form.addEventListener("submit", () => {
-            if (!window.Swal || form.dataset.submitting === "true") {
+            if (!window.Swal || form.dataset.swalLoaderActive === "true") {
                 return;
             }
 
+            form.dataset.swalLoaderActive = "true";
             form.dataset.submitting = "true";
 
             const title = form.dataset.swalLoaderTitle || "Registrando contacto";
