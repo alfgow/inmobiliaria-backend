@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Contact;
 use App\Models\Inmueble;
+use App\Support\InmuebleStatusClassifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -73,7 +74,11 @@ class ContactController extends Controller
                 'banos',
                 'estacionamientos',
                 'metros_cuadrados',
+                'estatus_id',
             ])
+            ->filter(static function (Inmueble $inmueble) {
+                return InmuebleStatusClassifier::isAvailableStatusId($inmueble->estatus_id);
+            })
             ->map(function (Inmueble $inmueble) {
                 $coverImage = $inmueble->coverImage;
 
@@ -83,7 +88,8 @@ class ContactController extends Controller
                 );
 
                 return $inmueble;
-            });
+            })
+            ->values();
 
         return view('contacts.create', [
             'prefill' => $prefillValue,
