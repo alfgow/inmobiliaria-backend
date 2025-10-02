@@ -194,3 +194,8 @@ select:focus[data-flux-control] {
 .leaflet-popup-content .manage-property-button:focus {
     color: #ffffff;
 }
+
+.leaflet-top,
+.leaflet-bottom {
+    z-index: 500 !important;
+}
