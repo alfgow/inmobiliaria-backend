@@ -2050,7 +2050,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const closeButtons = document.querySelectorAll("[data-sidebar-close]");
         const backdrop = document.querySelector("[data-sidebar-backdrop]");
         const sidebarLinks = sidebar.querySelectorAll("[data-sidebar-link]");
-        const breakpoint = window.matchMedia("(min-width: 768px)");
+        const breakpoint = window.matchMedia("(min-width: 1024px)");
 
         const hideBackdrop = () => {
             if (!backdrop) {
