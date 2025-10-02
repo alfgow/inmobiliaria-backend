@@ -29,12 +29,12 @@
         </header>
 
         <div data-sidebar-backdrop
-            class="fixed inset-0 z-30 bg-black/50 opacity-0 pointer-events-none transition-opacity duration-300 md:hidden"></div>
+            class="fixed inset-0 z-[900] bg-black/50 opacity-0 pointer-events-none transition-opacity duration-300 md:hidden"></div>
 
         <div class="flex flex-1 md:flex-row">
             <!-- Sidebar -->
             <aside
-                class="fixed inset-y-0 left-0 z-40 w-64 bg-gray-950 border-r border-gray-800 flex flex-col transform -translate-x-full transition-transform duration-300 md:static md:inset-auto md:z-auto md:translate-x-0 md:transform-none"
+                class="fixed inset-y-0 left-0 z-[1000] w-64 bg-gray-950 border-r border-gray-800 flex flex-col transform -translate-x-full transition-transform duration-300 md:static md:inset-auto md:z-auto md:translate-x-0 md:transform-none"
                 data-sidebar
             >
                 <div class="flex items-center justify-between p-4 text-2xl font-bold text-indigo-400 md:block">
