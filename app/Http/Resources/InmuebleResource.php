@@ -1,0 +1,55 @@
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Resources\Json\JsonResource;
+
+/**
+ * @mixin \App\Models\Inmueble
+ */
+class InmuebleResource extends JsonResource
+{
+    /**
+     * Transform the resource into an array.
+     */
+    public function toArray($request): array
+    {
+        return [
+            'id' => $this->id,
+            'titulo' => $this->titulo,
+            'descripcion' => $this->descripcion,
+            'precio' => $this->precio,
+            'precio_formateado' => $this->formattedPrice(),
+            'direccion' => $this->direccion,
+            'colonia' => $this->colonia,
+            'municipio' => $this->municipio,
+            'estado' => $this->estado,
+            'codigo_postal' => $this->codigo_postal,
+            'ubicacion' => [
+                'latitud' => $this->latitud !== null ? (float) $this->latitud : null,
+                'longitud' => $this->longitud !== null ? (float) $this->longitud : null,
+            ],
+            'tipo' => $this->tipo,
+            'operacion' => $this->operacion,
+            'estatus' => $this->whenLoaded('status', function () {
+                return $this->status?->only(['id', 'nombre', 'color']);
+            }),
+            'habitaciones' => $this->habitaciones,
+            'banos' => $this->banos,
+            'estacionamientos' => $this->estacionamientos,
+            'metros_cuadrados' => $this->metros_cuadrados,
+            'superficie_construida' => $this->superficie_construida,
+            'superficie_terreno' => $this->superficie_terreno,
+            'anio_construccion' => $this->anio_construccion,
+            'destacado' => (bool) $this->destacado,
+            'video_url' => $this->video_url,
+            'tour_virtual_url' => $this->tour_virtual_url,
+            'amenidades' => $this->amenidades ?? [],
+            'extras' => $this->extras ?? [],
+            'imagen_portada' => InmuebleImageResource::make($this->whenLoaded('coverImage')),
+            'imagenes' => InmuebleImageResource::collection($this->whenLoaded('images')),
+            'created_at' => optional($this->created_at)->toIso8601String(),
+            'updated_at' => optional($this->updated_at)->toIso8601String(),
+        ];
+    }
+}
