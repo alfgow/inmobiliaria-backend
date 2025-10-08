@@ -4,9 +4,7 @@ Esta guía describe la primera versión (`v1`) del API JSON expuesto por el back
 
 ## Autenticación
 
-Los endpoints requieren un token JWT firmado con HS256 o una API key generada desde el panel administrativo.
-
-### Uso con JWT
+Los endpoints requieren un token JWT firmado con HS256. Obtén un token válido enviando credenciales de usuario registradas en el backend.
 
 ```
 POST /api/v1/auth/token
@@ -34,24 +32,11 @@ Incluye el token en la cabecera `Authorization` de cada petición protegida:
 Authorization: Bearer <token>
 ```
 
-### Uso con API key
-
-Desde el panel interno abre **API Keys** y genera una nueva clave. Copia el valor mostrado y utilízalo así:
-
-```
-GET /api/v1/inmuebles
-X-Api-Key: TU_API_KEY_GENERADA
-```
-
-Cada clave pertenece a un usuario interno y puedes revocarla en cualquier momento. El sistema guarda el último uso para facilitar auditorías.
-
 ## Listado de inmuebles
 
 ```
 GET /api/v1/inmuebles?search=&page=1&limit=20
 Authorization: Bearer <token>
-// o
-X-Api-Key: TU_API_KEY_GENERADA
 ```
 
 Parámetros soportados:
@@ -72,8 +57,6 @@ La respuesta incluye metadatos de paginación estándar (`links`, `meta`) y los 
 ```
 GET /api/v1/inmuebles/{id}
 Authorization: Bearer <token>
-// o
-X-Api-Key: TU_API_KEY_GENERADA
 ```
 
 La respuesta devuelve todos los atributos principales del inmueble, estatus y colecciones de imágenes (`imagen_portada` y `imagenes`). Los campos `amenidades` y `extras` se entregan como arreglos.

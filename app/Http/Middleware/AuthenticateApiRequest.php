@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use App\Exceptions\InvalidTokenException;
 use App\Models\User;
-use App\Models\ApiKey;
 use App\Services\ApiTokenService;
 use Closure;
 use Illuminate\Http\JsonResponse;
@@ -23,28 +22,10 @@ class AuthenticateApiRequest
     {
         $token = $request->bearerToken();
 
-        if ($token !== null) {
-            return $this->authenticateWithBearerToken($token, $request, $next);
+        if ($token === null) {
+            return $this->unauthorizedResponse();
         }
 
-        $apiKeyValue = (string) $request->headers->get('X-Api-Key', '');
-
-        if ($apiKeyValue !== '') {
-            return $this->authenticateWithApiKey($apiKeyValue, $request, $next);
-        }
-
-        return $this->unauthorizedResponse();
-    }
-
-    protected function unauthorizedResponse(): JsonResponse
-    {
-        return response()->json([
-            'message' => 'No se pudo autenticar la solicitud API.',
-        ], 401, ['WWW-Authenticate' => 'Bearer']);
-    }
-
-    protected function authenticateWithBearerToken(string $token, Request $request, Closure $next): Response
-    {
         try {
             $payload = $this->tokenService->decode($token);
         } catch (InvalidTokenException $exception) {
@@ -71,27 +52,10 @@ class AuthenticateApiRequest
         return $next($request);
     }
 
-    protected function authenticateWithApiKey(string $providedKey, Request $request, Closure $next): Response
+    protected function unauthorizedResponse(): JsonResponse
     {
-        $hash = hash('sha256', $providedKey);
-
-        $apiKey = ApiKey::query()->where('key_hash', $hash)->first();
-
-        if ($apiKey === null) {
-            return $this->unauthorizedResponse();
-        }
-
-        $user = $apiKey->user;
-
-        if ($user === null) {
-            return $this->unauthorizedResponse();
-        }
-
-        $apiKey->markAsUsed();
-
-        Auth::setUser($user);
-        $request->setUserResolver(static fn() => $user);
-
-        return $next($request);
+        return response()->json([
+            'message' => 'No se pudo autenticar la solicitud API.',
+        ], 401, ['WWW-Authenticate' => 'Bearer']);
     }
 }
