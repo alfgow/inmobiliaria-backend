@@ -65,6 +65,7 @@
                         $navLink('contactos.index', '🧑‍💼 Contactos', 'contactos.*'),
                         $navLink('inmuebles.index', '🏠 Inmuebles', ['inmuebles.index', 'inmuebles.create', 'inmuebles.edit']),
                         $navLink('inmuebles.map', '🗺️ Mapa de inmuebles', 'inmuebles.map'),
+                        $navLink('settings.api-keys.index', '🔑 API Keys', 'settings.api-keys.*'),
                     ];
                 @endphp
 
