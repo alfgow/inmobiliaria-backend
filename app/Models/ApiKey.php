@@ -15,6 +15,7 @@ class ApiKey extends Model
         'name',
         'prefix',
         'key_hash',
+        'allowed_ip',
         'last_used_at',
     ];
 

@@ -15,6 +15,7 @@ class StoreApiKeyRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
+            'allowed_ip' => ['nullable', 'ip'],
         ];
     }
 }
