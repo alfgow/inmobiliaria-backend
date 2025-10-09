@@ -34,13 +34,79 @@ Esta guía describe el flujo end-to-end para preparar el backend, generar creden
 
 ## 4. Autenticación con API key paso a paso 🧾
 
-1. Genera y copia la clave como se describe en la sección anterior.
+Sigue este checklist cada vez que quieras consumir el API con una API key en lugar de un token Bearer:
 
-2. Cuando invoques un endpoint protegido, añade la cabecera `X-Api-Key: TU_API_KEY`. El middleware calcula el hash SHA-256 del valor, busca coincidencias en la tabla `api_keys` y recupera al usuario dueño de la clave.【F:app/Http/Middleware/AuthenticateApiRequest.php†L46-L63】
+1. **Genera y copia la clave** como se describe en la sección anterior. Identifica también la IP autorizada si configuraste filtrado desde la vista `/settings/api-keys`.
 
-3. Si coincide, se registra la marca de tiempo `last_used_at` (con un límite de actualización de un minuto para evitar escrituras innecesarias) y la solicitud continúa autenticada con el usuario asociado.【F:app/Models/ApiKey.php†L25-L32】【F:app/Http/Middleware/AuthenticateApiRequest.php†L64-L73】
+2. **Identifica el endpoint** que necesitas consumir. Todos viven bajo el prefijo `/api/v1` y requieren HTTPS en entornos públicos.
 
-## 5. Qué hace el sistema en cada solicitud ⚙️
+3. **Arma tu solicitud** en la herramienta de tu preferencia (curl, Postman, axios, etc.) agregando la cabecera `X-Api-Key: TU_API_KEY`. El middleware calcula el hash SHA-256 del valor, busca coincidencias en la tabla `api_keys` y recupera al usuario dueño de la clave.【F:app/Http/Middleware/AuthenticateApiRequest.php†L46-L63】
+
+4. **Envía la petición**. Si la clave es válida, se registra la marca de tiempo `last_used_at` (con un límite de actualización de un minuto para evitar escrituras innecesarias) y la solicitud continúa autenticada con el usuario asociado.【F:app/Models/ApiKey.php†L25-L32】【F:app/Http/Middleware/AuthenticateApiRequest.php†L64-L73】
+
+5. **Controla los errores** revisando el código de estado. Un `401` indica que la clave no existe, fue revocada o no coincide con la IP permitida.
+
+### Ejemplo con curl
+
+```bash
+curl \
+  -H "X-Api-Key: TU_API_KEY" \
+  -H "Accept: application/json" \
+  https://tu-dominio.com/api/v1/inmuebles
+```
+
+### Ejemplo con axios
+
+```js
+import axios from 'axios';
+
+const client = axios.create({
+  baseURL: 'https://tu-dominio.com/api/v1',
+  headers: {
+    'X-Api-Key': 'TU_API_KEY',
+    Accept: 'application/json',
+  },
+});
+
+const respuesta = await client.get('/inmuebles');
+console.log(respuesta.data);
+```
+
+## 5. Autenticación con Bearer token paso a paso 🪪
+
+1. Envía una petición `POST /api/v1/auth/token` con `email` y `password` válidos. El controlador valida las credenciales usando el guard `web` y, si son correctas, emite un token HS256 con el ID del usuario como `sub`.【F:routes/api.php†L10-L18】【F:app/Http/Controllers/Api/AuthenticationController.php†L17-L41】
+
+2. Conserva el `access_token` de la respuesta y úsalo dentro del tiempo configurado en `API_JWT_TTL`.【F:app/Http/Controllers/Api/AuthenticationController.php†L33-L41】
+
+3. Añade la cabecera `Authorization: Bearer <token>` en cada solicitud protegida.
+
+### Ejemplo con curl
+
+```bash
+curl \
+  -H "Authorization: Bearer TU_TOKEN" \
+  -H "Accept: application/json" \
+  https://tu-dominio.com/api/v1/inmuebles/123
+```
+
+### Ejemplo con axios
+
+```js
+import axios from 'axios';
+
+const client = axios.create({
+  baseURL: 'https://tu-dominio.com/api/v1',
+  headers: {
+    Authorization: 'Bearer TU_TOKEN',
+    Accept: 'application/json',
+  },
+});
+
+const respuesta = await client.get('/inmuebles/123');
+console.log(respuesta.data);
+```
+
+## 6. Qué hace el sistema en cada solicitud ⚙️
 
 1. **Recibe la petición** y verifica primero si hay cabecera Bearer. Si existe, intenta decodificar el JWT con `ApiTokenService`.
    - Valida formato (`header.payload.signature`), algoritmo HS256, firma y expiración antes de aceptar el token.【F:app/Services/ApiTokenService.php†L22-L72】
@@ -50,7 +116,7 @@ Esta guía describe el flujo end-to-end para preparar el backend, generar creden
 
 3. **Sin credenciales válidas,** responde con `401 Unauthorized` y cabecera `WWW-Authenticate: Bearer` para indicar que se requiere autenticación.【F:app/Http/Middleware/AuthenticateApiRequest.php†L24-L33】
 
-## 6. Consumir los endpoints disponibles 📡
+## 7. Consumir los endpoints disponibles 📡
 
 Actualmente el API expone los recursos de inmuebles:
 
