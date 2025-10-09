@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ApiKeyController;
 use App\Http\Controllers\CodigoPostalController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\InmuebleController;
@@ -23,6 +24,9 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/profile', 'settings.profile')->name('profile.edit');
     Volt::route('settings/password', 'settings.password')->name('password.edit');
     Volt::route('settings/appearance', 'settings.appearance')->name('appearance.edit');
+    Route::get('settings/api-keys', [ApiKeyController::class, 'index'])->name('settings.api-keys.index');
+    Route::post('settings/api-keys', [ApiKeyController::class, 'store'])->name('settings.api-keys.store');
+    Route::delete('settings/api-keys/{apiKey}', [ApiKeyController::class, 'destroy'])->name('settings.api-keys.destroy');
 
     Volt::route('settings/two-factor', 'settings.two-factor')
         ->middleware(
@@ -52,6 +56,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/inmuebles/mapa', [InmuebleController::class, 'map'])
         ->name('inmuebles.map');
+    Route::patch('/inmuebles/{inmueble}/destacado', [InmuebleController::class, 'updateDestacado'])
+        ->name('inmuebles.destacado');
     Route::resource('inmuebles', InmuebleController::class)->except(['show']);
 
     Route::prefix('catalogos')->name('catalogos.')->group(function () {

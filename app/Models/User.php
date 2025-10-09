@@ -67,4 +67,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Inmueble::class, 'asesor_id');
     }
+
+    public function apiKeys(): HasMany
+    {
+        return $this->hasMany(ApiKey::class);
+    }
 }

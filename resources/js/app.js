@@ -1,13 +1,14 @@
+import axios from "axios";
 import Chart from "chart.js/auto";
 import Choices from "choices.js";
 import "choices.js/styles.css";
 import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-import "leaflet-control-geocoder/dist/Control.Geocoder.css";
 import "leaflet-control-geocoder";
+import "leaflet-control-geocoder/dist/Control.Geocoder.css";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
+import "leaflet/dist/leaflet.css";
 
 delete L.Icon.Default.prototype._getIconUrl;
 
@@ -40,6 +41,76 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const choicesInstances = new Map();
+
+    const destacadoCheckbox = document.getElementById("destacado");
+
+    if (destacadoCheckbox instanceof HTMLInputElement) {
+        const hiddenInput = destacadoCheckbox.form?.querySelector(
+            'input[type="hidden"][name="destacado"]'
+        );
+        const syncHiddenInput = (checked) => {
+            if (hiddenInput) {
+                hiddenInput.value = checked ? "1" : "0";
+            }
+        };
+        const getCsrfToken = () => {
+            return (
+                document
+                    .querySelector('meta[name="csrf-token"]')
+                    ?.getAttribute("content") || ""
+            );
+        };
+
+        let previousState = destacadoCheckbox.checked;
+
+        syncHiddenInput(previousState);
+
+        destacadoCheckbox.addEventListener("change", async () => {
+            const updateUrl = destacadoCheckbox.dataset.updateUrl || "";
+            const nextState = destacadoCheckbox.checked;
+
+            syncHiddenInput(nextState);
+
+            if (!updateUrl) {
+                previousState = nextState;
+
+                return;
+            }
+
+            const headers = { Accept: "application/json" };
+            const csrfToken = getCsrfToken();
+
+            if (csrfToken) {
+                headers["X-CSRF-TOKEN"] = csrfToken;
+            }
+
+            try {
+                destacadoCheckbox.dataset.updating = "true";
+
+                await axios.patch(
+                    updateUrl,
+                    { destacado: nextState },
+                    { headers }
+                );
+
+                previousState = nextState;
+            } catch (error) {
+                console.error(
+                    "No fue posible actualizar el estado de destacado.",
+                    error
+                );
+
+                window.alert(
+                    "No fue posible actualizar el estado destacado del inmueble. Intenta nuevamente."
+                );
+
+                destacadoCheckbox.checked = previousState;
+                syncHiddenInput(previousState);
+            } finally {
+                delete destacadoCheckbox.dataset.updating;
+            }
+        });
+    }
 
     const initializePropertiesMap = () => {
         const container = document.getElementById("properties-map");
@@ -86,8 +157,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (Array.isArray(parsed)) {
                     properties = parsed
                         .map((property) => {
-                            const latitude = parseCoordinate(property?.latitude);
-                            const longitude = parseCoordinate(property?.longitude);
+                            const latitude = parseCoordinate(
+                                property?.latitude
+                            );
+                            const longitude = parseCoordinate(
+                                property?.longitude
+                            );
 
                             if (latitude === null || longitude === null) {
                                 return null;
@@ -105,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
             console.error(
                 "No fue posible parsear la información de inmuebles para el mapa.",
-                error,
+                error
             );
         }
 
@@ -128,32 +203,71 @@ document.addEventListener("DOMContentLoaded", () => {
         }).addTo(map);
 
         const bounds = L.latLngBounds();
+        const availableMarkerIcon = L.divIcon({
+            className: "property-marker property-marker--available",
+            iconSize: [30, 42],
+            iconAnchor: [15, 42],
+            popupAnchor: [0, -32],
+        });
 
         properties.forEach((property) => {
             const position = [property.latitude, property.longitude];
-            const marker = L.marker(position).addTo(map);
+            const marker = L.marker(
+                position,
+                property?.is_available ? { icon: availableMarkerIcon } : {}
+            ).addTo(map);
 
             bounds.extend(position);
 
-            const imageUrl = typeof property.image_url === "string" ? property.image_url : "";
-            const manageUrl = typeof property.manage_url === "string" ? property.manage_url : "";
+            const imageUrl =
+                typeof property.image_url === "string"
+                    ? property.image_url
+                    : "";
+            const manageUrl =
+                typeof property.manage_url === "string"
+                    ? property.manage_url
+                    : "";
             const title = escapeHtml(property.title ?? "Inmueble");
             const address = escapeHtml(property.address ?? "");
             const price = escapeHtml(property.price ?? "");
+            const statusNameRaw =
+                property?.status && typeof property.status.name === "string"
+                    ? property.status.name
+                    : "";
+            const statusColorRaw =
+                property?.status && typeof property.status.color === "string"
+                    ? property.status.color
+                    : "";
+            const statusName = escapeHtml(statusNameRaw);
+            const statusColor = statusColorRaw.trim();
+            const statusBadgeStyle = statusColor
+                ? ` style="background-color: ${escapeHtml(statusColor)}"`
+                : "";
+            const statusBadge = statusName
+                ? `<span class="property-status-badge"${statusBadgeStyle}>${statusName}</span>`
+                : "";
 
             const imageContent = imageUrl
                 ? `<img src="${imageUrl}" alt="${title}" class="mb-3 h-32 w-full rounded-lg object-cover" />`
                 : "";
 
             const manageButton = manageUrl
-                ? `<a href="${manageUrl}" class="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-500">Gestionar inmueble</a>`
+                ? `<a href="${manageUrl}" class="manage-property-button mt-3 w-full inline-flex items-center justify-center rounded-xl
+         bg-indigo-600/90 px-4 py-2.5 text-sm font-medium text-white
+         shadow-[0_8px_20px_rgba(79,70,229,0.35)]
+         hover:bg-indigo-500/90 hover:shadow-[0_6px_16px_rgba(79,70,229,0.45)]
+         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70
+         transition-all duration-300 ease-out">Gestionar inmueble</a>`
                 : "";
 
             const popupContent = `
                 <div class="space-y-3 text-left">
                     ${imageContent}
                     <div>
-                        <h3 class="text-base font-semibold text-gray-900">${title}</h3>
+                        <div class="flex items-center justify-between gap-2">
+                            <h3 class="text-base font-semibold text-gray-900">${title}</h3>
+                            ${statusBadge}
+                        </div>
                         <p class="text-sm text-gray-600">${address}</p>
                         <p class="text-sm font-semibold text-indigo-600">${price}</p>
                     </div>
@@ -217,9 +331,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const marker = L.marker(startingPoint, { draggable: false }).addTo(map);
 
         const formatCoordinate = (coordinate) => {
-            return Number.isFinite(coordinate)
-                ? coordinate.toFixed(6)
-                : "";
+            return Number.isFinite(coordinate) ? coordinate.toFixed(6) : "";
         };
 
         const updateCoordinateInputs = (latlng) => {
@@ -286,16 +398,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     address["state_district"],
                     address.region
                 ),
-                estado: pickFirst(address.state, address["state_name"], address.region),
+                estado: pickFirst(
+                    address.state,
+                    address["state_name"],
+                    address.region
+                ),
             };
         };
 
-        const selectIds = [
-            "codigo_postal",
-            "colonia",
-            "municipio",
-            "estado",
-        ];
+        const selectIds = ["codigo_postal", "colonia", "municipio", "estado"];
 
         const setSelectValue = (select, value) => {
             if (!select) {
@@ -314,11 +425,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!option) {
                     option = new Option(normalized, normalized, true, true);
                     select.add(option);
-                    optionsSnapshot = Array.from(select.options).map((item) => ({
-                        value: item.value,
-                        label: item.label,
-                        selected: item.selected,
-                    }));
+                    optionsSnapshot = Array.from(select.options).map(
+                        (item) => ({
+                            value: item.value,
+                            label: item.label,
+                            selected: item.selected,
+                        })
+                    );
                 } else {
                     option.selected = true;
                 }
@@ -353,7 +466,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (normalized) {
                         choicesInstance.setChoiceByValue(normalized);
                     } else {
-                        const placeholder = select.querySelector("option[value='']");
+                        const placeholder =
+                            select.querySelector("option[value='']");
 
                         if (placeholder) {
                             choicesInstance.setChoiceByValue(placeholder.value);
@@ -409,14 +523,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const params = new URLSearchParams({
                 type: selectedType,
                 value: addressDetails[selectedType],
-            });
-
-            typePriority.forEach((key) => {
-                if (!addressDetails[key]) {
-                    return;
-                }
-
-                params.set(key, addressDetails[key]);
             });
 
             try {
@@ -498,7 +604,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const currentGeocoder = geocoders[geocoderIndex];
 
-            if (!currentGeocoder || typeof currentGeocoder.geocode !== "function") {
+            if (
+                !currentGeocoder ||
+                typeof currentGeocoder.geocode !== "function"
+            ) {
                 attemptScopedGeocode(query, geocoderIndex + 1, requestToken);
                 return;
             }
@@ -619,10 +728,223 @@ document.addEventListener("DOMContentLoaded", () => {
         return instance;
     };
 
+    const updateSearchableSelectPreview = (select) => {
+        if (!select) {
+            return;
+        }
+
+        const container = select.closest("[data-searchable-select]");
+
+        if (!container) {
+            return;
+        }
+
+        const previewCard = container.querySelector("[data-property-preview]");
+
+        if (!previewCard) {
+            return;
+        }
+
+        const imageElement = previewCard.querySelector(
+            "[data-property-preview-image]"
+        );
+        const titleElement = previewCard.querySelector(
+            "[data-property-preview-title]"
+        );
+        const addressElement = previewCard.querySelector(
+            "[data-property-preview-address]"
+        );
+        const operationElement = previewCard.querySelector(
+            "[data-property-preview-operation]"
+        );
+        const typeElement = previewCard.querySelector(
+            "[data-property-preview-type]"
+        );
+        const priceElement = previewCard.querySelector(
+            "[data-property-preview-price]"
+        );
+        const habitacionesElement = previewCard.querySelector(
+            "[data-property-preview-habitaciones]"
+        );
+        const banosElement = previewCard.querySelector(
+            "[data-property-preview-banos]"
+        );
+        const estacionamientosElement = previewCard.querySelector(
+            "[data-property-preview-estacionamientos]"
+        );
+        const metrosElement = previewCard.querySelector(
+            "[data-property-preview-metros]"
+        );
+
+        const selectedOption = select.value
+            ? select.selectedOptions?.[0] || null
+            : null;
+
+        const resetPreview = () => {
+            if (titleElement) {
+                titleElement.textContent = "";
+            }
+
+            if (addressElement) {
+                addressElement.textContent = "";
+            }
+
+            if (operationElement) {
+                operationElement.textContent = "";
+                operationElement.classList.add("hidden");
+            }
+
+            if (typeElement) {
+                typeElement.textContent = "";
+                typeElement.classList.add("hidden");
+            }
+
+            if (priceElement) {
+                priceElement.textContent = "";
+                priceElement.classList.add("hidden");
+            }
+
+            if (habitacionesElement) {
+                habitacionesElement.textContent = "";
+            }
+
+            if (banosElement) {
+                banosElement.textContent = "";
+            }
+
+            if (estacionamientosElement) {
+                estacionamientosElement.textContent = "";
+            }
+
+            if (metrosElement) {
+                metrosElement.textContent = "";
+            }
+
+            if (imageElement) {
+                const placeholder = imageElement.dataset.placeholder || "";
+
+                if (placeholder) {
+                    imageElement.src = placeholder;
+                } else {
+                    imageElement.removeAttribute("src");
+                }
+            }
+
+            previewCard.classList.add("hidden");
+            previewCard.classList.remove("flex");
+        };
+
+        if (!selectedOption || !selectedOption.value) {
+            resetPreview();
+
+            return;
+        }
+
+        const {
+            coverImage: coverImageUrl = "",
+            title = "",
+            fullAddress = "",
+            operation = "",
+            type = "",
+            price = "",
+            habitaciones = "",
+            banos = "",
+            estacionamientos = "",
+            metrosCuadrados = "",
+        } = selectedOption.dataset;
+
+        if (titleElement) {
+            titleElement.textContent = title || "";
+        }
+
+        if (addressElement) {
+            addressElement.textContent = fullAddress || "";
+        }
+
+        if (operationElement) {
+            operationElement.textContent = operation || "";
+            operationElement.classList.toggle("hidden", !operation);
+        }
+
+        if (typeElement) {
+            typeElement.textContent = type || "";
+            typeElement.classList.toggle("hidden", !type);
+        }
+
+        if (priceElement) {
+            let formattedPrice = "";
+
+            if (price) {
+                const numericPrice = Number(price);
+
+                if (Number.isFinite(numericPrice)) {
+                    formattedPrice = new Intl.NumberFormat("es-MX", {
+                        style: "currency",
+                        currency: "MXN",
+                        maximumFractionDigits: 0,
+                    }).format(numericPrice);
+                } else {
+                    formattedPrice = price;
+                }
+            }
+
+            priceElement.textContent = formattedPrice;
+            priceElement.classList.toggle("hidden", !formattedPrice);
+        }
+
+        if (habitacionesElement) {
+            habitacionesElement.textContent = habitaciones || "-";
+        }
+
+        if (banosElement) {
+            banosElement.textContent = banos || "-";
+        }
+
+        if (estacionamientosElement) {
+            estacionamientosElement.textContent = estacionamientos || "-";
+        }
+
+        if (metrosElement) {
+            const formattedMetros = metrosCuadrados
+                ? `${metrosCuadrados} m²`
+                : "-";
+
+            metrosElement.textContent = formattedMetros;
+        }
+
+        if (imageElement) {
+            const placeholder = imageElement.dataset.placeholder || "";
+
+            if (coverImageUrl) {
+                imageElement.src = coverImageUrl;
+            } else if (placeholder) {
+                imageElement.src = placeholder;
+            } else {
+                imageElement.removeAttribute("src");
+            }
+        }
+
+        previewCard.classList.remove("hidden");
+        previewCard.classList.add("flex");
+    };
+
     document
         .querySelectorAll("[data-searchable-select] select")
         .forEach((select) => {
             initializeChoicesSelect(select);
+
+            if (select.__searchableSelectPreviewInitialized) {
+                updateSearchableSelectPreview(select);
+
+                return;
+            }
+
+            const handleChange = () => updateSearchableSelectPreview(select);
+
+            select.addEventListener("change", handleChange);
+            updateSearchableSelectPreview(select);
+
+            select.__searchableSelectPreviewInitialized = true;
         });
 
     const initializePostalSelector = (container) => {
@@ -638,12 +960,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const normalizedBaseUrl = baseUrl.replace(/\/$/, "");
         const resolveUrl = `${normalizedBaseUrl}/resolve`;
-        const fieldOrder = [
-            "codigo_postal",
-            "colonia",
-            "municipio",
-            "estado",
-        ];
+        const fieldOrder = ["codigo_postal", "colonia", "municipio", "estado"];
         const fields = {};
 
         fieldOrder.forEach((key) => {
@@ -793,7 +1110,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-            if (triggered && previousValue && normalizedValues.includes(previousValue)) {
+            if (
+                triggered &&
+                previousValue &&
+                normalizedValues.includes(previousValue)
+            ) {
                 newValue = previousValue;
             }
 
@@ -801,7 +1122,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const placeholderOption = document.createElement("option");
 
             placeholderOption.value = "";
-            placeholderOption.textContent = placeholder || "Selecciona una opción";
+            placeholderOption.textContent =
+                placeholder || "Selecciona una opción";
 
             if (!newValue) {
                 placeholderOption.selected = true;
@@ -960,6 +1282,19 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         };
 
+        const resolveMinSearchLength = () => {
+            const raw = container.dataset.postalSearchMinLength;
+            const parsed = Number.parseInt(raw ?? "", 10);
+
+            if (Number.isFinite(parsed) && parsed >= 0) {
+                return parsed;
+            }
+
+            return 3;
+        };
+
+        const minSearchLength = resolveMinSearchLength();
+
         fieldOrder.forEach((key) => {
             if (!fields[key]) {
                 return;
@@ -976,22 +1311,35 @@ document.addEventListener("DOMContentLoaded", () => {
                     requestOptionsUpdate(key, term);
                 });
 
-                const triggerFetch = () => {
-                    const searchTerm = choices.searchInput.value || "";
+                const triggerFetch = ({ force = false } = {}) => {
+                    const searchTerm = (choices.searchInput.value || "").trim();
+
+                    if (!force && searchTerm.length < minSearchLength) {
+                        return;
+                    }
 
                     debouncedFetch(searchTerm);
                 };
 
-                choices.searchInput.addEventListener("focus", triggerFetch);
-                choices.searchInput.addEventListener("input", triggerFetch);
-                choices.searchInput.addEventListener("search", triggerFetch);
+                const handleInput = () => {
+                    triggerFetch();
+                };
+
+                choices.searchInput.addEventListener("input", handleInput);
+                choices.searchInput.addEventListener("search", () => {
+                    triggerFetch({ force: true });
+                });
                 choices.searchInput.addEventListener("keydown", (event) => {
                     if (event.key !== "Enter") {
                         return;
                     }
 
                     event.preventDefault();
-                    triggerFetch();
+                    triggerFetch({ force: true });
+                });
+
+                choices.searchInput.addEventListener("blur", () => {
+                    triggerFetch({ force: true });
                 });
             }
         });
@@ -1009,7 +1357,8 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         if (firstAvailableField) {
-            const initialSearchTerm = fields[firstAvailableField]?.choices?.searchInput
+            const initialSearchTerm = fields[firstAvailableField]?.choices
+                ?.searchInput
                 ? fields[firstAvailableField].choices.searchInput.value || ""
                 : "";
 
@@ -1017,25 +1366,27 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    document
-        .querySelectorAll("[data-postal-selector]")
-        .forEach((container) => {
-            initializePostalSelector(container);
-        });
+    document.querySelectorAll("[data-postal-selector]").forEach((container) => {
+        initializePostalSelector(container);
+    });
 
     initializePropertiesMap();
     initializeInmuebleMap();
 
     document.querySelectorAll("form[data-swal-loader]").forEach((form) => {
         form.addEventListener("submit", () => {
-            if (!window.Swal || form.dataset.submitting === "true") {
+            if (!window.Swal || form.dataset.swalLoaderActive === "true") {
                 return;
             }
 
+            form.dataset.swalLoaderActive = "true";
             form.dataset.submitting = "true";
 
-            const title = form.dataset.swalLoaderTitle || "Registrando contacto";
-            const text = form.dataset.swalLoaderText || "Estamos guardando la información...";
+            const title =
+                form.dataset.swalLoaderTitle || "Registrando contacto";
+            const text =
+                form.dataset.swalLoaderText ||
+                "Estamos guardando la información...";
 
             window.Swal.fire({
                 title,
@@ -1095,6 +1446,603 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
+    const statusSelect = document.getElementById("estatus_id");
+
+    if (statusSelect) {
+        const operationSelect = document.getElementById("operacion");
+        const commissionPercentageInput = document.getElementById(
+            "commission_percentage"
+        );
+        const commissionAmountInput =
+            document.getElementById("commission_amount");
+        const commissionStatusIdInput = document.getElementById(
+            "commission_status_id"
+        );
+        const commissionStatusNameInput = document.getElementById(
+            "commission_status_name"
+        );
+        const priceInput = document.getElementById("precio");
+        const closingKeywords = ["vendido", "rentado", "arrendado", "cerrado"];
+        const getStatusChoicesInstance = () => {
+            return (
+                choicesInstances.get(statusSelect) ||
+                statusSelect.__choicesInstance ||
+                null
+            );
+        };
+        let isRestoringStatus = false;
+        let previousStatusValue = statusSelect.value || "";
+        const getOptionKeywords = (option) => {
+            if (!option) {
+                return [];
+            }
+
+            const possibleValues = [
+                option.dataset.statusSlug,
+                option.dataset.statusName,
+                option.textContent,
+            ];
+
+            return possibleValues
+                .map((value) =>
+                    String(value || "")
+                        .toLowerCase()
+                        .trim()
+                )
+                .filter((value) => value !== "");
+        };
+
+        const parseNumericValue = (value) => {
+            if (typeof value === "number") {
+                return Number.isFinite(value) ? value : null;
+            }
+
+            if (typeof value !== "string") {
+                return null;
+            }
+
+            const normalized = value.replace(/,/g, ".").trim();
+
+            if (normalized === "") {
+                return null;
+            }
+
+            const numeric = Number.parseFloat(normalized);
+
+            return Number.isFinite(numeric) ? numeric : null;
+        };
+
+        const formatCurrency = (amount) => {
+            const numericAmount = parseNumericValue(amount) ?? 0;
+
+            return new Intl.NumberFormat("es-MX", {
+                style: "currency",
+                currency: "MXN",
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            }).format(numericAmount);
+        };
+
+        const computeCommissionAmount = (percentage) => {
+            const numericPercentage = parseNumericValue(percentage);
+            const price = parseNumericValue(priceInput?.value);
+
+            if (numericPercentage === null || price === null) {
+                return null;
+            }
+
+            return (price * numericPercentage) / 100;
+        };
+
+        const getOptionLabel = (option) => {
+            if (!option) {
+                return "";
+            }
+
+            const datasetName = option.dataset.statusName;
+
+            if (typeof datasetName === "string" && datasetName.trim() !== "") {
+                return datasetName.trim();
+            }
+
+            return (option.textContent || "").trim();
+        };
+
+        const isClosingStatus = (option) => {
+            if (!option) {
+                return false;
+            }
+
+            const label = getOptionLabel(option).toLowerCase();
+
+            return closingKeywords.some((keyword) => label.includes(keyword));
+        };
+
+        const updateHiddenCommissionFields = (
+            percentageValue,
+            amountValue,
+            statusIdValue,
+            statusLabelValue
+        ) => {
+            if (commissionPercentageInput) {
+                const numericPercentage = parseNumericValue(percentageValue);
+                commissionPercentageInput.value =
+                    numericPercentage === null ? "" : String(numericPercentage);
+            }
+
+            if (commissionAmountInput) {
+                const numericAmount = parseNumericValue(amountValue);
+                commissionAmountInput.value =
+                    numericAmount === null
+                        ? ""
+                        : String(numericAmount.toFixed(2));
+            }
+
+            if (commissionStatusIdInput) {
+                commissionStatusIdInput.value = statusIdValue || "";
+            }
+
+            if (commissionStatusNameInput) {
+                commissionStatusNameInput.value = statusLabelValue || "";
+            }
+        };
+
+        const setStatusValueSilently = (value) => {
+            const normalizedValue = value || "";
+            isRestoringStatus = true;
+
+            const statusChoicesInstance = getStatusChoicesInstance();
+
+            if (statusChoicesInstance) {
+                try {
+                    if (normalizedValue === "") {
+                        statusChoicesInstance.removeActiveItems();
+                        const placeholderOption =
+                            statusSelect.querySelector("option[value='']");
+
+                        if (placeholderOption) {
+                            statusChoicesInstance.setChoiceByValue(
+                                placeholderOption.value
+                            );
+                        }
+                    } else {
+                        statusChoicesInstance.setChoiceByValue(normalizedValue);
+                    }
+                } catch (error) {
+                    console.warn(
+                        "No fue posible sincronizar el estatus con Choices.js",
+                        error
+                    );
+                }
+            }
+
+            statusSelect.value = normalizedValue;
+
+            window.setTimeout(() => {
+                isRestoringStatus = false;
+            }, 0);
+        };
+
+        const notifyStatusFiltered = (statusLabel, operationValue) => {
+            const readableOperation = (
+                operationSelect?.selectedOptions?.[0]?.textContent ||
+                operationSelect?.value ||
+                operationValue ||
+                ""
+            )
+                .toString()
+                .trim();
+            const label = statusLabel ? `"${statusLabel}" ` : "";
+            const operationLabel = readableOperation
+                ? `la operación ${readableOperation}`
+                : "la operación seleccionada";
+            const message = `${
+                statusLabel
+                    ? `El estatus ${label}no es compatible con ${operationLabel}.`
+                    : `El estatus seleccionado no es compatible con ${operationLabel}.`
+            } Selecciona un nuevo estatus disponible.`;
+
+            if (window.Swal) {
+                window.Swal.fire({
+                    icon: "info",
+                    title: "Actualiza el estatus",
+                    text: message,
+                    confirmButtonText: "Entendido",
+                });
+                return;
+            }
+
+            window.alert(message);
+        };
+
+        const filterStatusOptionsByOperation = (trigger = "init") => {
+            const normalizedOperation = (operationSelect?.value || "")
+                .toString()
+                .trim()
+                .toLowerCase();
+            const selectedOption = statusSelect.selectedOptions[0] || null;
+            const selectedValue = statusSelect.value || "";
+            let removedStatusLabel = "";
+            let shouldResetStatus = false;
+
+            Array.from(statusSelect.options).forEach((option) => {
+                if (!option || option.value === "") {
+                    option.hidden = false;
+                    option.disabled = false;
+                    return;
+                }
+
+                const optionKeywords = getOptionKeywords(option);
+                let shouldHide = false;
+
+                if (normalizedOperation === "renta") {
+                    shouldHide = optionKeywords.some((keyword) =>
+                        keyword.includes("vendido")
+                    );
+                } else if (normalizedOperation === "venta") {
+                    shouldHide = optionKeywords.some((keyword) =>
+                        keyword.includes("rentado")
+                    );
+                }
+
+                option.hidden = shouldHide;
+                option.disabled = shouldHide;
+
+                if (shouldHide && option.value === selectedValue) {
+                    removedStatusLabel = getOptionLabel(option);
+                    shouldResetStatus = true;
+                }
+            });
+
+            if (shouldResetStatus) {
+                setStatusValueSilently("");
+                previousStatusValue = "";
+                updateHiddenCommissionFields("", "", "", "");
+
+                if (trigger === "change") {
+                    notifyStatusFiltered(
+                        removedStatusLabel,
+                        normalizedOperation
+                    );
+                }
+            }
+
+            previousStatusValue = statusSelect.value || "";
+        };
+
+        const showCommissionModal = async (option) => {
+            const label = getOptionLabel(option);
+            const initialPercentage =
+                parseNumericValue(commissionPercentageInput?.value) ?? 0;
+
+            if (!window.Swal) {
+                const fallback = window.prompt(
+                    `Ingresa el porcentaje de comisión para "${label}"`,
+                    String(initialPercentage || "")
+                );
+
+                if (fallback === null) {
+                    return { confirmed: false };
+                }
+
+                const percentage = parseNumericValue(fallback);
+
+                if (percentage === null || percentage < 0) {
+                    window.alert(
+                        "Debes ingresar un porcentaje de comisión válido."
+                    );
+
+                    return { confirmed: false };
+                }
+
+                const amount = computeCommissionAmount(percentage) ?? 0;
+
+                updateHiddenCommissionFields(
+                    percentage,
+                    amount,
+                    option.value,
+                    label
+                );
+
+                return { confirmed: true };
+            }
+
+            let handlePriceChange;
+
+            const result = await window.Swal.fire({
+                title: "Registrar comisión",
+                html: `
+                    <div class="space-y-4 text-left">
+                        <div class="rounded-2xl bg-gray-900 p-5 text-gray-100 shadow-xl">
+                            <div class="space-y-4">
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">
+                                        Monto de operación
+                                    </p>
+                                    <p id="swal-operation-amount" class="mt-1 text-lg font-semibold text-white">
+                                        ${formatCurrency(priceInput?.value)}
+                                    </p>
+                                </div>
+                                <div class="flex items-center justify-between gap-3 border-t border-gray-800 pt-4">
+                                    <label class="text-sm font-medium text-gray-300" for="swal-commission-percentage">
+                                        Porcentaje de comisión
+                                    </label>
+                                    <div class="flex items-center gap-2">
+                                        <input
+                                            id="swal-commission-percentage"
+                                            type="number"
+                                            min="0"
+                                            max="100"
+                                            step="0.01"
+                                            maxlength="3"
+                                            class="w-16 rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-center text-sm text-gray-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                            value="${initialPercentage}"
+                                        >
+                                        <span class="text-sm font-semibold text-gray-400">%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-5 rounded-lg border border-gray-800 bg-gray-950/70 p-4">
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">
+                                    Ganancia estimada
+                                </p>
+                                <p id="swal-commission-amount" class="mt-2 text-lg font-semibold text-white">
+                                    ${formatCurrency(
+                                        computeCommissionAmount(
+                                            initialPercentage
+                                        ) ?? 0
+                                    )}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: "Guardar",
+                cancelButtonText: "Cancelar",
+                customClass: {
+                    popup: "swal-dark-popup",
+                    title: "swal-dark-title",
+                    htmlContainer: "swal-dark-content",
+                    confirmButton:
+                        "swal2-confirm rounded-2xl bg-indigo-500 px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:bg-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/60",
+                    cancelButton:
+                        "swal2-cancel rounded-2xl border border-white/10 bg-slate-800/70 px-6 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500/60",
+                },
+                buttonsStyling: false,
+                preConfirm: () => {
+                    const input = document.getElementById(
+                        "swal-commission-percentage"
+                    );
+                    const amountPreview = document.getElementById(
+                        "swal-commission-amount"
+                    );
+                    const operationAmount = document.getElementById(
+                        "swal-operation-amount"
+                    );
+
+                    if (!input || !amountPreview) {
+                        return false;
+                    }
+
+                    const percentage = parseNumericValue(input.value);
+
+                    if (
+                        percentage === null ||
+                        percentage < 0 ||
+                        percentage > 100
+                    ) {
+                        window.Swal.showValidationMessage(
+                            "Ingresa un porcentaje entre 0 y 100"
+                        );
+
+                        return false;
+                    }
+
+                    const amount = computeCommissionAmount(percentage) ?? 0;
+
+                    amountPreview.textContent = formatCurrency(amount);
+
+                    if (operationAmount) {
+                        operationAmount.textContent = formatCurrency(
+                            priceInput?.value
+                        );
+                    }
+
+                    return {
+                        percentage,
+                        amount,
+                    };
+                },
+                didOpen: () => {
+                    const input = document.getElementById(
+                        "swal-commission-percentage"
+                    );
+                    const amountPreview = document.getElementById(
+                        "swal-commission-amount"
+                    );
+                    const operationAmount = document.getElementById(
+                        "swal-operation-amount"
+                    );
+
+                    if (!input || !amountPreview) {
+                        return;
+                    }
+
+                    const updateOperationAmount = () => {
+                        if (operationAmount) {
+                            operationAmount.textContent = formatCurrency(
+                                priceInput?.value
+                            );
+                        }
+                    };
+
+                    const refreshPreview = () => {
+                        const amount =
+                            computeCommissionAmount(input.value) ?? 0;
+                        amountPreview.textContent = formatCurrency(amount);
+                    };
+
+                    handlePriceChange = () => {
+                        updateOperationAmount();
+                        refreshPreview();
+                    };
+
+                    input.addEventListener("input", refreshPreview);
+                    updateOperationAmount();
+                    refreshPreview();
+
+                    if (priceInput) {
+                        priceInput.addEventListener("input", handlePriceChange);
+                    }
+                },
+                willClose: () => {
+                    if (priceInput && handlePriceChange) {
+                        priceInput.removeEventListener(
+                            "input",
+                            handlePriceChange
+                        );
+                    }
+                },
+            });
+
+            if (!result.isConfirmed || !result.value) {
+                return { confirmed: false };
+            }
+
+            const { percentage, amount } = result.value;
+
+            updateHiddenCommissionFields(
+                percentage,
+                amount,
+                option.value,
+                label
+            );
+
+            return { confirmed: true };
+        };
+
+        const getInmuebleUpdateForm = () => {
+            return document.getElementById("inmueble-update-form");
+        };
+
+        const submitInmuebleUpdateForm = () => {
+            const form = getInmuebleUpdateForm();
+
+            if (!form) {
+                return;
+            }
+
+            form.dataset.submitting = "true";
+
+            if (typeof form.requestSubmit === "function") {
+                form.requestSubmit();
+            } else {
+                form.submit();
+            }
+        };
+
+        const handleStatusChange = async () => {
+            const selectedOption = statusSelect.selectedOptions[0] || null;
+            const selectedValue = statusSelect.value || "";
+
+            const form = getInmuebleUpdateForm();
+
+            if (form?.dataset.submitting === "true") {
+                previousStatusValue = selectedValue;
+                return;
+            }
+
+            if (isRestoringStatus) {
+                previousStatusValue = selectedValue;
+                return;
+            }
+
+            if (!selectedOption || selectedValue === "") {
+                updateHiddenCommissionFields("", "", "", "");
+                previousStatusValue = selectedValue;
+                return;
+            }
+
+            if (!isClosingStatus(selectedOption)) {
+                updateHiddenCommissionFields("", "", "", "");
+                submitInmuebleUpdateForm();
+                previousStatusValue = selectedValue;
+                return;
+            }
+
+            const result = await showCommissionModal(selectedOption);
+
+            if (result.confirmed) {
+                submitInmuebleUpdateForm();
+                previousStatusValue = selectedValue;
+                return;
+            }
+
+            setStatusValueSilently(previousStatusValue);
+
+            const previousOption = Array.from(statusSelect.options).find(
+                (option) => option.value === previousStatusValue
+            );
+
+            if (!previousOption || !isClosingStatus(previousOption)) {
+                updateHiddenCommissionFields("", "", "", "");
+            }
+        };
+
+        filterStatusOptionsByOperation("init");
+
+        const selectedOption = statusSelect.selectedOptions[0] || null;
+
+        if (selectedOption && isClosingStatus(selectedOption)) {
+            updateHiddenCommissionFields(
+                commissionPercentageInput?.value || "",
+                commissionAmountInput?.value || "",
+                selectedOption.value,
+                getOptionLabel(selectedOption)
+            );
+        }
+
+        statusSelect.addEventListener("change", handleStatusChange);
+
+        if (operationSelect) {
+            operationSelect.addEventListener("change", () => {
+                filterStatusOptionsByOperation("change");
+            });
+        }
+
+        if (priceInput) {
+            priceInput.addEventListener("input", () => {
+                if (
+                    !commissionPercentageInput ||
+                    !commissionAmountInput ||
+                    !commissionStatusIdInput ||
+                    commissionStatusIdInput.value === ""
+                ) {
+                    return;
+                }
+
+                const percentage = parseNumericValue(
+                    commissionPercentageInput.value
+                );
+
+                if (percentage === null) {
+                    return;
+                }
+
+                const amount = computeCommissionAmount(percentage);
+
+                if (amount === null) {
+                    commissionAmountInput.value = "";
+                    return;
+                }
+
+                commissionAmountInput.value = String(amount.toFixed(2));
+            });
+        }
+    }
+
     const sidebar = document.querySelector("[data-sidebar]");
 
     if (sidebar) {
@@ -1102,7 +2050,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const closeButtons = document.querySelectorAll("[data-sidebar-close]");
         const backdrop = document.querySelector("[data-sidebar-backdrop]");
         const sidebarLinks = sidebar.querySelectorAll("[data-sidebar-link]");
-        const breakpoint = window.matchMedia("(min-width: 768px)");
+        const breakpoint = window.matchMedia("(min-width: 1024px)");
 
         const hideBackdrop = () => {
             if (!backdrop) {
@@ -1408,7 +2356,10 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         const getPlaceholderIndex = () => {
-            if (!dragPlaceholder || !previewsContainer.contains(dragPlaceholder)) {
+            if (
+                !dragPlaceholder ||
+                !previewsContainer.contains(dragPlaceholder)
+            ) {
                 return -1;
             }
 

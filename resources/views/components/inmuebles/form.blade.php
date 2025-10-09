@@ -259,12 +259,17 @@
                         <select
                             id="estatus_id"
                             name="estatus_id"
-                            class="{{ $selectControlClasses }}"
+                            class="estatus-select {{ $selectControlClasses }}"
                             required
                         >
                             <option value="">Selecciona un estado</option>
                             @foreach ($statuses as $status)
-                                <option value="{{ $status->id }}" @selected((int) old('estatus_id', optional($inmueble)->estatus_id) === $status->id)>
+                                <option
+                                    value="{{ $status->id }}"
+                                    data-status-name="{{ $status->nombre }}"
+                                    data-status-slug="{{ \Illuminate\Support\Str::slug($status->nombre) }}"
+                                    @selected((int) old('estatus_id', optional($inmueble)->estatus_id) === $status->id)
+                                >
                                     {{ $status->nombre }}
                                 </option>
                             @endforeach
@@ -274,6 +279,31 @@
                         @enderror
                     </div>
                 @endif
+
+                <input
+                    type="hidden"
+                    id="commission_percentage"
+                    name="commission_percentage"
+                    value="{{ old('commission_percentage', optional($inmueble)->commission_percentage) }}"
+                >
+                <input
+                    type="hidden"
+                    id="commission_amount"
+                    name="commission_amount"
+                    value="{{ old('commission_amount', optional($inmueble)->commission_amount) }}"
+                >
+                <input
+                    type="hidden"
+                    id="commission_status_id"
+                    name="commission_status_id"
+                    value="{{ old('commission_status_id', optional($inmueble)->commission_status_id) }}"
+                >
+                <input
+                    type="hidden"
+                    id="commission_status_name"
+                    name="commission_status_name"
+                    value="{{ old('commission_status_name', optional($inmueble)->commission_status_name) }}"
+                >
             </div>
 
             <div class="space-y-3">
@@ -299,10 +329,28 @@
                     <h2 class="text-lg font-semibold text-gray-100">Características</h2>
                     <p class="text-sm text-gray-400">Detalle los elementos que ayudan a tomar decisiones rápidas.</p>
                 </div>
-                <label class="inline-flex items-center gap-2 text-sm font-medium">
-                    <input type="checkbox" name="destacado" value="1" @checked(old('destacado', optional($inmueble)->destacado)) class="h-4 w-4 rounded border-gray-600 bg-gray-800 text-indigo-500 focus:ring-indigo-400">
-                    Destacar inmueble en listados
-                </label>
+                <label for="destacado" class="flex items-center justify-between gap-4 text-sm font-medium text-gray-300 cursor-pointer">
+    <span class="whitespace-nowrap">Destacar inmueble en listados</span>
+    
+    <input type="hidden" name="destacado" value="0">
+    <input
+        type="checkbox"
+        id="destacado"
+        name="destacado"
+        value="1"
+        @if ($inmueble)
+            data-update-url="{{ route('inmuebles.destacado', $inmueble) }}"
+        @endif
+        @checked(old('destacado', optional($inmueble)->destacado) == 1)
+        class="peer sr-only"
+    />
+    <div class="w-11 h-6 bg-gray-600 rounded-full peer-checked:bg-green-500 relative transition peer-checked:[&>.toggle-knob]:translate-x-5">
+        <!-- Bolita -->
+        <div class="toggle-knob w-5 h-5 bg-white rounded-full absolute left-0.5 top-0.5 transform transition"></div>
+    </div>
+</label>
+
+
             </div>
 
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

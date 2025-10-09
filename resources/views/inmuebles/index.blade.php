@@ -59,31 +59,37 @@
                 </div>
                 <div class="space-y-2">
                     <label for="operacion" class="text-sm font-medium text-gray-300">Operación</label>
-                    <select
-                        id="operacion"
-                        name="operacion"
-                        class="w-full rounded-2xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
-                    >
-                        <option value="">Todas</option>
-                        @foreach (\App\Models\Inmueble::OPERACIONES as $operacion)
-                            <option value="{{ $operacion }}" @selected($selectedOperacion === $operacion)>{{ $operacion }}</option>
-                        @endforeach
-                    </select>
+                    <div class="relative">
+                        <select
+                            id="operacion"
+                            name="operacion"
+                            class="estatus-select"
+                        >
+                            <option value="">Todas</option>
+                            @foreach (\App\Models\Inmueble::OPERACIONES as $operacion)
+                                <option value="{{ $operacion }}" @selected($selectedOperacion === $operacion)>{{ $operacion }}</option>
+                            @endforeach
+                        </select>
+                        <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-indigo-200/80">▾</span>
+                    </div>
                 </div>
                 <div class="space-y-2">
                     <label for="estatus" class="text-sm font-medium text-gray-300">Estatus</label>
-                    <select
-                        id="estatus"
-                        name="estatus"
-                        class="w-full rounded-2xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
-                    >
-                        <option value="">Todos</option>
-                        @foreach ($statuses as $status)
-                            <option value="{{ $status->id }}" @selected((string) $selectedStatus === (string) $status->id)>
-                                {{ $status->nombre }} ({{ $status->inmuebles_count }})
-                            </option>
-                        @endforeach
-                    </select>
+                    <div class="relative">
+                        <select
+                            id="estatus"
+                            name="estatus"
+                            class="estatus-select"
+                        >
+                            <option value="">Todos</option>
+                            @foreach ($statuses as $status)
+                                <option value="{{ $status->id }}" @selected((string) $selectedStatus === (string) $status->id)>
+                                    {{ $status->nombre }} ({{ $status->inmuebles_count }})
+                                </option>
+                            @endforeach
+                        </select>
+                        <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-indigo-200/80">▾</span>
+                    </div>
                 </div>
                 <div class="flex items-end gap-3">
                     <button type="submit" class="w-full rounded-2xl bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:bg-indigo-400">
@@ -107,6 +113,21 @@
                 @foreach ($inmuebles as $inmueble)
                     <article class="flex flex-col overflow-hidden rounded-3xl border border-gray-800 bg-gray-900/70 shadow-xl shadow-black/30 transition hover:-translate-y-1 hover:border-indigo-500/60">
                         <div class="relative h-56 w-full overflow-hidden">
+                            @php
+                                $isAvailableStatus = \App\Support\InmuebleStatusClassifier::isAvailableStatusId($inmueble->estatus_id);
+                                $normalizedStatus = \Illuminate\Support\Str::of($inmueble->status->nombre ?? '')->lower()->squish()->value();
+                                $isRentadoOVendido = in_array($normalizedStatus, ['rentado', 'vendido'], true);
+                                $ribbonBackground = $isRentadoOVendido ? '#a5c71b' : ($inmueble->status->color ?? '#1f2937');
+                                $ribbonTextClasses = $isRentadoOVendido ? 'text-gray-900 font-bold' : 'text-white font-semibold';
+                            @endphp
+                            @if (! $isAvailableStatus)
+                                <span
+                                    class="absolute top-5 left-[-36px] w-[170px] rotate-[-12deg] px-6 py-2 text-center text-[11px] uppercase tracking-[0.3em] shadow-lg shadow-black/20 md:top-6 md:left-[-40px] md:w-[190px] md:rotate-[-14deg] md:text-xs lg:top-8 lg:left-[-48px] lg:w-[210px] lg:rotate-[-16deg] {{ $ribbonTextClasses }}"
+                                    style="background-color: {{ $ribbonBackground }}"
+                                >
+                                    {{ $inmueble->status->nombre }}
+                                </span>
+                            @endif
                             @if ($inmueble->coverImage)
                                 <img src="{{ $inmueble->coverImage->temporaryVariantUrl('watermarked') ?? $inmueble->coverImage->url }}" alt="{{ $inmueble->titulo }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
                             @else

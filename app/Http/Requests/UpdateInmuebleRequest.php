@@ -27,4 +27,15 @@ class UpdateInmuebleRequest extends StoreInmuebleRequest
 
         return $rules;
     }
+
+    protected function shouldRequireCommission(): bool
+    {
+        $statusId = $this->input('estatus_id');
+
+        if ($statusId === null || $statusId === '') {
+            $statusId = $this->route('inmueble')?->estatus_id;
+        }
+
+        return $this->shouldRequireCommissionForStatus($statusId);
+    }
 }

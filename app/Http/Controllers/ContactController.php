@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Contact;
 use App\Models\Inmueble;
+use App\Support\InmuebleStatusClassifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -56,12 +57,44 @@ class ContactController extends Controller
             ? $requestedField
             : $this->detectPrefillField($prefillValue);
 
+        $inmuebles = Inmueble::query()
+            ->with('coverImage')
+            ->orderBy('titulo')
+            ->get([
+                'id',
+                'titulo',
+                'direccion',
+                'operacion',
+                'tipo',
+                'colonia',
+                'municipio',
+                'estado',
+                'precio',
+                'habitaciones',
+                'banos',
+                'estacionamientos',
+                'metros_cuadrados',
+                'estatus_id',
+            ])
+            ->filter(static function (Inmueble $inmueble) {
+                return InmuebleStatusClassifier::isAvailableStatusId($inmueble->estatus_id);
+            })
+            ->map(function (Inmueble $inmueble) {
+                $coverImage = $inmueble->coverImage;
+
+                $inmueble->setAttribute(
+                    'cover_image_url',
+                    $coverImage?->temporaryVariantUrl('watermarked') ?? $coverImage?->url
+                );
+
+                return $inmueble;
+            })
+            ->values();
+
         return view('contacts.create', [
             'prefill' => $prefillValue,
             'prefillField' => $prefillField,
-            'inmuebles' => Inmueble::query()
-                ->orderBy('titulo')
-                ->get(['id', 'titulo', 'direccion', 'operacion', 'tipo']),
+            'inmuebles' => $inmuebles,
         ]);
     }
 

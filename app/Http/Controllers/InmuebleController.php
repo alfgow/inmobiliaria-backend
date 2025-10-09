@@ -7,10 +7,12 @@ use App\Http\Requests\UpdateInmuebleRequest;
 use App\Models\Inmueble;
 use App\Models\InmuebleStatus;
 use App\Services\InmuebleImageService;
+use App\Support\InmuebleStatusClassifier;
 use App\Support\WatermarkPathResolver;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -87,11 +89,15 @@ class InmuebleController extends Controller
         $properties = Inmueble::query()
             ->whereNotNull('latitud')
             ->whereNotNull('longitud')
-            ->with('coverImage')
+            ->with(['coverImage', 'status'])
             ->get()
             ->map(function (Inmueble $inmueble): array {
                 $coverImage = $inmueble->coverImage;
                 $imageUrl = $coverImage?->temporaryVariantUrl('watermarked') ?? $coverImage?->url;
+                $status = $inmueble->status;
+                $statusId = $inmueble->estatus_id !== null
+                    ? (int) $inmueble->estatus_id
+                    : null;
 
                 return [
                     'id' => $inmueble->id,
@@ -102,6 +108,13 @@ class InmuebleController extends Controller
                     'price' => $inmueble->formattedPrice(),
                     'image_url' => $imageUrl,
                     'manage_url' => route('inmuebles.edit', $inmueble),
+                    'status' => $status
+                        ? [
+                            'name' => $status->nombre,
+                            'color' => $status->color,
+                        ]
+                        : null,
+                    'is_available' => InmuebleStatusClassifier::isAvailableStatusId($statusId),
                 ];
             })
             ->values();
@@ -135,6 +148,14 @@ class InmuebleController extends Controller
         if (! array_key_exists('estatus_id', $payload) || $payload['estatus_id'] === null) {
             $payload['estatus_id'] = 1;
         }
+
+        $targetStatusId = isset($payload['estatus_id']) ? (int) $payload['estatus_id'] : null;
+
+        if (! InmuebleStatusClassifier::isAvailableStatusId($targetStatusId)) {
+            $payload['destacado'] = false;
+        }
+
+        $this->extractCommissionData($payload);
 
         DB::transaction(function () use ($payload, $imagenes): void {
             $inmueble = Inmueble::create($payload);
@@ -173,19 +194,69 @@ class InmuebleController extends Controller
         $imagenes = $request->file('imagenes', []);
         $imagenesEliminar = collect($request->input('imagenes_eliminar', []))->filter()->all();
 
-        DB::transaction(function () use ($inmueble, $payload, $imagenes, $imagenesEliminar): void {
+        $originalStatusId = (int) $inmueble->estatus_id;
+        $newStatusId = isset($payload['estatus_id']) ? (int) $payload['estatus_id'] : $originalStatusId;
+
+        if (! InmuebleStatusClassifier::isAvailableStatusId($newStatusId)) {
+            $payload['destacado'] = false;
+        }
+
+        $isClosingStatus = InmuebleStatusClassifier::isClosingStatusId($newStatusId);
+        $wasClosingStatus = InmuebleStatusClassifier::isClosingStatusId($originalStatusId);
+        $isTransitionToClosing = $isClosingStatus && ! $wasClosingStatus;
+
+        if ($isClosingStatus && array_key_exists('commission_percentage', $payload)) {
+            $commissionPercentage = $payload['commission_percentage'] !== null
+                ? (float) $payload['commission_percentage']
+                : null;
+            $currentPrice = array_key_exists('precio', $payload)
+                ? (float) $payload['precio']
+                : (float) $inmueble->precio;
+
+            if ($commissionPercentage !== null) {
+                $payload['commission_amount'] = round(($currentPrice * $commissionPercentage) / 100, 2);
+            }
+        }
+
+        $commissionData = $this->extractCommissionData($payload);
+
+        DB::transaction(function () use (
+            $inmueble,
+            $payload,
+            $imagenes,
+            $imagenesEliminar,
+            $commissionData,
+            $isTransitionToClosing,
+        ): void {
             $inmueble->update($payload);
 
             if (! empty($imagenesEliminar)) {
                 $this->deleteImages($inmueble, $imagenesEliminar);
             }
 
-            $this->storeImages($inmueble->fresh(), $imagenes);
+            $updatedInmueble = $inmueble->fresh();
+
+            $this->storeImages($updatedInmueble, $imagenes);
+
+            if ($isTransitionToClosing) {
+                $this->registerVenta($updatedInmueble, $commissionData);
+            }
         });
 
         return redirect()
             ->route('inmuebles.edit', $inmueble)
             ->with('status', 'Inmueble actualizado correctamente.');
+    }
+
+    public function updateDestacado(Request $request, Inmueble $inmueble): JsonResponse
+    {
+        $destacado = $request->boolean('destacado');
+
+        $inmueble->update(['destacado' => $destacado]);
+
+        return response()->json([
+            'destacado' => $inmueble->destacado,
+        ]);
     }
 
     /**
@@ -217,25 +288,53 @@ class InmuebleController extends Controller
     protected function preparePayload(array $payload, Request $request): array
     {
         $payload['asesor_id'] = $request->user()->id;
-        $payload['destacado'] = $request->boolean('destacado');
+        $payload['destacado'] = array_key_exists('destacado', $payload) ? (bool) $payload['destacado'] : false;
 
-        foreach (
-            [
-                'habitaciones',
-                'banos',
-                'estacionamientos',
-                'metros_cuadrados',
-                'superficie_construida',
-                'superficie_terreno',
-                'anio_construccion',
-            ] as $numericField
-        ) {
+        foreach ([
+            'habitaciones',
+            'banos',
+            'estacionamientos',
+            'metros_cuadrados',
+            'superficie_construida',
+            'superficie_terreno',
+            'anio_construccion',
+            'commission_status_id',
+        ] as $numericField) {
             if (! array_key_exists($numericField, $payload)) {
                 continue;
             }
 
             if ($payload[$numericField] === '' || $payload[$numericField] === null) {
                 $payload[$numericField] = null;
+
+                continue;
+            }
+
+            if ($numericField === 'commission_status_id') {
+                $payload[$numericField] = (int) $payload[$numericField];
+            }
+        }
+
+        foreach (['commission_percentage', 'commission_amount'] as $decimalField) {
+            if (! array_key_exists($decimalField, $payload)) {
+                continue;
+            }
+
+            if ($payload[$decimalField] === '' || $payload[$decimalField] === null) {
+                $payload[$decimalField] = null;
+
+                continue;
+            }
+
+            $payload[$decimalField] = round((float) $payload[$decimalField], 2);
+        }
+
+        if (array_key_exists('commission_status_name', $payload)) {
+            if ($payload['commission_status_name'] === null) {
+                $payload['commission_status_name'] = null;
+            } else {
+                $trimmedName = trim((string) $payload['commission_status_name']);
+                $payload['commission_status_name'] = $trimmedName === '' ? null : $trimmedName;
             }
         }
 
@@ -245,6 +344,70 @@ class InmuebleController extends Controller
         unset($payload['imagenes']);
 
         return $payload;
+    }
+
+    protected function registerVenta(Inmueble $inmueble, array $commissionData): void
+    {
+        $commissionAmount = (float) ($commissionData['commission_amount'] ?? 0);
+
+        if ($commissionAmount <= 0) {
+            return;
+        }
+
+        $now = now();
+        $connection = DB::connection('as_db');
+        $conceptoVenta = 'Comisión inmueble #' . $inmueble->id;
+        $montoVenta = number_format($commissionAmount, 2, '.', '');
+
+        $alreadyRegistered = $connection
+            ->table('ventasvillanuevagarcia')
+            ->where('concepto_venta', $conceptoVenta)
+            ->where('mes_venta', $now->month)
+            ->where('year_venta', $now->year)
+            ->exists();
+
+        if ($alreadyRegistered) {
+            return;
+        }
+
+        $connection->table('ventasvillanuevagarcia')->insert([
+            'concepto_venta' => $conceptoVenta,
+            'id_usuario' => 1,
+            'canal_venta' => 'Inmobiliaria: ' . $inmueble->operacion,
+            'monto_venta' => $montoVenta,
+            'comision_asesor' => 0,
+            'ganancia_neta' => $montoVenta,
+            'mes_venta' => $now->month,
+            'year_venta' => $now->year,
+            'fecha_venta' => $now,
+        ]);
+    }
+
+    /**
+     * Extract commission information from the payload while keeping it available for remote storage.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    private function extractCommissionData(array &$payload): array
+    {
+        $commissionFields = [
+            'commission_percentage',
+            'commission_amount',
+            'commission_status_id',
+            'commission_status_name',
+        ];
+
+        $commissionData = [];
+
+        foreach ($commissionFields as $field) {
+            if (array_key_exists($field, $payload)) {
+                $commissionData[$field] = $payload[$field];
+                unset($payload[$field]);
+            }
+        }
+
+        return $commissionData;
     }
 
     private function getWatermarkPreviewUrl(): ?string
