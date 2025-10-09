@@ -33,13 +33,13 @@ class AuthenticateApiRequest
             return $this->authenticateWithApiKey($apiKeyValue, $request, $next);
         }
 
-        return $this->unauthorizedResponse();
+        return $this->unauthorizedResponse('No se proporcionaron credenciales válidas.');
     }
 
     protected function authenticateWithBearerToken(string $token, Request $request, Closure $next): Response
     {
         if ($token === null) {
-            return $this->unauthorizedResponse();
+            return $this->unauthorizedResponse('El token Bearer no fue proporcionado.');
         }
 
         try {
@@ -47,19 +47,19 @@ class AuthenticateApiRequest
         } catch (InvalidTokenException $exception) {
             report($exception);
 
-            return $this->unauthorizedResponse();
+            return $this->unauthorizedResponse('El token Bearer es inválido.');
         }
 
         $userId = $payload['sub'] ?? null;
 
         if ($userId === null) {
-            return $this->unauthorizedResponse();
+            return $this->unauthorizedResponse('El token Bearer no contiene el identificador de usuario.');
         }
 
         $user = User::query()->find($userId);
 
         if ($user === null) {
-            return $this->unauthorizedResponse();
+            return $this->unauthorizedResponse('El usuario asociado al token Bearer no existe.');
         }
 
         Auth::setUser($user);
@@ -75,17 +75,17 @@ class AuthenticateApiRequest
         $apiKey = ApiKey::query()->where('key_hash', $hash)->first();
 
         if ($apiKey === null) {
-            return $this->unauthorizedResponse();
+            return $this->unauthorizedResponse('La API key proporcionada no es válida.');
         }
 
         if ($apiKey->allowed_ip !== null && $request->ip() !== $apiKey->allowed_ip) {
-            return $this->unauthorizedResponse();
+            return $this->unauthorizedResponse('La dirección IP de la solicitud no está autorizada para esta API key.');
         }
 
         $user = $apiKey->user;
 
         if ($user === null) {
-            return $this->unauthorizedResponse();
+            return $this->unauthorizedResponse('La API key no tiene un usuario asociado.');
         }
 
         $apiKey->markAsUsed();
@@ -96,10 +96,16 @@ class AuthenticateApiRequest
         return $next($request);
     }
 
-    protected function unauthorizedResponse(): JsonResponse
+    protected function unauthorizedResponse(?string $reason = null): JsonResponse
     {
-        return response()->json([
+        $payload = [
             'message' => 'No se pudo autenticar la solicitud API.',
-        ], 401, ['WWW-Authenticate' => 'Bearer']);
+        ];
+
+        if ($reason !== null) {
+            $payload['reason'] = $reason;
+        }
+
+        return response()->json($payload, 401, ['WWW-Authenticate' => 'Bearer']);
     }
 }
