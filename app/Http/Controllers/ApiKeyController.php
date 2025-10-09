@@ -36,6 +36,7 @@ class ApiKeyController extends Controller
             'name' => $validated['name'],
             'prefix' => $keyPair['prefix'],
             'key_hash' => $keyPair['hash'],
+            'allowed_ip' => $validated['allowed_ip'] ?? null,
         ]);
 
         return to_route('settings.api-keys.index')

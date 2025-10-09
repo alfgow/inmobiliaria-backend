@@ -39,6 +39,21 @@
                     <p class="mt-2 text-sm text-red-400">{{ $message }}</p>
                 @enderror
             </div>
+            <div>
+                <label for="allowed_ip" class="mb-2 block text-sm font-medium text-gray-300">IP autorizada (opcional)</label>
+                <input
+                    type="text"
+                    id="allowed_ip"
+                    name="allowed_ip"
+                    value="{{ old('allowed_ip') }}"
+                    placeholder="Ej. 192.0.2.10"
+                    class="w-full rounded-xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                >
+                <p class="mt-2 text-sm text-gray-400">Solo permitiremos solicitudes desde esta IP cuando se use la API key.</p>
+                @error('allowed_ip')
+                    <p class="mt-2 text-sm text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
             <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-500 px-5 py-3 font-medium text-white shadow-lg shadow-indigo-500/30 transition hover:bg-indigo-400">
                 🔑
                 <span>Generar nueva API key</span>
@@ -64,6 +79,10 @@
                                 <div class="space-y-1 text-gray-300">
                                     <p class="text-xs uppercase tracking-wide text-gray-500">Identificador</p>
                                     <p class="font-mono text-sm">{{ $apiKey->maskedKey() }}</p>
+                                </div>
+                                <div class="space-y-1 text-gray-300">
+                                    <p class="text-xs uppercase tracking-wide text-gray-500">IP autorizada</p>
+                                    <p class="font-mono text-sm">{{ $apiKey->allowed_ip ?? 'Sin restricción' }}</p>
                                 </div>
                                 <div class="space-y-1 text-gray-400">
                                     <p class="text-xs uppercase tracking-wide text-gray-500">Último uso</p>
