@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use App\Exceptions\InvalidTokenException;
 use App\Models\User;
-use App\Models\ApiKey;
 use App\Services\ApiTokenService;
 use Closure;
 use Illuminate\Http\JsonResponse;
@@ -45,6 +44,10 @@ class AuthenticateApiRequest
 
     protected function authenticateWithBearerToken(string $token, Request $request, Closure $next): Response
     {
+        if ($token === null) {
+            return $this->unauthorizedResponse();
+        }
+
         try {
             $payload = $this->tokenService->decode($token);
         } catch (InvalidTokenException $exception) {
@@ -93,5 +96,10 @@ class AuthenticateApiRequest
         $request->setUserResolver(static fn() => $user);
 
         return $next($request);
+    protected function unauthorizedResponse(): JsonResponse
+    {
+        return response()->json([
+            'message' => 'No se pudo autenticar la solicitud API.',
+        ], 401, ['WWW-Authenticate' => 'Bearer']);
     }
 }
