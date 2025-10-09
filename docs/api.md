@@ -1,76 +1,76 @@
-# API de Inmuebles
+# Guía completa del API de Inmuebles
 
-Esta guía describe la primera versión (`v1`) del API JSON expuesto por el backend. Todos los endpoints están disponibles bajo el prefijo `/api/v1` y responden con JSON UTF-8.
+Esta guía describe el flujo end-to-end para preparar el backend, generar credenciales, autenticar solicitudes y consumir los endpoints JSON disponibles bajo el prefijo `/api/v1`.
 
-## Autenticación
+## 1. Preparación del entorno 🧰
 
-Los endpoints requieren un token JWT firmado con HS256. Obtén un token válido enviando credenciales de usuario registradas en el backend.
+1. **Configura variables de entorno** en tu `.env` (o `.env.production`) para habilitar el API:
+   - `API_JWT_SECRET`: clave privada usada para firmar tokens JWT HS256.
+   - `API_JWT_TTL`: tiempo de vida del token en segundos (por defecto 3600).
+   - `API_JWT_ISSUER`: identificador opcional del emisor; si lo omites se usa `APP_URL`.
+   - `API_ALLOWED_ORIGINS`: lista separada por comas con los dominios autorizados a consumir el API vía navegador (por ejemplo dominios en AWS).
 
-```
-POST /api/v1/auth/token
-Content-Type: application/json
+2. **Ejecuta la migración de API keys** o replica su estructura en tu base de datos. La tabla `api_keys` almacena el nombre de referencia, un prefijo visible, el hash SHA-256 de la clave y el último uso registrado.【F:database/migrations/2025_01_01_000000_create_api_keys_table.php†L9-L23】
 
-{
-  "email": "usuario@example.com",
-  "password": "secreto"
-}
-```
+3. **Verifica el registro del middleware** en `bootstrap/app.php`. El grupo `api` utiliza `AuthenticateApiRequest`, que acepta tokens Bearer y cabeceras `X-Api-Key` para proteger las rutas.【F:bootstrap/app.php†L33-L47】【F:app/Http/Middleware/AuthenticateApiRequest.php†L16-L74】
 
-Respuesta exitosa:
+## 2. Generar API keys desde el panel 🔑
 
-```json
-{
-  "token_type": "Bearer",
-  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOi...",
-  "expires_in": 3600
-}
-```
+1. Ingresa al backend con tu usuario interno y abre **Configuración → API Keys**. La vista muestra un formulario para asignar un nombre descriptivo (por ejemplo, “AWS Lambda Producción”) y lista las claves existentes con su prefijo y último uso.【F:resources/views/settings/api-keys/index.blade.php†L1-L95】
 
-Incluye el token en la cabecera `Authorization` de cada petición protegida:
+2. Al enviar el formulario se crea una nueva clave mediante `ApiKey::generateKeyPair()`. El sistema genera un valor aleatorio con prefijo identificable, calcula su hash y garantiza que no exista duplicado antes de guardarlo.【F:app/Models/ApiKey.php†L33-L54】
 
-```
-Authorization: Bearer <token>
-```
+3. La interfaz muestra el valor completo **solo una vez**. Copia y guarda ese string; el backend solo conserva el hash (`key_hash`), así que no podrás recuperarlo después.【F:resources/views/settings/api-keys/index.blade.php†L15-L24】【F:app/Models/ApiKey.php†L13-L24】
 
-## Listado de inmuebles
+4. En cualquier momento puedes revocar una clave. El registro se elimina y las solicitudes que usen esa API key dejarán de autenticarse.【F:resources/views/settings/api-keys/index.blade.php†L57-L88】
 
-```
-GET /api/v1/inmuebles?search=&page=1&limit=20
-Authorization: Bearer <token>
-```
+## 3. Solicitar un token JWT paso a paso 🪪
 
-Parámetros soportados:
+1. Envía una petición `POST /api/v1/auth/token` con `email` y `password` válidos. El controlador valida las credenciales usando el guard `web` y, si son correctas, emite un token HS256 con el ID del usuario como `sub`.【F:routes/api.php†L10-L18】【F:app/Http/Controllers/Api/AuthenticationController.php†L17-L41】
 
-| Parámetro    | Tipo     | Descripción                                                       |
-|--------------|----------|-------------------------------------------------------------------|
-| `search`     | string   | Coincidencias parciales contra título, dirección o ubicación.     |
-| `page`       | integer  | Página solicitada (comienza en 1).                                |
-| `limit`      | integer  | Registros por página (1 - 100, por defecto 20).                   |
-| `operacion`  | string   | Filtra por tipo de operación (`Renta`, `Venta`, `Traspaso`).      |
-| `estatus`    | integer  | ID de estatus (`inmueble_statuses`).                              |
-| `destacado`  | boolean  | `true` o `false` para limitar a inmuebles destacados.             |
+2. La respuesta incluye `token_type`, `access_token` y `expires_in`. Conserva el valor y úsalo dentro del tiempo configurado en `API_JWT_TTL`.【F:app/Http/Controllers/Api/AuthenticationController.php†L33-L41】
 
-La respuesta incluye metadatos de paginación estándar (`links`, `meta`) y los filtros aplicados en la clave `filters`.
+3. Envía el token en cada solicitud protegida usando la cabecera `Authorization: Bearer <token>`.
 
-## Detalle de un inmueble
+## 4. Autenticación con API key paso a paso 🧾
 
-```
-GET /api/v1/inmuebles/{id}
-Authorization: Bearer <token>
-```
+1. Genera y copia la clave como se describe en la sección anterior.
 
-La respuesta devuelve todos los atributos principales del inmueble, estatus y colecciones de imágenes (`imagen_portada` y `imagenes`). Los campos `amenidades` y `extras` se entregan como arreglos.
+2. Cuando invoques un endpoint protegido, añade la cabecera `X-Api-Key: TU_API_KEY`. El middleware calcula el hash SHA-256 del valor, busca coincidencias en la tabla `api_keys` y recupera al usuario dueño de la clave.【F:app/Http/Middleware/AuthenticateApiRequest.php†L46-L63】
 
-## CORS
+3. Si coincide, se registra la marca de tiempo `last_used_at` (con un límite de actualización de un minuto para evitar escrituras innecesarias) y la solicitud continúa autenticada con el usuario asociado.【F:app/Models/ApiKey.php†L25-L32】【F:app/Http/Middleware/AuthenticateApiRequest.php†L64-L73】
 
-Los orígenes autorizados se controlan con la variable `API_ALLOWED_ORIGINS` (lista separada por comas). Asegúrate de incluir tus dominios desplegados en AWS para permitir el consumo del API desde el navegador.
+## 5. Qué hace el sistema en cada solicitud ⚙️
 
-## Configuración de JWT
+1. **Recibe la petición** y verifica primero si hay cabecera Bearer. Si existe, intenta decodificar el JWT con `ApiTokenService`.
+   - Valida formato (`header.payload.signature`), algoritmo HS256, firma y expiración antes de aceptar el token.【F:app/Services/ApiTokenService.php†L22-L72】
+   - Busca al usuario (`sub`) y, si existe, lo asigna como usuario autenticado de la petición.【F:app/Http/Middleware/AuthenticateApiRequest.php†L30-L45】
 
-Configura las variables de entorno:
+2. **Si no hay Bearer, busca `X-Api-Key`.** Con el hash SHA-256 se localiza la clave persistida y se obtiene el usuario vinculado.【F:app/Http/Middleware/AuthenticateApiRequest.php†L46-L63】
 
-- `API_JWT_SECRET`: clave secreta utilizada para firmar los tokens.
-- `API_JWT_TTL`: tiempo de vida del token en segundos (por defecto 3600).
-- `API_JWT_ISSUER`: identificador opcional del emisor (se usa `APP_URL` si no se especifica).
+3. **Sin credenciales válidas,** responde con `401 Unauthorized` y cabecera `WWW-Authenticate: Bearer` para indicar que se requiere autenticación.【F:app/Http/Middleware/AuthenticateApiRequest.php†L24-L33】
 
-Renueva el token generando uno nuevo cuando expire (`expires_in`).
+## 6. Consumir los endpoints disponibles 📡
+
+Actualmente el API expone los recursos de inmuebles:
+
+1. **Listado paginado:** `GET /api/v1/inmuebles`
+   - Acepta filtros `search`, `page`, `limit`, `operacion`, `estatus` y `destacado`, validados por `IndexInmuebleRequest` antes de ejecutar la consulta.【F:app/Http/Requests/Api/IndexInmuebleRequest.php†L15-L43】
+   - `InmuebleController@index` aplica los filtros sobre el modelo, ordena por destacados y fechas, y responde con un `JsonResource` que incluye metadatos de paginación y los filtros aplicados.【F:app/Http/Controllers/Api/InmuebleController.php†L13-L47】
+
+2. **Detalle individual:** `GET /api/v1/inmuebles/{id}`
+   - Carga imágenes, estatus y demás atributos antes de serializar el recurso con `InmuebleResource`, que devuelve datos estructurados en JSON (precio formateado, amenidades, URLs, etc.).【F:app/Http/Controllers/Api/InmuebleController.php†L49-L55】【F:app/Http/Resources/InmuebleResource.php†L15-L46】
+
+## 7. Manejo de errores y caducidad 🚨
+
+- Los tokens JWT expiran según `API_JWT_TTL`. Debes solicitar uno nuevo cuando recibas un 401 debido a expiración.
+- Las API keys revocadas o inexistentes generan la misma respuesta 401.
+- El middleware registra excepciones de token inválido para su monitoreo (`report($exception)`), pero nunca expone detalles sensibles al consumidor final.【F:app/Http/Middleware/AuthenticateApiRequest.php†L34-L38】
+
+## 8. Buenas prácticas finales ✅
+
+- Mantén el secreto JWT y las API keys fuera de repositorios públicos.
+- Usa HTTPS en producción para proteger las credenciales en tránsito.
+- Revisa periódicamente la columna `last_used_at` para detectar claves obsoletas y revocarlas.
+
+Con estas instrucciones podrás preparar el entorno, emitir credenciales y consumir los endpoints del API de forma segura.
