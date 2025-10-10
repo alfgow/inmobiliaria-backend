@@ -74,6 +74,10 @@ class AuthenticateApiRequest
 
         $apiKey = ApiKey::query()->where('key_hash', $hash)->first();
 
+        if ($apiKey === null && $this->providedLooksLikeHash($providedKey)) {
+            $apiKey = ApiKey::query()->where('key_hash', $providedKey)->first();
+        }
+
         if ($apiKey === null) {
             return $this->unauthorizedResponse('La API key proporcionada no es válida.');
         }
@@ -94,6 +98,11 @@ class AuthenticateApiRequest
         $request->setUserResolver(static fn() => $user);
 
         return $next($request);
+    }
+
+    protected function providedLooksLikeHash(string $value): bool
+    {
+        return strlen($value) === 64 && ctype_xdigit($value);
     }
 
     protected function unauthorizedResponse(?string $reason = null): JsonResponse
