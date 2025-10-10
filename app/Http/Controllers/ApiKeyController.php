@@ -19,7 +19,7 @@ class ApiKeyController extends Controller
 
         return view('settings.api-keys.index', [
             'apiKeys' => $apiKeys,
-            'createdKey' => session('created_api_key'),
+            'createdKey' => $request->session()->pull('created_api_key'),
             'status' => session('status'),
         ]);
     }
