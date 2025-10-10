@@ -20,7 +20,7 @@ Esta guía describe el flujo end-to-end para preparar el backend, generar creden
 
 2. Al enviar el formulario se crea una nueva clave mediante `ApiKey::generateKeyPair()`. El sistema genera un valor aleatorio con prefijo identificable, calcula su hash y garantiza que no exista duplicado antes de guardarlo.【F:app/Models/ApiKey.php†L33-L54】
 
-3. La interfaz muestra el `access_token` **solo una vez**. Copia y guarda ese string hexadecimal; corresponde al `key_hash` almacenado y es el valor que deberás enviar en las solicitudes protegidas.【F:resources/views/settings/api-keys/index.blade.php†L15-L40】【F:app/Models/ApiKey.php†L13-L24】
+3. La interfaz muestra el `access_token` **solo una vez**. Copia y guarda el valor completo con el prefijo legible (por ejemplo `ABCD-1234…`); corresponde a la clave original y nosotros almacenamos únicamente su hash para validaciones posteriores.【F:resources/views/settings/api-keys/index.blade.php†L15-L40】【F:app/Models/ApiKey.php†L13-L24】
 
 4. En cualquier momento puedes revocar una clave. El registro se elimina y las solicitudes que usen esa API key dejarán de autenticarse.【F:resources/views/settings/api-keys/index.blade.php†L57-L88】
 
@@ -47,7 +47,7 @@ Sigue este checklist cada vez que quieras consumir el API con una API key en lug
 
 2. **Identifica el endpoint** que necesitas consumir. Todos viven bajo el prefijo `/api/v1` y requieren HTTPS en entornos públicos.
 
-3. **Arma tu solicitud** en la herramienta de tu preferencia (curl, Postman, axios, etc.) agregando la cabecera `X-Api-Key: TU_API_KEY`. El middleware acepta tanto el access token mostrado (hash hexadecimal) como la clave original, calcula el hash solo cuando es necesario y recupera al usuario dueño de la clave.【F:app/Http/Middleware/AuthenticateApiRequest.php†L46-L85】
+3. **Arma tu solicitud** en la herramienta de tu preferencia (curl, Postman, axios, etc.) agregando la cabecera `X-Api-Key: TU_API_KEY`. El middleware acepta la clave original mostrada en pantalla y, para compatibilidad, también un hash hexadecimal válido; calcula el hash solo cuando es necesario y recupera al usuario dueño de la clave.【F:app/Http/Middleware/AuthenticateApiRequest.php†L46-L85】
 
 4. **Envía la petición**. Si la clave es válida, se registra la marca de tiempo `last_used_at` (con un límite de actualización de un minuto para evitar escrituras innecesarias) y la solicitud continúa autenticada con el usuario asociado.【F:app/Models/ApiKey.php†L25-L32】【F:app/Http/Middleware/AuthenticateApiRequest.php†L64-L73】
 

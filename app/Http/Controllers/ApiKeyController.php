@@ -44,7 +44,7 @@ class ApiKeyController extends Controller
             ->with('created_api_key', [
                 'id' => $apiKey->id,
                 'name' => $apiKey->name,
-                'access_token' => $keyPair['hash'],
+                'access_token' => $keyPair['plain'],
                 'prefix' => $keyPair['prefix'],
             ]);
     }
