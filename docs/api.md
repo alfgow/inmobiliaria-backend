@@ -20,13 +20,20 @@ Esta guía describe el flujo end-to-end para preparar el backend, generar creden
 
 2. Al enviar el formulario se crea una nueva clave mediante `ApiKey::generateKeyPair()`. El sistema genera un valor aleatorio con prefijo identificable, calcula su hash y garantiza que no exista duplicado antes de guardarlo.【F:app/Models/ApiKey.php†L33-L54】
 
-3. La interfaz muestra el valor completo **solo una vez**. Copia y guarda ese string; el backend solo conserva el hash (`key_hash`), así que no podrás recuperarlo después.【F:resources/views/settings/api-keys/index.blade.php†L15-L24】【F:app/Models/ApiKey.php†L13-L24】
+3. La interfaz muestra el `access_token` **solo una vez**. Copia y guarda ese string hexadecimal; corresponde al `key_hash` almacenado y es el valor que deberás enviar en las solicitudes protegidas.【F:resources/views/settings/api-keys/index.blade.php†L15-L40】【F:app/Models/ApiKey.php†L13-L24】
 
 4. En cualquier momento puedes revocar una clave. El registro se elimina y las solicitudes que usen esa API key dejarán de autenticarse.【F:resources/views/settings/api-keys/index.blade.php†L57-L88】
 
 ## 3. Solicitar un token JWT paso a paso 🪪
 
 1. Envía una petición `POST /api/v1/auth/token` con `email` y `password` válidos. El controlador valida las credenciales usando el guard `web` y, si son correctas, emite un token HS256 con el ID del usuario como `sub`.【F:routes/api.php†L10-L18】【F:app/Http/Controllers/Api/AuthenticationController.php†L17-L41】
+
+   ```json
+   {
+     "email": "admin@example.com",
+     "password": "tu-contraseña"
+   }
+   ```
 
 2. La respuesta incluye `token_type`, `access_token` y `expires_in`. Conserva el valor y úsalo dentro del tiempo configurado en `API_JWT_TTL`.【F:app/Http/Controllers/Api/AuthenticationController.php†L33-L41】
 
@@ -40,7 +47,7 @@ Sigue este checklist cada vez que quieras consumir el API con una API key en lug
 
 2. **Identifica el endpoint** que necesitas consumir. Todos viven bajo el prefijo `/api/v1` y requieren HTTPS en entornos públicos.
 
-3. **Arma tu solicitud** en la herramienta de tu preferencia (curl, Postman, axios, etc.) agregando la cabecera `X-Api-Key: TU_API_KEY`. El middleware calcula el hash SHA-256 del valor, busca coincidencias en la tabla `api_keys` y recupera al usuario dueño de la clave.【F:app/Http/Middleware/AuthenticateApiRequest.php†L46-L63】
+3. **Arma tu solicitud** en la herramienta de tu preferencia (curl, Postman, axios, etc.) agregando la cabecera `X-Api-Key: TU_API_KEY`. El middleware acepta tanto el access token mostrado (hash hexadecimal) como la clave original, calcula el hash solo cuando es necesario y recupera al usuario dueño de la clave.【F:app/Http/Middleware/AuthenticateApiRequest.php†L46-L85】
 
 4. **Envía la petición**. Si la clave es válida, se registra la marca de tiempo `last_used_at` (con un límite de actualización de un minuto para evitar escrituras innecesarias) y la solicitud continúa autenticada con el usuario asociado.【F:app/Models/ApiKey.php†L25-L32】【F:app/Http/Middleware/AuthenticateApiRequest.php†L64-L73】
 

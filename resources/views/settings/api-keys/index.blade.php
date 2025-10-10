@@ -13,11 +13,21 @@
         @endif
 
         @if ($createdKey)
-            <div class="rounded-2xl border border-indigo-500/30 bg-indigo-500/10 p-5 text-sm text-indigo-100">
-                <h2 class="mb-2 text-base font-semibold text-indigo-200">Nueva API key creada</h2>
-                <p class="mb-3 text-indigo-100">Copia y guarda este valor ahora; por seguridad no volverá a mostrarse.</p>
-                <div class="rounded-xl border border-indigo-400/40 bg-gray-950/80 px-4 py-3 font-mono text-base">
-                    {{ $createdKey['key'] }}
+            <div class="space-y-4 rounded-2xl border border-indigo-500/30 bg-indigo-500/10 p-5 text-sm text-indigo-100">
+                <div>
+                    <h2 class="mb-2 text-base font-semibold text-indigo-200">Nuevo access token generado</h2>
+                    <p class="mb-3 text-indigo-100">
+                        Copia y guarda este valor ahora; por seguridad no volverá a mostrarse.
+                        Úsalo en la cabecera <span class="font-mono text-indigo-200">Authorization: Bearer &lt;token&gt;</span>
+                        o como <span class="font-mono text-indigo-200">X-Api-Key</span>.
+                    </p>
+                    <div class="rounded-xl border border-indigo-400/40 bg-gray-950/80 px-4 py-3 font-mono text-xs md:text-sm">
+                        {{ $createdKey['access_token'] }}
+                    </div>
+                </div>
+                <div class="rounded-xl border border-indigo-400/20 bg-indigo-500/5 px-4 py-3 text-xs text-indigo-200">
+                    <p class="font-semibold text-indigo-100">Prefijo de referencia</p>
+                    <p class="font-mono text-indigo-100/90">{{ $createdKey['prefix'] }}</p>
                 </div>
             </div>
         @endif
