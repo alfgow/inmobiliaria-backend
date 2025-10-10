@@ -44,7 +44,9 @@ class ApiKeyController extends Controller
             ->with('created_api_key', [
                 'id' => $apiKey->id,
                 'name' => $apiKey->name,
+                'token_type' => 'Bearer',
                 'access_token' => $keyPair['plain'],
+                'expires_in' => config('jwt.ttl'),
                 'prefix' => $keyPair['prefix'],
             ]);
     }
