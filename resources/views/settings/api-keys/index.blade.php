@@ -21,11 +21,9 @@
                         Úsalo en la cabecera <span class="font-mono text-indigo-200">Authorization: Bearer &lt;token&gt;</span>
                         o como <span class="font-mono text-indigo-200">X-Api-Key</span>.
                     </p>
-                    <pre class="overflow-x-auto rounded-xl border border-indigo-400/40 bg-gray-950/80 px-4 py-3 font-mono text-xs leading-relaxed md:text-sm">{{ json_encode([
-                        'token_type' => $createdKey['token_type'] ?? 'Bearer',
-                        'access_token' => $createdKey['access_token'],
-                        'expires_in' => $createdKey['expires_in'] ?? null,
-                    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
+                    <div class="overflow-x-auto rounded-xl border border-indigo-400/40 bg-gray-950/80 px-4 py-3 font-mono text-xs leading-relaxed md:text-sm">
+                        {{ $createdKey['access_token'] }}
+                    </div>
                 </div>
                 <div class="rounded-xl border border-indigo-400/20 bg-indigo-500/5 px-4 py-3 text-xs text-indigo-200">
                     <p class="font-semibold text-indigo-100">Prefijo de referencia</p>
