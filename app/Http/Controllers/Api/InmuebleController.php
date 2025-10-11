@@ -17,7 +17,7 @@ class InmuebleController extends Controller
         $perPage = (int) ($filters['limit'] ?? 20);
 
         $query = Inmueble::query()
-            ->with(['coverImage', 'status'])
+            ->with(['images', 'coverImage', 'status'])
             ->when($filters['search'] ?? null, function (Builder $builder, string $search): void {
                 $builder->where(function (Builder $nested) use ($search): void {
                     $nested
