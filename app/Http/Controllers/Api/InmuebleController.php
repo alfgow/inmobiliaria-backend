@@ -62,4 +62,20 @@ class InmuebleController extends Controller
 
         return InmuebleResource::make($inmueble)->response();
     }
+
+    public function searchBySlug(string $slug): JsonResponse
+    {
+        $inmueble = Inmueble::query()
+            ->with(['images', 'coverImage', 'status'])
+            ->where('slug', $slug)
+            ->first();
+
+        if ($inmueble === null) {
+            return response()->json([
+                'message' => 'No se encontró un inmueble con el slug proporcionado.',
+            ], 404);
+        }
+
+        return InmuebleResource::make($inmueble)->response();
+    }
 }

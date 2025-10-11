@@ -134,6 +134,10 @@ Actualmente el API expone los recursos de inmuebles:
 2. **Detalle individual:** `GET /api/v1/inmuebles/{id}`
    - Carga imágenes, estatus y demás atributos antes de serializar el recurso con `InmuebleResource`, que devuelve datos estructurados en JSON (precio formateado, amenidades, URLs, etc.).【F:app/Http/Controllers/Api/InmuebleController.php†L49-L55】【F:app/Http/Resources/InmuebleResource.php†L15-L46】
 
+3. **Búsqueda por slug:** `GET /api/v1/inmuebles/search-by-slug/{slug}`
+   - Usa el slug como identificador único para encontrar el inmueble exacto, evitando depender de la paginación del listado general.【F:routes/api.php†L16-L20】
+   - Retorna el mismo payload que el endpoint de detalle e incluye imágenes, estatus y demás atributos relevantes. Si el slug no existe responde con un `404` y un mensaje descriptivo.【F:app/Http/Controllers/Api/InmuebleController.php†L57-L73】
+
 ## 7. Manejo de errores y caducidad 🚨
 
 - Los tokens JWT expiran según `API_JWT_TTL`. Debes solicitar uno nuevo cuando recibas un 401 debido a expiración.
