@@ -14,6 +14,9 @@ class InmuebleResource extends JsonResource
      */
     public function toArray($request): array
     {
+        $latitude = $this->latitud !== null ? (float) $this->latitud : null;
+        $longitude = $this->longitud !== null ? (float) $this->longitud : null;
+
         return [
             'id' => $this->id,
             'titulo' => $this->titulo,
@@ -26,8 +29,12 @@ class InmuebleResource extends JsonResource
             'estado' => $this->estado,
             'codigo_postal' => $this->codigo_postal,
             'ubicacion' => [
-                'latitud' => $this->latitud !== null ? (float) $this->latitud : null,
-                'longitud' => $this->longitud !== null ? (float) $this->longitud : null,
+                'latitud' => $latitude,
+                'longitud' => $longitude,
+            ],
+            'location' => [
+                'latitude' => $latitude,
+                'longitude' => $longitude,
             ],
             'tipo' => $this->tipo,
             'operacion' => $this->operacion,
