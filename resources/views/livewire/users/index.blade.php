@@ -4,9 +4,10 @@ use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
-new class extends Component
+new #[Layout('components.layouts.admin', ['title' => 'Usuarios'])] class extends Component
 {
     public string $name = '';
     public string $email = '';
@@ -89,8 +90,7 @@ new class extends Component
 };
 ?>
 
-<x-layouts.admin title="Usuarios">
-    <div class="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8">
+<div class="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8">
         <div class="rounded-3xl border border-gray-800 bg-gray-900 p-8 shadow-2xl shadow-indigo-500/10">
             <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                 <div>
@@ -262,4 +262,4 @@ new class extends Component
             </div>
         </div>
     </div>
-</x-layouts.admin>
+</div>
