@@ -1446,12 +1446,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    document.addEventListener("livewire:init", () => {
-        if (!window.Livewire || typeof window.Livewire.on !== "function") {
-            return;
-        }
-
-        const showSwalNotification = ({ icon, title, text }) => {
+    const showSwalNotification = ({ icon, title, text }) => {
             const normalizedTitle = title || "";
             const normalizedText = text || "";
 
@@ -1483,7 +1478,13 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         };
 
-        window.Livewire.on("user-created", (payload = {}) => {
+    const registerUserEventsListeners = () => {
+        if (registerUserEventsListeners.__registered) {
+            return;
+        }
+
+        const handleUserCreated = (event) => {
+            const payload = event?.detail ?? {};
             const name =
                 typeof payload?.name === "string" ? payload.name.trim() : "";
             const message = name
@@ -1495,9 +1496,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 title: "Usuario registrado",
                 text: message,
             });
-        });
+        };
 
-        window.Livewire.on("user-creation-failed", (payload = {}) => {
+        const handleUserCreationFailed = (event) => {
+            const payload = event?.detail ?? {};
             const message =
                 typeof payload?.message === "string" && payload.message.trim() !== ""
                     ? payload.message.trim()
@@ -1508,8 +1510,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 title: "No pudimos completar el registro",
                 text: message,
             });
-        });
-    });
+        };
+
+        window.addEventListener("user-created", handleUserCreated);
+        window.addEventListener("user-creation-failed", handleUserCreationFailed);
+
+        registerUserEventsListeners.__registered = true;
+    };
+
+    document.addEventListener("livewire:init", registerUserEventsListeners);
+    registerUserEventsListeners();
 
     const statusSelect = document.getElementById("estatus_id");
 
