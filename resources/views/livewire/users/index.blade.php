@@ -5,7 +5,6 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Livewire\Volt\Component;
-use Throwable;
 
 new class extends Component
 {
