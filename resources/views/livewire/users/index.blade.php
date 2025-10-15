@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Livewire\Volt\Component;
+use Throwable;
 
 new class extends Component
 {
@@ -48,21 +49,30 @@ new class extends Component
 
         $validated = $this->validate();
 
-        User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'role' => $validated['role'],
-            'is_active' => $validated['is_active'],
-        ]);
+        try {
+            User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role' => $validated['role'],
+                'is_active' => $validated['is_active'],
+            ]);
 
-        $this->reset(['name', 'email', 'password']);
-        $this->role = 'agent';
-        $this->is_active = true;
+            $this->reset(['name', 'email', 'password']);
+            $this->role = 'agent';
+            $this->is_active = true;
 
-        $this->loadUsers();
+            $this->loadUsers();
 
-        $this->dispatch('user-created');
+            $this->dispatch('user-created', name: $validated['name']);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            $this->dispatch(
+                'user-creation-failed',
+                message: 'No fue posible registrar al usuario. Intenta nuevamente.'
+            );
+        }
     }
 
     public function toggleStatus(int $userId): void

@@ -1446,6 +1446,71 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
+    document.addEventListener("livewire:init", () => {
+        if (!window.Livewire || typeof window.Livewire.on !== "function") {
+            return;
+        }
+
+        const showSwalNotification = ({ icon, title, text }) => {
+            const normalizedTitle = title || "";
+            const normalizedText = text || "";
+
+            if (window.Swal) {
+                window.Swal.fire({
+                    icon: icon || "info",
+                    title: normalizedTitle || "",
+                    text: normalizedText || "",
+                    confirmButtonText: "Entendido",
+                    customClass: {
+                        popup: "swal-dark-popup",
+                        title: "swal-dark-title",
+                        htmlContainer: "swal-dark-content",
+                        confirmButton:
+                            "swal2-confirm rounded-2xl bg-indigo-500 px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:bg-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/60",
+                    },
+                    buttonsStyling: false,
+                });
+
+                return;
+            }
+
+            const fallbackMessage = [normalizedTitle, normalizedText]
+                .filter((value) => typeof value === "string" && value.trim() !== "")
+                .join("\n\n");
+
+            if (fallbackMessage) {
+                window.alert(fallbackMessage);
+            }
+        };
+
+        window.Livewire.on("user-created", (payload = {}) => {
+            const name =
+                typeof payload?.name === "string" ? payload.name.trim() : "";
+            const message = name
+                ? `El usuario ${name} se registró correctamente.`
+                : "El usuario se registró correctamente.";
+
+            showSwalNotification({
+                icon: "success",
+                title: "Usuario registrado",
+                text: message,
+            });
+        });
+
+        window.Livewire.on("user-creation-failed", (payload = {}) => {
+            const message =
+                typeof payload?.message === "string" && payload.message.trim() !== ""
+                    ? payload.message.trim()
+                    : "No fue posible registrar al usuario. Intenta nuevamente.";
+
+            showSwalNotification({
+                icon: "error",
+                title: "No pudimos completar el registro",
+                text: message,
+            });
+        });
+    });
+
     const statusSelect = document.getElementById("estatus_id");
 
     if (statusSelect) {
