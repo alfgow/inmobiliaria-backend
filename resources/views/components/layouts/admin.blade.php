@@ -67,6 +67,10 @@
                         $navLink('inmuebles.map', '🗺️ Mapa de inmuebles', 'inmuebles.map'),
                         $navLink('settings.api-keys.index', '🔑 API Keys', 'settings.api-keys.*'),
                     ];
+
+                    if (Auth::user()?->can('viewAny', \App\Models\User::class)) {
+                        $links[] = $navLink('users.index', '🧑‍🤝‍🧑 Usuarios', 'users.*');
+                    }
                 @endphp
 
                 @foreach ($links as $link)
