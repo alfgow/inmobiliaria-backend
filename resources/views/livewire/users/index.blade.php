@@ -63,14 +63,13 @@ new class extends Component
 
             $this->loadUsers();
 
-            $this->dispatch('user-created', name: $validated['name']);
+            $this->dispatch('user-created', ['name' => $validated['name']]);
         } catch (Throwable $exception) {
             report($exception);
 
-            $this->dispatch(
-                'user-creation-failed',
-                message: 'No fue posible registrar al usuario. Intenta nuevamente.'
-            );
+            $this->dispatch('user-creation-failed', [
+                'message' => 'No fue posible registrar al usuario. Intenta nuevamente.',
+            ]);
         }
     }
 
