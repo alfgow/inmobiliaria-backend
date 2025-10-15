@@ -4,6 +4,7 @@ use App\Http\Controllers\ApiKeyController;
 use App\Http\Controllers\CodigoPostalController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\InmuebleController;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
@@ -38,6 +39,10 @@ Route::middleware(['auth'])->group(function () {
             ),
         )
         ->name('two-factor.show');
+
+    Volt::route('usuarios', 'users.index')
+        ->name('users.index')
+        ->middleware('can:viewAny,' . User::class);
 
     Route::get('/contactos', [ContactController::class, 'index'])
         ->name('contactos.index');
