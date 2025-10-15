@@ -11,5 +11,6 @@
     <div class="min-h-screen flex items-center justify-center px-4 text-gray-100">
         {{ $slot }}
     </div>
+    @fluxScripts
 </body>
 </html>
