@@ -16,9 +16,9 @@ class DatabaseSeeder extends Seeder
             InmuebleStatusSeeder::class,
         ]);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        User::factory()->admin()->create([
+            'name' => 'Administrador',
+            'email' => 'admin@example.com',
         ]);
     }
 }
