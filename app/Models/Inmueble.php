@@ -8,10 +8,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 class Inmueble extends Model
 {
     use HasFactory;
+
+    private const SLUG_MAX_LENGTH = 200;
 
     public const TIPOS = [
         'Departamento',
@@ -77,6 +80,47 @@ class Inmueble extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Inmueble $inmueble): void {
+            $inmueble->slug = static::generateUniqueSlug($inmueble->titulo);
+        });
+
+        static::updating(function (Inmueble $inmueble): void {
+            if ($inmueble->isDirty('titulo')) {
+                $inmueble->slug = static::generateUniqueSlug($inmueble->titulo, $inmueble->id);
+            }
+        });
+    }
+
+    protected static function generateUniqueSlug(?string $titulo, ?int $ignoreId = null): string
+    {
+        $baseSlug = Str::slug((string) $titulo);
+
+        if ($baseSlug === '') {
+            $baseSlug = 'inmueble';
+        }
+
+        $baseSlug = Str::substr($baseSlug, 0, self::SLUG_MAX_LENGTH);
+
+        $slug = $baseSlug;
+        $suffix = 1;
+
+        while (static::query()
+            ->when($ignoreId !== null, fn($query) => $query->where('id', '!=', $ignoreId))
+            ->where('slug', $slug)
+            ->exists()
+        ) {
+            $suffixToken = '-a' . $suffix;
+            $availableLength = self::SLUG_MAX_LENGTH - strlen($suffixToken);
+            $availableLength = $availableLength < 0 ? 0 : $availableLength;
+            $slug = Str::substr($baseSlug, 0, $availableLength) . $suffixToken;
+            $suffix++;
+        }
+
+        return $slug;
+    }
 
     /**
      * Inmueble belongs to an asesor (user).
