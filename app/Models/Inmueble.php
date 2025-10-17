@@ -154,6 +154,11 @@ class Inmueble extends Model
         return $this->hasOne(InmuebleImage::class)->orderBy('orden')->orderBy('id');
     }
 
+    public function restricciones(): HasOne
+    {
+        return $this->hasOne(InmuebleRestriction::class, 'id_inmueble');
+    }
+
     /**
      * Amenidades formatted as newline separated string.
      */

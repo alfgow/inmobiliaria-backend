@@ -17,7 +17,7 @@ class InmuebleController extends Controller
         $perPage = (int) ($filters['limit'] ?? 20);
 
         $query = Inmueble::query()
-            ->with(['images', 'coverImage', 'status'])
+            ->with(['images', 'coverImage', 'status', 'restricciones'])
             ->when($filters['search'] ?? null, function (Builder $builder, string $search): void {
                 $builder->where(function (Builder $nested) use ($search): void {
                     $nested
@@ -58,7 +58,7 @@ class InmuebleController extends Controller
 
     public function show(Inmueble $inmueble): JsonResponse
     {
-        $inmueble->loadMissing(['images', 'coverImage', 'status']);
+        $inmueble->loadMissing(['images', 'coverImage', 'status', 'restricciones']);
 
         return InmuebleResource::make($inmueble)->response();
     }
@@ -66,7 +66,7 @@ class InmuebleController extends Controller
     public function searchBySlug(string $slug): JsonResponse
     {
         $inmueble = Inmueble::query()
-            ->with(['images', 'coverImage', 'status'])
+            ->with(['images', 'coverImage', 'status', 'restricciones'])
             ->where('slug', $slug)
             ->first();
 

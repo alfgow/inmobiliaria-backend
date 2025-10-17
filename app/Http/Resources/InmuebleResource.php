@@ -55,6 +55,22 @@ class InmuebleResource extends JsonResource
             'extras' => $this->extras ?? [],
             'imagen_portada' => InmuebleImageResource::make($this->whenLoaded('coverImage')),
             'imagenes' => InmuebleImageResource::collection($this->whenLoaded('images')),
+            'restricciones' => $this->whenLoaded('restricciones', function () {
+                if ($this->restricciones === null) {
+                    return null;
+                }
+
+                return [
+                    'acepta_mascotas' => $this->restricciones->acepta_mascotas,
+                    'acepta_niños' => $this->restricciones->{'acepta_niños'},
+                    'acepta_estudiantes' => $this->restricciones->acepta_estudiantes,
+                    'acepta_roomies' => $this->restricciones->acepta_roomies,
+                    'ingresos_minimos' => $this->restricciones->ingresos_minimos,
+                    'precio_poliza' => $this->restricciones->precio_poliza,
+                    'requiere_comprobantes_ingresos' => (bool) $this->restricciones->requiere_comprobantes_ingresos,
+                    'observaciones' => $this->restricciones->observaciones,
+                ];
+            }),
             'created_at' => optional($this->created_at)->toIso8601String(),
             'updated_at' => optional($this->updated_at)->toIso8601String(),
         ];
