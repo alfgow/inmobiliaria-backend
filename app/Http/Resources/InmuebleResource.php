@@ -20,6 +20,7 @@ class InmuebleResource extends JsonResource
         return [
             'id' => $this->id,
             'titulo' => $this->titulo,
+            'slug' => $this->slug,
             'descripcion' => $this->descripcion,
             'precio' => $this->precio,
             'precio_formateado' => $this->formattedPrice(),
