@@ -31,6 +31,9 @@
                     <a href="{{ route('contactos.index') }}" class="inline-flex items-center gap-2 rounded-xl border border-gray-700 px-4 py-2 text-sm font-medium text-gray-300 transition hover:bg-gray-800/60">
                         ← Volver al directorio
                     </a>
+                    <a href="{{ route('contactos.edit', $contact) }}" class="inline-flex items-center gap-2 rounded-xl bg-blue-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:bg-blue-400">
+                        ✏️ Editar
+                    </a>
                     <a href="{{ route('contactos.create', ['prefill' => $contact->email ?? $contact->telefono ?? $contact->nombre, 'prefill_field' => $contact->email ? 'email' : ($contact->telefono ? 'telefono' : 'nombre')]) }}" class="inline-flex items-center gap-2 rounded-xl bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:bg-indigo-400">
                         ➕ Nuevo contacto
                     </a>

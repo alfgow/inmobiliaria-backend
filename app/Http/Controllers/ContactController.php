@@ -139,6 +139,36 @@ class ContactController extends Controller
             ->with('status', 'El contacto se registró correctamente.');
     }
 
+    public function edit(Contact $contact): View
+    {
+        return view('contacts.edit', [
+            'contact' => $contact,
+        ]);
+    }
+
+    public function update(Request $request, Contact $contact): RedirectResponse
+    {
+        $data = $request->validate([
+            'nombre' => ['required', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'telefono' => ['nullable', 'string', 'max:30'],
+        ]);
+
+        $contact->fill([
+            'nombre' => $data['nombre'],
+            'email' => $data['email'] ?? null,
+            'telefono' => $data['telefono'] ?? null,
+        ]);
+
+        if ($contact->isDirty()) {
+            $contact->save();
+        }
+
+        return redirect()
+            ->route('contactos.show', $contact)
+            ->with('status', 'El contacto se actualizó correctamente.');
+    }
+
     private function detectPrefillField(string $value): string
     {
         if ($value === '') {
