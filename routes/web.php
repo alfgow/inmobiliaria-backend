@@ -50,6 +50,10 @@ Route::middleware(['auth'])->group(function () {
         ->name('contactos.create');
     Route::post('/contactos', [ContactController::class, 'store'])
         ->name('contactos.store');
+    Route::get('/contactos/{contact}/editar', [ContactController::class, 'edit'])
+        ->name('contactos.edit');
+    Route::put('/contactos/{contact}', [ContactController::class, 'update'])
+        ->name('contactos.update');
     Route::get('/contactos/{contact}', [ContactController::class, 'show'])
         ->name('contactos.show');
     Route::delete('/contactos/{contact}', [ContactController::class, 'destroy'])
