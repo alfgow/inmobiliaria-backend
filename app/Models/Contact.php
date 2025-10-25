@@ -32,6 +32,11 @@ class Contact extends Model
         return $this->hasMany(ContactComment::class, 'contacto_id');
     }
 
+    public function iaInteractions(): HasMany
+    {
+        return $this->hasMany(ContactIaInteraction::class, 'contacto_id');
+    }
+
     public function intereses(): HasMany
     {
         return $this->hasMany(ContactInterest::class, 'contacto_id');
@@ -53,6 +58,7 @@ class Contact extends Model
             $this->updated_at,
             optional($this->latestComment)->created_at,
             optional($this->latestInterest)->created_at,
+            optional($this->iaInteractions()->latest('created_at')->first())->created_at,
         ])->filter();
 
         if ($timestamps->isEmpty()) {

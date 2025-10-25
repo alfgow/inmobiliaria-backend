@@ -25,7 +25,8 @@ class InmuebleController extends Controller
                         ->orWhere('direccion', 'like', "%{$search}%")
                         ->orWhere('colonia', 'like', "%{$search}%")
                         ->orWhere('municipio', 'like', "%{$search}%")
-                        ->orWhere('estado', 'like', "%{$search}%");
+                        ->orWhere('estado', 'like', "%{$search}%")
+                        ->orWhereJsonContains('tags', $search);
                 });
             })
             ->when($filters['operacion'] ?? null, fn(Builder $builder, string $operacion): Builder => $builder->where('operacion', $operacion))
