@@ -61,6 +61,7 @@ class Inmueble extends Model
         'tour_virtual_url',
         'amenidades',
         'extras',
+        'tags',
     ];
 
     protected $casts = [
@@ -77,6 +78,7 @@ class Inmueble extends Model
         'longitud' => 'decimal:7',
         'amenidades' => 'array',
         'extras' => 'array',
+        'tags' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

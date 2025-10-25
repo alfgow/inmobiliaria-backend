@@ -54,6 +54,7 @@ class InmuebleResource extends JsonResource
             'tour_virtual_url' => $this->tour_virtual_url,
             'amenidades' => $this->amenidades ?? [],
             'extras' => $this->extras ?? [],
+            'tags' => $this->tags ?? [],
             'imagen_portada' => InmuebleImageResource::make($this->whenLoaded('coverImage')),
             'imagenes' => InmuebleImageResource::collection($this->whenLoaded('images')),
             'restricciones' => $this->whenLoaded('restricciones', function () {
