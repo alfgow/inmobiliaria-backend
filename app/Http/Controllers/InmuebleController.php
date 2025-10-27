@@ -340,6 +340,7 @@ class InmuebleController extends Controller
 
         $payload['amenidades'] = $this->transformListStringToArray($payload['amenidades'] ?? '');
         $payload['extras'] = $this->transformListStringToArray($payload['extras'] ?? '');
+        $payload['tags'] = $this->transformCommaSeparatedStringToArray($payload['tags'] ?? null);
 
         unset($payload['imagenes']);
 
@@ -502,6 +503,21 @@ class InmuebleController extends Controller
             ->filter()
             ->values()
             ->all();
+    }
+
+    protected function transformCommaSeparatedStringToArray(?string $value): ?array
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $items = collect(explode(',', (string) $value))
+            ->map(fn(string $item) => trim($item))
+            ->filter()
+            ->values()
+            ->all();
+
+        return empty($items) ? null : $items;
     }
 
     /**
