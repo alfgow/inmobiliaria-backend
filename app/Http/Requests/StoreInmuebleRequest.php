@@ -52,6 +52,7 @@ class StoreInmuebleRequest extends FormRequest
             'tour_virtual_url' => ['nullable', 'url', 'max:255'],
             'amenidades' => ['nullable', 'string', 'max:2000'],
             'extras' => ['nullable', 'string', 'max:2000'],
+            'tags' => ['nullable', 'string', 'max:500'],
             'imagenes' => ['nullable', 'array', 'max:10'],
             'imagenes.*' => ['image', 'max:5120'],
             'commission_percentage' => [

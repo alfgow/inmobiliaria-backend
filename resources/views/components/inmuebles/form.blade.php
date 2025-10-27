@@ -10,6 +10,8 @@
 @php
     $amenidadesText = old('amenidades', optional($inmueble)->amenidadesAsText());
     $extrasText = old('extras', optional($inmueble)->extras ? collect($inmueble->extras)->join(PHP_EOL) : '');
+    $tags = optional($inmueble)->tags;
+    $tagsText = old('tags', is_array($tags) ? collect($tags)->join(', ') : '');
     $selectedCodigoPostal = old('codigo_postal', optional($inmueble)->codigo_postal);
     $selectedColonia = old('colonia', optional($inmueble)->colonia);
     $selectedMunicipio = old('municipio', optional($inmueble)->municipio);
@@ -316,6 +318,22 @@
                     placeholder="Cuenta la historia del inmueble, puntos fuertes y contexto del vecindario"
                 >{{ old('descripcion', optional($inmueble)->descripcion) }}</textarea>
                 @error('descripcion')
+                    <p class="text-sm text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="space-y-2">
+                <label for="tags" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Tags</label>
+                <input
+                    type="text"
+                    id="tags"
+                    name="tags"
+                    value="{{ $tagsText }}"
+                    placeholder="Ej. Familiar, Pet friendly, Céntrico"
+                    class="{{ $formControlClasses }}"
+                >
+                <p class="text-xs text-gray-500">Separa cada etiqueta con una coma para organizarlas fácilmente.</p>
+                @error('tags')
                     <p class="text-sm text-red-400">{{ $message }}</p>
                 @enderror
             </div>
