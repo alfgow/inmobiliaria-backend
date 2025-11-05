@@ -125,7 +125,7 @@ console.log(respuesta.data);
 
 ## 7. Consumir los endpoints disponibles 📡
 
-Actualmente el API expone los recursos de inmuebles:
+Actualmente el API expone los recursos de inmuebles y contactos:
 
 1. **Listado paginado:** `GET /api/v1/inmuebles`
    - Acepta filtros `search`, `page`, `limit`, `operacion`, `estatus` y `destacado`, validados por `IndexInmuebleRequest` antes de ejecutar la consulta.【F:app/Http/Requests/Api/IndexInmuebleRequest.php†L15-L43】
@@ -137,6 +137,19 @@ Actualmente el API expone los recursos de inmuebles:
 3. **Búsqueda por slug:** `GET /api/v1/inmuebles/search-by-slug/{slug}`
    - Usa el slug como identificador único para encontrar el inmueble exacto, evitando depender de la paginación del listado general.【F:routes/api.php†L16-L20】
    - Retorna el mismo payload que el endpoint de detalle e incluye imágenes, estatus y demás atributos relevantes. Si el slug no existe responde con un `404` y un mensaje descriptivo.【F:app/Http/Controllers/Api/InmuebleController.php†L57-L73】
+
+### Contactos
+
+1. **Registrar un contacto:** `POST /api/v1/contactos`
+   - Valida nombre, email, teléfono, estado y fuente mediante `StoreContactRequest` antes de persistir el registro.【F:routes/api.php†L23-L26】【F:app/Http/Requests/Api/StoreContactRequest.php†L9-L21】
+   - Devuelve el recurso recién creado en formato `ContactResource`.
+
+2. **Consultar un contacto:** `GET /api/v1/contactos/{id}`
+   - Incluye comentarios ordenados por fecha, interacciones con IA y el historial de intereses con su inmueble asociado. El recurso contiene además el último interés (`interes_reciente`) para facilitar integraciones con bots.【F:routes/api.php†L26-L27】【F:app/Http/Controllers/Api/ContactController.php†L39-L63】【F:app/Http/Resources/ContactResource.php†L17-L26】
+
+3. **Adjuntar un inmueble de interés:** `POST /api/v1/contactos/{id}/intereses`
+   - El `StoreContactInterestRequest` exige que `inmueble_id` esté presente y exista en la tabla `inmuebles` antes de crear o refrescar el registro.【F:routes/api.php†L32-L33】【F:app/Http/Requests/Api/StoreContactInterestRequest.php†L9-L19】
+   - Si el contacto ya tenía interés en el inmueble, la marca de tiempo `created_at` se actualiza para reflejar la interacción más reciente; de lo contrario, se crea un registro nuevo. La respuesta devuelve el `ContactResource` con los intereses ordenados y el inmueble cargado.【F:app/Http/Controllers/Api/ContactController.php†L65-L95】【F:app/Http/Resources/ContactInterestResource.php†L10-L19】
 
 ## 7. Manejo de errores y caducidad 🚨
 
