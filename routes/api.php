@@ -38,6 +38,9 @@ Route::middleware('api')
             Route::match(['put', 'patch'], 'contactos/{contact}/comentarios/{comentario}', [ContactCommentController::class, 'update'])
                 ->name('contactos.comentarios.update');
 
+            Route::post('contactos/{contact}/intereses', [ApiContactController::class, 'storeInterest'])
+                ->name('contactos.intereses.store');
+
             Route::get('contactos/{contact}/interacciones-ia', [ContactIaInteractionController::class, 'index'])
                 ->name('contactos.interacciones-ia.index');
             Route::post('contactos/{contact}/interacciones-ia', [ContactIaInteractionController::class, 'store'])

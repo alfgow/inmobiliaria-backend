@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\IndexContactRequest;
+use App\Http\Requests\Api\StoreContactInterestRequest;
 use App\Http\Requests\Api\StoreContactRequest;
 use App\Http\Requests\Api\UpdateContactRequest;
 use App\Http\Resources\ContactResource;
@@ -19,7 +20,7 @@ class ContactController extends Controller
         $perPage = (int) ($filters['limit'] ?? 15);
 
         $query = Contact::query()
-            ->with(['latestComment', 'latestInterest'])
+            ->with(['latestComment', 'latestInterest.inmueble'])
             ->when($filters['telefono'] ?? null, function (Builder $builder, string $telefono): void {
                 $builder->where('telefono', 'like', "%{$telefono}%");
             })
@@ -59,6 +60,9 @@ class ContactController extends Controller
         $contact->load([
             'comentarios' => fn($query) => $query->orderByDesc('created_at'),
             'iaInteractions' => fn($query) => $query->orderByDesc('created_at'),
+            'intereses' => fn($query) => $query->with('inmueble')->orderByDesc('created_at'),
+            'latestInterest.inmueble',
+            'latestComment',
         ]);
 
         return ContactResource::make($contact)->response();
@@ -71,6 +75,32 @@ class ContactController extends Controller
         if ($contact->isDirty()) {
             $contact->save();
         }
+
+        return ContactResource::make($contact)->response();
+    }
+
+    public function storeInterest(StoreContactInterestRequest $request, Contact $contact): JsonResponse
+    {
+        $data = $request->validated();
+
+        $interest = $contact->intereses()->firstOrCreate(
+            ['inmueble_id' => $data['inmueble_id']],
+            ['created_at' => now()]
+        );
+
+        if (! $interest->wasRecentlyCreated) {
+            $interest->update(['created_at' => now()]);
+        }
+
+        $contact->touch();
+
+        $contact->load([
+            'comentarios' => fn($query) => $query->orderByDesc('created_at'),
+            'intereses' => fn($query) => $query->with('inmueble')->orderByDesc('created_at'),
+            'latestInterest.inmueble',
+            'latestComment',
+            'iaInteractions' => fn($query) => $query->orderByDesc('created_at'),
+        ]);
 
         return ContactResource::make($contact)->response();
     }

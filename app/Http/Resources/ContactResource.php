@@ -22,6 +22,8 @@ class ContactResource extends JsonResource
             'updated_at' => optional($this->updated_at)->toIso8601String(),
             'last_interaction_at' => optional($this->last_interaction_at)->toIso8601String(),
             'comentarios' => ContactCommentResource::collection($this->whenLoaded('comentarios')),
+            'intereses' => ContactInterestResource::collection($this->whenLoaded('intereses')),
+            'interes_reciente' => ContactInterestResource::make($this->whenLoaded('latestInterest')),
             'interacciones_ia' => ContactIaInteractionResource::collection($this->whenLoaded('iaInteractions')),
         ];
     }
