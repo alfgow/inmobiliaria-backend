@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ContactController extends Controller
@@ -104,7 +105,7 @@ class ContactController extends Controller
             'inmueble_id' => ['nullable', 'exists:inmuebles,id'],
             'nombre' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
-            'telefono' => ['nullable', 'string', 'max:30'],
+            'telefono' => ['nullable', 'string', 'max:30', Rule::unique('contactos', 'telefono')],
             'comentario' => ['nullable', 'string'],
         ]);
 
@@ -151,7 +152,7 @@ class ContactController extends Controller
         $data = $request->validate([
             'nombre' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
-            'telefono' => ['nullable', 'string', 'max:30'],
+            'telefono' => ['nullable', 'string', 'max:30', Rule::unique('contactos', 'telefono')->ignore($contact->id)],
         ]);
 
         $contact->fill([
