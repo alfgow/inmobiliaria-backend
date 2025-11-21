@@ -10,8 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Middleware\HandleCors;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Routing\Middleware\ThrottleRequests;
-// use Illuminate\Support\Facades\RateLimiter;
-// use Throwable;
+use Illuminate\Support\Facades\RateLimiter;
+use Throwable;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
