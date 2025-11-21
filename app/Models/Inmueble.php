@@ -59,7 +59,6 @@ class Inmueble extends Model
         'destacado',
         'video_url',
         'tour_virtual_url',
-        'inmuebles24_url',
         'amenidades',
         'extras',
         'tags',
