@@ -323,6 +323,20 @@
             </div>
 
             <div class="space-y-2">
+                <label for="inmuebles24_url" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Enlace de Inmuebles24</label>
+                <input
+                    type="url"
+                    id="inmuebles24_url"
+                    name="inmuebles24_url"
+                    value="{{ old('inmuebles24_url') }}"
+                    placeholder="https://www.inmuebles24.com/propiedades/..."
+                    class="{{ $formControlClasses }}"
+                >
+                <p class="text-xs text-gray-500">Pega el enlace completo y extraeremos automáticamente el ID numérico antes de .html.</p>
+                <p class="text-xs text-indigo-300 hidden" data-i24-feedback></p>
+            </div>
+
+            <div class="space-y-2">
                 <label for="tags" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Tags</label>
                 <input
                     type="text"
