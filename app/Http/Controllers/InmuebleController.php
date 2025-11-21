@@ -342,6 +342,10 @@ class InmuebleController extends Controller
         $payload['extras'] = $this->transformListStringToArray($payload['extras'] ?? '');
         $payload['tags'] = $this->transformCommaSeparatedStringToArray($payload['tags'] ?? null);
 
+        if (array_key_exists('inmuebles24_url', $payload)) {
+            $payload['inmuebles24_url'] = $this->normalizeNullableString($payload['inmuebles24_url']);
+        }
+
         unset($payload['imagenes']);
 
         return $payload;
@@ -485,6 +489,17 @@ class InmuebleController extends Controller
         }
 
         return null;
+    }
+
+    protected function normalizeNullableString(?string $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $trimmedValue = trim($value);
+
+        return $trimmedValue === '' ? null : $trimmedValue;
     }
 
     /**

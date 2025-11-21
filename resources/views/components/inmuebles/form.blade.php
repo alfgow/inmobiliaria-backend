@@ -328,7 +328,7 @@
                     type="url"
                     id="inmuebles24_url"
                     name="inmuebles24_url"
-                    value="{{ old('inmuebles24_url') }}"
+                    value="{{ old('inmuebles24_url', optional($inmueble)->inmuebles24_url) }}"
                     placeholder="https://www.inmuebles24.com/propiedades/..."
                     class="{{ $formControlClasses }}"
                 >
