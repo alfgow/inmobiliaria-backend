@@ -112,6 +112,118 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    const initializeInmuebles24Extractor = () => {
+        const urlInput = document.getElementById("inmuebles24_url");
+        const tagsInput = document.getElementById("tags");
+        const feedback = document.querySelector("[data-i24-feedback]");
+
+        if (!urlInput || !tagsInput) {
+            return;
+        }
+
+        const setFeedback = (message, variant = "info") => {
+            if (!feedback) {
+                return;
+            }
+
+            const textClasses = ["text-indigo-300", "text-amber-300", "text-red-300"];
+            feedback.classList.remove("hidden", ...textClasses);
+
+            if (!message) {
+                feedback.textContent = "";
+                feedback.classList.add("hidden");
+
+                return;
+            }
+
+            switch (variant) {
+                case "success":
+                    feedback.classList.add("text-indigo-300");
+                    break;
+                case "warning":
+                    feedback.classList.add("text-amber-300");
+                    break;
+                case "error":
+                    feedback.classList.add("text-red-300");
+                    break;
+                default:
+                    feedback.classList.add("text-indigo-300");
+                    break;
+            }
+
+            feedback.textContent = message;
+        };
+
+        const extractIdFromUrl = (value) => {
+            const normalized = (value || "").trim();
+
+            if (!normalized) {
+                return null;
+            }
+
+            const match = normalized.match(/(\d+)(?=\.html)/i);
+
+            return match ? match[1] : null;
+        };
+
+        const addTag = (tag) => {
+            const normalizedTag = (tag || "").trim();
+
+            if (!normalizedTag) {
+                return false;
+            }
+
+            const existingTags = (tagsInput.value || "")
+                .split(",")
+                .map((item) => item.trim())
+                .filter(Boolean);
+
+            if (existingTags.includes(normalizedTag)) {
+                return false;
+            }
+
+            existingTags.push(normalizedTag);
+            tagsInput.value = existingTags.join(", ");
+
+            return true;
+        };
+
+        const handleUrlChange = () => {
+            const rawValue = urlInput.value || "";
+
+            if (!rawValue.trim()) {
+                setFeedback("");
+
+                return;
+            }
+
+            const extractedId = extractIdFromUrl(rawValue);
+
+            if (!extractedId) {
+                setFeedback(
+                    "No pudimos detectar el ID en el enlace. Revisa que termine en .html.",
+                    "warning"
+                );
+
+                return;
+            }
+
+            const added = addTag(extractedId);
+
+            setFeedback(
+                added
+                    ? `Detectamos el ID ${extractedId} y lo agregamos a tus tags.`
+                    : `Detectamos el ID ${extractedId}. Ya estaba en tus tags.`,
+                "success"
+            );
+        };
+
+        urlInput.addEventListener("change", handleUrlChange);
+        urlInput.addEventListener("blur", handleUrlChange);
+    };
+
+    initializeInmuebles24Extractor();
+
     const initializePropertiesMap = () => {
         const container = document.getElementById("properties-map");
 
