@@ -115,6 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const initializeInmuebles24Extractor = () => {
         const urlInput = document.getElementById("inmuebles24_url");
         const tagsInput = document.getElementById("tags");
+        const extractButton = document.getElementById("extract-inmuebles24-id");
         const feedback = document.querySelector("[data-i24-feedback]");
 
         if (!urlInput || !tagsInput) {
@@ -220,6 +221,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         urlInput.addEventListener("change", handleUrlChange);
         urlInput.addEventListener("blur", handleUrlChange);
+        extractButton?.addEventListener("click", (event) => {
+            event.preventDefault();
+            handleUrlChange();
+        });
     };
 
     initializeInmuebles24Extractor();

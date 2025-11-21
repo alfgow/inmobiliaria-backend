@@ -324,14 +324,23 @@
 
             <div class="space-y-2">
                 <label for="inmuebles24_url" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Enlace de Inmuebles24</label>
-                <input
-                    type="url"
-                    id="inmuebles24_url"
-                    name="inmuebles24_url"
-                    value="{{ old('inmuebles24_url', optional($inmueble)->inmuebles24_url) }}"
-                    placeholder="https://www.inmuebles24.com/propiedades/..."
-                    class="{{ $formControlClasses }}"
-                >
+                <div class="flex flex-col gap-3 sm:flex-row">
+                    <input
+                        type="url"
+                        id="inmuebles24_url"
+                        name="inmuebles24_url"
+                        value="{{ old('inmuebles24_url', optional($inmueble)->inmuebles24_url) }}"
+                        placeholder="https://www.inmuebles24.com/propiedades/..."
+                        class="{{ $formControlClasses }} flex-1"
+                    >
+                    <button
+                        type="button"
+                        id="extract-inmuebles24-id"
+                        class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-900/30 transition hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-950"
+                    >
+                        Extraer ID
+                    </button>
+                </div>
                 <p class="text-xs text-gray-500">Pega el enlace completo y extraeremos automáticamente el ID numérico antes de .html.</p>
                 <p class="text-xs text-indigo-300 hidden" data-i24-feedback></p>
             </div>
