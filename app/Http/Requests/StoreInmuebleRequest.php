@@ -50,7 +50,6 @@ class StoreInmuebleRequest extends FormRequest
             'destacado' => ['sometimes', 'boolean'],
             'video_url' => ['nullable', 'url', 'max:255'],
             'tour_virtual_url' => ['nullable', 'url', 'max:255'],
-            'inmuebles24_url' => ['nullable', 'url', 'max:500'],
             'amenidades' => ['nullable', 'string', 'max:2000'],
             'extras' => ['nullable', 'string', 'max:2000'],
             'tags' => ['nullable', 'string', 'max:500'],
