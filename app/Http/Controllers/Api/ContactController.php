@@ -69,15 +69,15 @@ class ContactController extends Controller
         return ContactResource::make($contact)->response();
     }
 
-    public function updateStatus(UpdateContactStatusRequest $request, Contact $contactId): JsonResponse
+    public function updateStatus(UpdateContactStatusRequest $request, Contact $contact): JsonResponse
     {
-        $contactId->estado = $request->validated('estado');
+        $contact->estado = $request->validated('estado');
 
-        if ($contactId->isDirty('estado')) {
-            $contactId->save();
+        if ($contact->isDirty('estado')) {
+            $contact->save();
         }
 
-        return ContactResource::make($contactId)->response();
+        return ContactResource::make($contact)->response();
     }
 
     public function update(UpdateContactRequest $request, Contact $contact): JsonResponse
