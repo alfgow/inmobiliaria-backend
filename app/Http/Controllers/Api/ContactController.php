@@ -7,6 +7,7 @@ use App\Http\Requests\Api\IndexContactRequest;
 use App\Http\Requests\Api\StoreContactInterestRequest;
 use App\Http\Requests\Api\StoreContactRequest;
 use App\Http\Requests\Api\UpdateContactRequest;
+use App\Http\Requests\Api\UpdateContactStatusRequest;
 use App\Http\Resources\ContactResource;
 use App\Models\Contact;
 use Illuminate\Database\Eloquent\Builder;
@@ -64,6 +65,26 @@ class ContactController extends Controller
             'latestInterest.inmueble',
             'latestComment',
         ]);
+
+        return ContactResource::make($contact)->response();
+    }
+
+    public function updateStatus(UpdateContactStatusRequest $request, int $contactId): JsonResponse
+    {
+        $contact = Contact::query()->find($contactId);
+
+        if ($contact === null) {
+            return response()->json([
+                'message' => 'El contacto especificado no existe.',
+                'contact_id' => $contactId,
+            ], 404);
+        }
+
+        $contact->estado = $request->validated('estado');
+
+        if ($contact->isDirty('estado')) {
+            $contact->save();
+        }
 
         return ContactResource::make($contact)->response();
     }
