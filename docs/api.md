@@ -151,6 +151,10 @@ Actualmente el API expone los recursos de inmuebles y contactos:
    - El `StoreContactInterestRequest` exige que `inmueble_id` esté presente y exista en la tabla `inmuebles` antes de crear o refrescar el registro.【F:routes/api.php†L32-L33】【F:app/Http/Requests/Api/StoreContactInterestRequest.php†L9-L19】
    - Si el contacto ya tenía interés en el inmueble, la marca de tiempo `created_at` se actualiza para reflejar la interacción más reciente; de lo contrario, se crea un registro nuevo. La respuesta devuelve el `ContactResource` con los intereses ordenados y el inmueble cargado.【F:app/Http/Controllers/Api/ContactController.php†L65-L95】【F:app/Http/Resources/ContactInterestResource.php†L10-L19】
 
+4. **Actualizar el estado del contacto:** `PUT/PATCH /api/v1/contactos/{id}/estado`
+   - Usa `UpdateContactStatusRequest` para validar que el valor de `estado` esté dentro del enum permitido (`nuevo`, `en_contacto`, `convertido`, `rechazado`, `rejected`, `reject`, `block`, `blocked`) antes de guardar.【F:routes/api.php†L27-L30】【F:app/Http/Requests/Api/UpdateContactStatusRequest.php†L10-L26】
+   - `ContactController@updateStatus` solo persiste el cambio cuando el estado es diferente al actual y devuelve el `ContactResource` actualizado para evitar escrituras innecesarias.【F:app/Http/Controllers/Api/ContactController.php†L71-L85】
+
 ## 7. Manejo de errores y caducidad 🚨
 
 - Los tokens JWT expiran según `API_JWT_TTL`. Debes solicitar uno nuevo cuando recibas un 401 debido a expiración.

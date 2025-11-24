@@ -30,6 +30,8 @@ Route::middleware('api')
                 ->name('contactos.show');
             Route::match(['put', 'patch'], 'contactos/{contact}', [ApiContactController::class, 'update'])
                 ->name('contactos.update');
+            Route::match(['put', 'patch'], 'contactos/{contact}/estado', [ApiContactController::class, 'updateStatus'])
+                ->name('contactos.estado.update');
 
             Route::get('contactos/{contact}/comentarios', [ContactCommentController::class, 'index'])
                 ->name('contactos.comentarios.index');
