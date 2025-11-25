@@ -71,12 +71,6 @@ class ContactController extends Controller
 
     public function updateStatus(UpdateContactStatusRequest $request, Contact $contact): JsonResponse
     {
-        if (! $contact->exists) {
-            $contact = Contact::findOrFail($contact->getKey());
-        } else {
-            $contact->refresh();
-        }
-
         $contact->estado = $request->validated('estado');
 
         if ($contact->isDirty('estado')) {
