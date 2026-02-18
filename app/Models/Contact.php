@@ -52,13 +52,22 @@ class Contact extends Model
         return $this->hasOne(ContactInterest::class, 'contacto_id')->latestOfMany();
     }
 
+    public function latestIaInteraction(): HasOne
+    {
+        return $this->hasOne(ContactIaInteraction::class, 'contacto_id')->latestOfMany();
+    }
+
     public function getLastInteractionAtAttribute(): ?Carbon
     {
+        $latestIaInteractionAt = $this->relationLoaded('iaInteractions')
+            ? optional($this->iaInteractions->sortByDesc('created_at')->first())->created_at
+            : optional($this->latestIaInteraction)->created_at;
+
         $timestamps = collect([
             $this->updated_at,
             optional($this->latestComment)->created_at,
             optional($this->latestInterest)->created_at,
-            optional($this->iaInteractions()->latest('created_at')->first())->created_at,
+            $latestIaInteractionAt,
         ])->filter();
 
         if ($timestamps->isEmpty()) {
