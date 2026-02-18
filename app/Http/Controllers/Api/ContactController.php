@@ -21,7 +21,14 @@ class ContactController extends Controller
         $perPage = (int) ($filters['limit'] ?? 15);
 
         $query = Contact::query()
-            ->with(['latestComment', 'latestInterest.inmueble'])
+            ->with([
+                'comentarios' => fn($query) => $query->orderByDesc('created_at'),
+                'iaInteractions' => fn($query) => $query->orderByDesc('created_at'),
+                'intereses' => fn($query) => $query->with('inmueble')->orderByDesc('created_at'),
+                'latestInterest.inmueble',
+                'latestComment',
+                'latestIaInteraction',
+            ])
             ->when($filters['telefono'] ?? null, function (Builder $builder, string $telefono): void {
                 $builder->where('telefono', 'like', "%{$telefono}%");
             })
@@ -64,6 +71,7 @@ class ContactController extends Controller
             'intereses' => fn($query) => $query->with('inmueble')->orderByDesc('created_at'),
             'latestInterest.inmueble',
             'latestComment',
+            'latestIaInteraction',
         ]);
 
         return ContactResource::make($contact)->response();
@@ -112,6 +120,7 @@ class ContactController extends Controller
             'latestInterest.inmueble',
             'latestComment',
             'iaInteractions' => fn($query) => $query->orderByDesc('created_at'),
+            'latestIaInteraction',
         ]);
 
         return ContactResource::make($contact)->response();
