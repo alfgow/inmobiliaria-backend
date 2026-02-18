@@ -1,170 +1,322 @@
-# Guía completa del API de Inmuebles
+# 📘 Documentación del API (Inmobiliaria Backend)
 
-Esta guía describe el flujo end-to-end para preparar el backend, generar credenciales, autenticar solicitudes y consumir los endpoints JSON disponibles bajo el prefijo `/api/v1`.
+Base URL: `/api/v1`
 
-## 1. Preparación del entorno 🧰
+Esta guía resume cómo autenticarte y cómo consumir todos los endpoints disponibles del API.
 
-1. **Configura variables de entorno** en tu `.env` (o `.env.production`) para habilitar el API:
-   - `API_JWT_SECRET`: clave privada usada para firmar tokens JWT HS256.
-   - `API_JWT_TTL`: tiempo de vida del token en segundos (por defecto 3600).
-   - `API_JWT_ISSUER`: identificador opcional del emisor; si lo omites se usa `APP_URL`.
-   - `API_ALLOWED_ORIGINS`: lista separada por comas con los dominios autorizados a consumir el API vía navegador (por ejemplo dominios en AWS).
+---
 
-2. **Ejecuta la migración de API keys** o replica su estructura en tu base de datos. La tabla `api_keys` almacena el nombre de referencia, un prefijo visible, el hash SHA-256 de la clave y el último uso registrado.【F:database/migrations/2025_01_01_000000_create_api_keys_table.php†L9-L23】
+## 1) Autenticación
 
-3. **Verifica el registro del middleware** en `bootstrap/app.php`. El grupo `api` utiliza `AuthenticateApiRequest`, que acepta tokens Bearer y cabeceras `X-Api-Key` para proteger las rutas.【F:bootstrap/app.php†L33-L47】【F:app/Http/Middleware/AuthenticateApiRequest.php†L16-L74】
+El API acepta **Bearer JWT** o **API Key** en `X-Api-Key`.
 
-## 2. Generar API keys desde el panel 🔑
+### 1.1 Obtener token JWT
 
-1. Ingresa al backend con tu usuario interno y abre **Configuración → API Keys**. La vista muestra un formulario para asignar un nombre descriptivo (por ejemplo, “AWS Lambda Producción”) y lista las claves existentes con su prefijo y último uso.【F:resources/views/settings/api-keys/index.blade.php†L1-L95】
+**Endpoint**
 
-2. Al enviar el formulario se crea una nueva clave mediante `ApiKey::generateKeyPair()`. El sistema genera un valor aleatorio con prefijo identificable, calcula su hash y garantiza que no exista duplicado antes de guardarlo.【F:app/Models/ApiKey.php†L33-L54】
+`POST /api/v1/auth/token`
 
-3. La interfaz muestra el `access_token` **solo una vez**. Copia y guarda el valor completo con el prefijo legible (por ejemplo `ABCD-1234…`); corresponde a la clave original y nosotros almacenamos únicamente su hash para validaciones posteriores.【F:resources/views/settings/api-keys/index.blade.php†L15-L40】【F:app/Models/ApiKey.php†L13-L24】
+**Body (JSON)**
 
-4. En cualquier momento puedes revocar una clave. El registro se elimina y las solicitudes que usen esa API key dejarán de autenticarse.【F:resources/views/settings/api-keys/index.blade.php†L57-L88】
+```json
+{
+  "email": "admin@example.com",
+  "password": "secret"
+}
+```
 
-## 3. Solicitar un token JWT paso a paso 🪪
+**Respuesta 200**
 
-1. Envía una petición `POST /api/v1/auth/token` con `email` y `password` válidos. El controlador valida las credenciales usando el guard `web` y, si son correctas, emite un token HS256 con el ID del usuario como `sub`.【F:routes/api.php†L10-L18】【F:app/Http/Controllers/Api/AuthenticationController.php†L17-L41】
+```json
+{
+  "token_type": "Bearer",
+  "access_token": "eyJ...",
+  "expires_in": 3600
+}
+```
 
-   ```json
-   {
-     "email": "admin@example.com",
-     "password": "tu-contraseña"
-   }
-   ```
+**Errores comunes**
 
-2. La respuesta incluye `token_type`, `access_token` y `expires_in`. Conserva el valor y úsalo dentro del tiempo configurado en `API_JWT_TTL`.【F:app/Http/Controllers/Api/AuthenticationController.php†L33-L41】
+- `422` credenciales inválidas o formato incorrecto.
 
-3. Envía el token en cada solicitud protegida usando la cabecera `Authorization: Bearer <token>`.
-
-## 4. Autenticación con API key paso a paso 🧾
-
-Sigue este checklist cada vez que quieras consumir el API con una API key en lugar de un token Bearer:
-
-1. **Genera y copia la clave** como se describe en la sección anterior. Identifica también la IP autorizada si configuraste filtrado desde la vista `/settings/api-keys`.
-
-2. **Identifica el endpoint** que necesitas consumir. Todos viven bajo el prefijo `/api/v1` y requieren HTTPS en entornos públicos.
-
-3. **Arma tu solicitud** en la herramienta de tu preferencia (curl, Postman, axios, etc.) agregando la cabecera `X-Api-Key: TU_API_KEY`. El middleware acepta la clave original mostrada en pantalla y, para compatibilidad, también un hash hexadecimal válido; calcula el hash solo cuando es necesario y recupera al usuario dueño de la clave.【F:app/Http/Middleware/AuthenticateApiRequest.php†L46-L85】
-
-4. **Envía la petición**. Si la clave es válida, se registra la marca de tiempo `last_used_at` (con un límite de actualización de un minuto para evitar escrituras innecesarias) y la solicitud continúa autenticada con el usuario asociado.【F:app/Models/ApiKey.php†L25-L32】【F:app/Http/Middleware/AuthenticateApiRequest.php†L64-L73】
-
-5. **Controla los errores** revisando el código de estado. Un `401` indica que la clave no existe, fue revocada o no coincide con la IP permitida.
-
-### Ejemplo con curl
+### 1.2 Usar Bearer Token
 
 ```bash
-curl \
-  -H "X-Api-Key: TU_API_KEY" \
+curl -H "Authorization: Bearer TU_TOKEN" \
   -H "Accept: application/json" \
   https://tu-dominio.com/api/v1/inmuebles
 ```
 
-### Ejemplo con axios
-
-```js
-import axios from 'axios';
-
-const client = axios.create({
-  baseURL: 'https://tu-dominio.com/api/v1',
-  headers: {
-    'X-Api-Key': 'TU_API_KEY',
-    Accept: 'application/json',
-  },
-});
-
-const respuesta = await client.get('/inmuebles');
-console.log(respuesta.data);
-```
-
-## 5. Autenticación con Bearer token paso a paso 🪪
-
-1. Envía una petición `POST /api/v1/auth/token` con `email` y `password` válidos. El controlador valida las credenciales usando el guard `web` y, si son correctas, emite un token HS256 con el ID del usuario como `sub`.【F:routes/api.php†L10-L18】【F:app/Http/Controllers/Api/AuthenticationController.php†L17-L41】
-
-2. Conserva el `access_token` de la respuesta y úsalo dentro del tiempo configurado en `API_JWT_TTL`.【F:app/Http/Controllers/Api/AuthenticationController.php†L33-L41】
-
-3. Añade la cabecera `Authorization: Bearer <token>` en cada solicitud protegida.
-
-### Ejemplo con curl
+### 1.3 Usar API Key
 
 ```bash
-curl \
-  -H "Authorization: Bearer TU_TOKEN" \
+curl -H "X-Api-Key: TU_API_KEY" \
   -H "Accept: application/json" \
-  https://tu-dominio.com/api/v1/inmuebles/123
+  https://tu-dominio.com/api/v1/inmuebles
 ```
 
-### Ejemplo con axios
+Si no envías credenciales válidas, el API responde `401 Unauthorized`.
 
-```js
-import axios from 'axios';
+---
 
-const client = axios.create({
-  baseURL: 'https://tu-dominio.com/api/v1',
-  headers: {
-    Authorization: 'Bearer TU_TOKEN',
-    Accept: 'application/json',
+## 2) Endpoints de Inmuebles
+
+## 2.1 Listar inmuebles
+
+**Endpoint**
+
+`GET /api/v1/inmuebles`
+
+**Query params opcionales**
+
+- `search` (string, máx 255)
+- `page` (int >= 1)
+- `limit` (int 1..100, default 20)
+- `operacion` (uno de los valores permitidos por el modelo)
+- `estatus` (id existente en `inmueble_statuses`)
+- `destacado` (`true` / `false`)
+
+**Notas**
+
+- Ordena por `destacado DESC` y luego `updated_at DESC`.
+- Incluye un objeto `filters` en la respuesta con los filtros aplicados.
+
+### 2.2 Obtener inmueble por ID
+
+**Endpoint**
+
+`GET /api/v1/inmuebles/{inmueble}`
+
+Retorna el recurso completo del inmueble (incluyendo imágenes, estatus y restricciones).
+
+### 2.3 Buscar inmueble por slug
+
+**Endpoint**
+
+`GET /api/v1/inmuebles/search-by-slug/{slug}`
+
+**Respuesta 404 (si no existe):**
+
+```json
+{
+  "message": "No se encontró un inmueble con el slug proporcionado."
+}
+```
+
+---
+
+## 3) Endpoints de Contactos
+
+## 3.1 Listar contactos
+
+**Endpoint**
+
+`GET /api/v1/contactos`
+
+**Query params opcionales**
+
+- `telefono` (string, máx 30)
+- `email` (email)
+- `nombre` (string)
+- `limit` (int 1..100, default 15)
+
+**Notas**
+
+- Devuelve paginado.
+- Incluye `latestComment` y `latestInterest`.
+
+### 3.2 Crear contacto
+
+**Endpoint**
+
+`POST /api/v1/contactos`
+
+**Body (JSON)**
+
+```json
+{
+  "nombre": "Juan Pérez",
+  "email": "juan@example.com",
+  "telefono": "5512345678",
+  "estado": "nuevo",
+  "fuente": "web"
+}
+```
+
+**Validación importante**
+
+- `nombre`: requerido
+- `telefono`: opcional, pero único en `contactos`
+
+**Respuesta:** `201 Created`.
+
+### 3.3 Ver contacto por ID
+
+**Endpoint**
+
+`GET /api/v1/contactos/{contact}`
+
+Incluye comentarios, interacciones IA e intereses (ordenados por más reciente).
+
+### 3.4 Actualizar contacto completo
+
+**Endpoint**
+
+`PUT/PATCH /api/v1/contactos/{contact}`
+
+**Body (JSON)**
+
+```json
+{
+  "nombre": "Juan Pérez",
+  "email": "juan@nuevo.com",
+  "telefono": "5512345678",
+  "estado": "en_contacto",
+  "fuente": "whatsapp"
+}
+```
+
+`nombre` es requerido también al actualizar.
+
+### 3.5 Actualizar estado del contacto
+
+**Endpoint**
+
+`PUT/PATCH /api/v1/contactos/{contact}/estado`
+
+**Body (JSON)**
+
+```json
+{
+  "estado": "convertido"
+}
+```
+
+**Valores permitidos para `estado`**
+
+- `nuevo`
+- `en_contacto`
+- `convertido`
+- `rechazado`
+- `rejected`
+- `reject`
+- `block`
+- `blocked`
+
+### 3.6 Registrar interés de contacto en inmueble
+
+**Endpoint**
+
+`POST /api/v1/contactos/{contact}/intereses`
+
+**Body (JSON)**
+
+```json
+{
+  "inmueble_id": 123
+}
+```
+
+Si el interés ya existe para ese contacto + inmueble, se refresca su fecha de creación.
+
+---
+
+## 4) Comentarios de contacto
+
+## 4.1 Listar comentarios
+
+`GET /api/v1/contactos/{contact}/comentarios`
+
+### 4.2 Crear comentario
+
+`POST /api/v1/contactos/{contact}/comentarios`
+
+**Body (JSON)**
+
+```json
+{
+  "comentario": "Se llamó y pidió más información",
+  "created_at": "2025-10-10 12:00:00"
+}
+```
+
+- `created_at` es opcional.
+- Respuesta: `201 Created`.
+
+### 4.3 Actualizar comentario
+
+`PUT/PATCH /api/v1/contactos/{contact}/comentarios/{comentario}`
+
+**Body (JSON)**
+
+```json
+{
+  "comentario": "Comentario actualizado"
+}
+```
+
+Si el comentario no pertenece al contacto enviado en la URL, responde `404`.
+
+---
+
+## 5) Interacciones IA de contacto
+
+## 5.1 Listar interacciones IA
+
+`GET /api/v1/contactos/{contact}/interacciones-ia`
+
+### 5.2 Crear interacción IA
+
+`POST /api/v1/contactos/{contact}/interacciones-ia`
+
+**Body (JSON)**
+
+```json
+{
+  "payload": {
+    "role": "assistant",
+    "message": "Hola, te ayudo con propiedades en tu zona"
   },
-});
-
-const respuesta = await client.get('/inmuebles/123');
-console.log(respuesta.data);
+  "created_at": "2025-10-10 12:00:00"
+}
 ```
 
-## 6. Qué hace el sistema en cada solicitud ⚙️
+- `payload` es requerido y debe ser objeto/array JSON.
+- `created_at` es opcional.
+- Respuesta: `201 Created`.
 
-1. **Recibe la petición** y verifica primero si hay cabecera Bearer. Si existe, intenta decodificar el JWT con `ApiTokenService`.
-   - Valida formato (`header.payload.signature`), algoritmo HS256, firma y expiración antes de aceptar el token.【F:app/Services/ApiTokenService.php†L22-L72】
-   - Busca al usuario (`sub`) y, si existe, lo asigna como usuario autenticado de la petición.【F:app/Http/Middleware/AuthenticateApiRequest.php†L30-L45】
+### 5.3 Actualizar interacción IA
 
-2. **Si no hay Bearer, busca `X-Api-Key`.** Con el hash SHA-256 se localiza la clave persistida y se obtiene el usuario vinculado.【F:app/Http/Middleware/AuthenticateApiRequest.php†L46-L63】
+`PUT/PATCH /api/v1/contactos/{contact}/interacciones-ia/{interaccion}`
 
-3. **Sin credenciales válidas,** responde con `401 Unauthorized` y cabecera `WWW-Authenticate: Bearer` para indicar que se requiere autenticación.【F:app/Http/Middleware/AuthenticateApiRequest.php†L24-L33】
+**Body (JSON)**
 
-## 7. Consumir los endpoints disponibles 📡
+```json
+{
+  "payload": {
+    "role": "assistant",
+    "message": "Mensaje ajustado"
+  }
+}
+```
 
-Actualmente el API expone los recursos de inmuebles y contactos:
+Si la interacción no pertenece al contacto enviado en la URL, responde `404`.
 
-1. **Listado paginado:** `GET /api/v1/inmuebles`
-   - Acepta filtros `search`, `page`, `limit`, `operacion`, `estatus` y `destacado`, validados por `IndexInmuebleRequest` antes de ejecutar la consulta.【F:app/Http/Requests/Api/IndexInmuebleRequest.php†L15-L43】
-   - `InmuebleController@index` aplica los filtros sobre el modelo, ordena por destacados y fechas, y responde con un `JsonResource` que incluye metadatos de paginación y los filtros aplicados.【F:app/Http/Controllers/Api/InmuebleController.php†L13-L47】
+---
 
-2. **Detalle individual:** `GET /api/v1/inmuebles/{id}`
-   - Carga imágenes, estatus y demás atributos antes de serializar el recurso con `InmuebleResource`, que devuelve datos estructurados en JSON (precio formateado, amenidades, URLs, etc.).【F:app/Http/Controllers/Api/InmuebleController.php†L49-L55】【F:app/Http/Resources/InmuebleResource.php†L15-L46】
+## 6) Códigos de respuesta frecuentes
 
-3. **Búsqueda por slug:** `GET /api/v1/inmuebles/search-by-slug/{slug}`
-   - Usa el slug como identificador único para encontrar el inmueble exacto, evitando depender de la paginación del listado general.【F:routes/api.php†L16-L20】
-   - Retorna el mismo payload que el endpoint de detalle e incluye imágenes, estatus y demás atributos relevantes. Si el slug no existe responde con un `404` y un mensaje descriptivo.【F:app/Http/Controllers/Api/InmuebleController.php†L57-L73】
+- `200 OK`: consulta o actualización exitosa.
+- `201 Created`: creación exitosa.
+- `401 Unauthorized`: falta autenticación o credencial inválida.
+- `404 Not Found`: recurso no encontrado.
+- `422 Unprocessable Entity`: error de validación.
 
-### Contactos
+---
 
-1. **Registrar un contacto:** `POST /api/v1/contactos`
-   - Valida nombre, email, teléfono, estado y fuente mediante `StoreContactRequest` antes de persistir el registro.【F:routes/api.php†L23-L26】【F:app/Http/Requests/Api/StoreContactRequest.php†L9-L21】
-   - Devuelve el recurso recién creado en formato `ContactResource`.
+## 7) Recomendaciones operativas
 
-2. **Consultar un contacto:** `GET /api/v1/contactos/{id}`
-   - Incluye comentarios ordenados por fecha, interacciones con IA y el historial de intereses con su inmueble asociado. El recurso contiene además el último interés (`interes_reciente`) para facilitar integraciones con bots.【F:routes/api.php†L26-L27】【F:app/Http/Controllers/Api/ContactController.php†L39-L63】【F:app/Http/Resources/ContactResource.php†L17-L26】
-
-3. **Adjuntar un inmueble de interés:** `POST /api/v1/contactos/{id}/intereses`
-   - El `StoreContactInterestRequest` exige que `inmueble_id` esté presente y exista en la tabla `inmuebles` antes de crear o refrescar el registro.【F:routes/api.php†L32-L33】【F:app/Http/Requests/Api/StoreContactInterestRequest.php†L9-L19】
-   - Si el contacto ya tenía interés en el inmueble, la marca de tiempo `created_at` se actualiza para reflejar la interacción más reciente; de lo contrario, se crea un registro nuevo. La respuesta devuelve el `ContactResource` con los intereses ordenados y el inmueble cargado.【F:app/Http/Controllers/Api/ContactController.php†L65-L95】【F:app/Http/Resources/ContactInterestResource.php†L10-L19】
-
-4. **Actualizar el estado del contacto:** `PUT/PATCH /api/v1/contactos/{id}/estado`
-   - Usa `UpdateContactStatusRequest` para validar que el valor de `estado` esté dentro del enum permitido (`nuevo`, `en_contacto`, `convertido`, `rechazado`, `rejected`, `reject`, `block`, `blocked`) antes de guardar.【F:routes/api.php†L27-L30】【F:app/Http/Requests/Api/UpdateContactStatusRequest.php†L10-L26】
-   - `ContactController@updateStatus` solo persiste el cambio cuando el estado es diferente al actual y devuelve el `ContactResource` actualizado para evitar escrituras innecesarias.【F:app/Http/Controllers/Api/ContactController.php†L71-L85】
-
-## 7. Manejo de errores y caducidad 🚨
-
-- Los tokens JWT expiran según `API_JWT_TTL`. Debes solicitar uno nuevo cuando recibas un 401 debido a expiración.
-- Las API keys revocadas o inexistentes generan la misma respuesta 401.
-- El middleware registra excepciones de token inválido para su monitoreo (`report($exception)`), pero nunca expone detalles sensibles al consumidor final.【F:app/Http/Middleware/AuthenticateApiRequest.php†L34-L38】
-
-## 8. Buenas prácticas finales ✅
-
-- Mantén el secreto JWT y las API keys fuera de repositorios públicos.
-- Usa HTTPS en producción para proteger las credenciales en tránsito.
-- Revisa periódicamente la columna `last_used_at` para detectar claves obsoletas y revocarlas.
-
-Con estas instrucciones podrás preparar el entorno, emitir credenciales y consumir los endpoints del API de forma segura.
+- Usa siempre `Accept: application/json`.
+- En producción, usa HTTPS.
+- Rota y revoca API keys periódicamente.
+- Maneja reintentos en cliente para errores transitorios, pero no para `422`.
