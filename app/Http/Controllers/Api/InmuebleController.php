@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\IndexInmuebleRequest;
+use App\Http\Resources\InmuebleListingResource;
 use App\Http\Resources\InmuebleResource;
 use App\Models\Inmueble;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class InmuebleController extends Controller
 {
@@ -55,6 +57,25 @@ class InmuebleController extends Controller
         ]);
 
         return $collection->response();
+    }
+
+    public function availableListing(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'page' => ['nullable', 'integer', 'min:1'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        $perPage = (int) ($validated['limit'] ?? 20);
+
+        $paginator = Inmueble::query()
+            ->where('estatus_id', 1)
+            ->orderByDesc('destacado')
+            ->orderByDesc('updated_at')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        return InmuebleListingResource::collection($paginator)->response();
     }
 
     public function show(Inmueble $inmueble): JsonResponse

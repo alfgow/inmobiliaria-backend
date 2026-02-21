@@ -17,6 +17,8 @@ Route::middleware('api')
         Route::middleware('auth.api')->group(function (): void {
             Route::get('inmuebles', [InmuebleController::class, 'index'])
                 ->name('inmuebles.index');
+            Route::get('inmuebles/disponibles', [InmuebleController::class, 'availableListing'])
+                ->name('inmuebles.disponibles.index');
             Route::get('inmuebles/search-by-slug/{slug}', [InmuebleController::class, 'searchBySlug'])
                 ->name('inmuebles.search-by-slug');
             Route::get('inmuebles/{inmueble}', [InmuebleController::class, 'show'])

@@ -39,7 +39,7 @@ class IndexInmuebleRequest extends FormRequest
             'page' => ['nullable', 'integer', 'min:1'],
             'limit' => ['nullable', 'integer', 'min:1', 'max:100'],
             'operacion' => ['nullable', 'string', Rule::in(Inmueble::OPERACIONES)],
-            'estatus' => ['nullable', 'integer', 'exists:inmueble_statuses,id'],
+            'estatus' => ['nullable', 'integer', 'exists:inmueble_estatus,id'],
             'destacado' => ['nullable', 'boolean'],
         ];
     }
