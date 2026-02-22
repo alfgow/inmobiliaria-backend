@@ -54,11 +54,30 @@ class BotUserController extends Controller
             ->setStatusCode(201);
     }
 
-    public function show(BotUser $botUser): JsonResponse
+    public function show(string $botUser): JsonResponse
     {
-        $botUser->loadCount('chatHistories');
+        $model = BotUser::query()
+            ->where('session_id', $botUser)
+            ->orWhere('telefono_real', $botUser)
+            ->when(preg_replace('/\D+/', '', $botUser) !== '', function ($query) use ($botUser) {
+                $normalizedValue = preg_replace('/\D+/', '', $botUser);
+                $query->orWhereRaw(
+                    "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(session_id), 'whatsapp:', ''), '@c.us', ''), '+', ''), '-', ''), ' ', ''), '(', ''), ')', '') = ?",
+                    [$normalizedValue]
+                )->orWhereRaw(
+                    "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(telefono_real), 'whatsapp:', ''), '@c.us', ''), '+', ''), '-', ''), ' ', ''), '(', ''), ')', '') = ?",
+                    [$normalizedValue]
+                );
+            })
+            ->first();
 
-        return BotUserResource::make($botUser)->response();
+        if (! $model) {
+            return response()->json(null);
+        }
+
+        $model->loadCount('chatHistories');
+
+        return BotUserResource::make($model)->response();
     }
 
     public function update(UpdateBotUserRequest $request, BotUser $botUser): JsonResponse
