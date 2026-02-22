@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class BotUser extends Model
 {
@@ -55,5 +56,24 @@ class BotUser extends Model
     public function getRouteKeyName(): string
     {
         return 'session_id';
+    }
+
+    public function resolveRouteBinding($value, $field = null): ?Model
+    {
+        $field = $field ?? $this->getRouteKeyName();
+
+        $query = $this->newQuery()->where($field, $value);
+
+        if ($field === $this->getRouteKeyName()) {
+            $query->orWhere('telefono_real', $value);
+        }
+
+        $model = $query->first();
+
+        if (! $model) {
+            throw (new ModelNotFoundException())->setModel(static::class, [$value]);
+        }
+
+        return $model;
     }
 }
