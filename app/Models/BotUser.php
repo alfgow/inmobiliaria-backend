@@ -66,6 +66,20 @@ class BotUser extends Model
 
         if ($field === $this->getRouteKeyName()) {
             $query->orWhere('telefono_real', $value);
+
+            $normalizedValue = preg_replace('/\D+/', '', (string) $value);
+
+            if ($normalizedValue !== '') {
+                $query
+                    ->orWhereRaw(
+                        "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(session_id), 'whatsapp:', ''), '@c.us', ''), '+', ''), '-', ''), ' ', ''), '(', ''), ')', '') = ?",
+                        [$normalizedValue]
+                    )
+                    ->orWhereRaw(
+                        "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(telefono_real), 'whatsapp:', ''), '@c.us', ''), '+', ''), '-', ''), ' ', ''), '(', ''), ')', '') = ?",
+                        [$normalizedValue]
+                    );
+            }
         }
 
         $model = $query->first();
