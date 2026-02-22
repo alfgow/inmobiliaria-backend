@@ -91,6 +91,22 @@ class BotUserAndChatHistoryApiTest extends TestCase
             ->assertNoContent();
     }
 
+
+    public function test_bot_user_show_resolves_normalized_phone_identifiers(): void
+    {
+        $this->withoutMiddleware(AuthenticateApiRequest::class);
+
+        $this->postJson('/api/v1/bot-users', [
+            'session_id' => 'whatsapp:+52 155 5917-7781@c.us',
+            'status' => 'new',
+            'telefono_real' => '+52 (155) 5917-7781',
+        ])->assertCreated();
+
+        $this->getJson('/api/v1/bot-users/5215559177781')
+            ->assertOk()
+            ->assertJsonPath('data.session_id', 'whatsapp:+52 155 5917-7781@c.us');
+    }
+
     public function test_chat_histories_crud_endpoints_work(): void
     {
         $this->withoutMiddleware(AuthenticateApiRequest::class);
