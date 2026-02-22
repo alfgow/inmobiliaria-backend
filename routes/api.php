@@ -1,10 +1,12 @@
 <?php
 
 use App\Http\Controllers\Api\AuthenticationController;
+use App\Http\Controllers\Api\BotUserController;
 use App\Http\Controllers\Api\ContactCommentController;
 use App\Http\Controllers\Api\ContactController as ApiContactController;
 use App\Http\Controllers\Api\ContactIaInteractionController;
 use App\Http\Controllers\Api\InmuebleController;
+use App\Http\Controllers\Api\N8nChatHistoryController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('api')
@@ -51,5 +53,10 @@ Route::middleware('api')
                 ->name('contactos.interacciones-ia.store');
             Route::match(['put', 'patch'], 'contactos/{contact}/interacciones-ia/{interaccion}', [ContactIaInteractionController::class, 'update'])
                 ->name('contactos.interacciones-ia.update');
+
+            Route::apiResource('bot-users', BotUserController::class)
+                ->parameters(['bot-users' => 'botUser']);
+            Route::apiResource('chat-histories', N8nChatHistoryController::class)
+                ->parameters(['chat-histories' => 'chatHistory']);
         });
     });
