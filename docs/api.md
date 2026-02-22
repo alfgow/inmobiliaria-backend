@@ -320,3 +320,213 @@ Si la interacción no pertenece al contacto enviado en la URL, responde `404`.
 - En producción, usa HTTPS.
 - Rota y revoca API keys periódicamente.
 - Maneja reintentos en cliente para errores transitorios, pero no para `422`.
+
+---
+
+## 4) Endpoints de Bot Users
+
+### 4.1 Listar bot users
+
+**Endpoint**
+
+`GET /api/v1/bot-users`
+
+**Query params opcionales**
+
+- `status` (string)
+- `bot_status` (string)
+- `questionnaire_status` (string)
+- `session_id` (string parcial)
+- `telefono_real` (string parcial)
+- `nombre` (string parcial)
+- `limit` (int 1..100, default 20)
+
+### 4.2 Crear bot user
+
+**Endpoint**
+
+`POST /api/v1/bot-users`
+
+**Body (JSON)**
+
+```json
+{
+  "session_id": "5215559177781",
+  "status": "new",
+  "nombre": "Alfonso",
+  "telefono_real": "5215559177781",
+  "rol": "buyer",
+  "bot_status": "free"
+}
+```
+
+### 4.3 Obtener bot user por session_id
+
+**Endpoint**
+
+`GET /api/v1/bot-users/{session_id}`
+
+### 4.4 Actualizar bot user
+
+**Endpoint**
+
+`PUT/PATCH /api/v1/bot-users/{session_id}`
+
+### 4.5 Eliminar bot user
+
+**Endpoint**
+
+`DELETE /api/v1/bot-users/{session_id}`
+
+### 4.6 Buscar bot user por session o teléfono
+
+**Endpoint**
+
+`GET /api/v1/bot-users/session/{sessionId}`
+
+> Este endpoint intenta buscar primero por `session_id` exacto y, si no coincide, por `telefono_real` exacto.
+
+---
+
+## 5) Endpoints de Chat Histories (n8n)
+
+### 5.1 Listar chat histories
+
+**Endpoint**
+
+`GET /api/v1/chat-histories`
+
+**Query params opcionales**
+
+- `session_id` (exacta)
+- `limit` (int 1..100, default 20)
+
+### 5.2 Crear chat history
+
+**Endpoint**
+
+`POST /api/v1/chat-histories`
+
+**Body (JSON)**
+
+```json
+{
+  "session_id": "5215559177781",
+  "message": {
+    "role": "user",
+    "text": "Hola, quiero una casa en Puebla"
+  }
+}
+```
+
+### 5.3 Obtener chat history por ID
+
+**Endpoint**
+
+`GET /api/v1/chat-histories/{id}`
+
+### 5.4 Actualizar chat history
+
+**Endpoint**
+
+`PUT/PATCH /api/v1/chat-histories/{id}`
+
+### 5.5 Eliminar chat history
+
+**Endpoint**
+
+`DELETE /api/v1/chat-histories/{id}`
+
+---
+
+## 6) Ejemplos prácticos (curl)
+
+> Recuerda enviar autenticación (`Authorization: Bearer ...` o `X-Api-Key: ...`).
+
+### Bot Users
+
+```bash
+# Crear
+curl -X POST "https://tu-dominio.com/api/v1/bot-users" \
+  -H "Authorization: Bearer TU_TOKEN" \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "session_id": "5215559177781",
+    "status": "new",
+    "nombre": "Alfonso",
+    "telefono_real": "5215559177781",
+    "rol": "buyer"
+  }'
+
+# Listar
+curl "https://tu-dominio.com/api/v1/bot-users?status=new&limit=10" \
+  -H "Authorization: Bearer TU_TOKEN" \
+  -H "Accept: application/json"
+
+# Ver uno
+curl "https://tu-dominio.com/api/v1/bot-users/5215559177781" \
+  -H "Authorization: Bearer TU_TOKEN" \
+  -H "Accept: application/json"
+
+# Buscar por session_id o telefono_real
+curl "https://tu-dominio.com/api/v1/bot-users/session/5215559177781" \
+  -H "Authorization: Bearer TU_TOKEN" \
+  -H "Accept: application/json"
+
+# Actualizar
+curl -X PATCH "https://tu-dominio.com/api/v1/bot-users/5215559177781" \
+  -H "Authorization: Bearer TU_TOKEN" \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '{"status":"active","bot_status":"busy"}'
+
+# Eliminar
+curl -X DELETE "https://tu-dominio.com/api/v1/bot-users/5215559177781" \
+  -H "Authorization: Bearer TU_TOKEN" \
+  -H "Accept: application/json"
+```
+
+### Chat Histories
+
+```bash
+# Crear
+curl -X POST "https://tu-dominio.com/api/v1/chat-histories" \
+  -H "Authorization: Bearer TU_TOKEN" \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "session_id": "5215559177781",
+    "message": {
+      "role": "user",
+      "text": "Hola, quiero una casa en Puebla"
+    }
+  }'
+
+# Listar por sesión
+curl "https://tu-dominio.com/api/v1/chat-histories?session_id=5215559177781" \
+  -H "Authorization: Bearer TU_TOKEN" \
+  -H "Accept: application/json"
+
+# Ver uno
+curl "https://tu-dominio.com/api/v1/chat-histories/1" \
+  -H "Authorization: Bearer TU_TOKEN" \
+  -H "Accept: application/json"
+
+# Actualizar
+curl -X PATCH "https://tu-dominio.com/api/v1/chat-histories/1" \
+  -H "Authorization: Bearer TU_TOKEN" \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": {
+      "role": "assistant",
+      "text": "Te comparto opciones disponibles"
+    }
+  }'
+
+# Eliminar
+curl -X DELETE "https://tu-dominio.com/api/v1/chat-histories/1" \
+  -H "Authorization: Bearer TU_TOKEN" \
+  -H "Accept: application/json"
+```
