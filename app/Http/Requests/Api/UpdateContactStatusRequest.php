@@ -10,12 +10,10 @@ class UpdateContactStatusRequest extends FormRequest
     public const ESTADOS_VALIDOS = [
         'nuevo',
         'en_contacto',
-        'convertido',
-        'rechazado',
         'rejected',
-        'reject',
-        'block',
         'blocked',
+        'en_contacto_bot',
+        'prospectando',
     ];
 
     public function authorize(): bool
