@@ -29,6 +29,7 @@ class BotUser extends Model
         'bot_status',
         'rejected_count',
         'questionnaire_status',
+        'current_question_index',
         'property_id',
         'count_outcontext',
         'last_intencion',
@@ -41,6 +42,7 @@ class BotUser extends Model
     protected $casts = [
         'api_contact_id' => 'integer',
         'rejected_count' => 'integer',
+        'current_question_index' => 'integer',
         'count_outcontext' => 'integer',
         'veces_pidiendo_nombre' => 'integer',
         'veces_pidiendo_telefono' => 'integer',

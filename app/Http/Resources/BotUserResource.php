@@ -19,6 +19,7 @@ class BotUserResource extends JsonResource
             'bot_status' => $this->bot_status,
             'rejected_count' => $this->rejected_count,
             'questionnaire_status' => $this->questionnaire_status,
+            'current_question_index' => $this->current_question_index,
             'property_id' => $this->property_id,
             'count_outcontext' => $this->count_outcontext,
             'last_intencion' => $this->last_intencion,

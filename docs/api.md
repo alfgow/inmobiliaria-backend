@@ -356,7 +356,8 @@ Si la interacción no pertenece al contacto enviado en la URL, responde `404`.
   "nombre": "Alfonso",
   "telefono_real": "5215559177781",
   "rol": "buyer",
-  "bot_status": "free"
+  "bot_status": "free",
+  "current_question_index": 0
 }
 ```
 
@@ -448,7 +449,8 @@ curl -X POST "https://tu-dominio.com/api/v1/bot-users" \
     "status": "new",
     "nombre": "Alfonso",
     "telefono_real": "5215559177781",
-    "rol": "buyer"
+    "rol": "buyer",
+    "current_question_index": 0
   }'
 
 # Listar
@@ -466,7 +468,7 @@ curl -X PATCH "https://tu-dominio.com/api/v1/bot-users/5215559177781" \
   -H "Authorization: Bearer TU_TOKEN" \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
-  -d '{"status":"active","bot_status":"busy"}'
+  -d '{"status":"active","bot_status":"busy","current_question_index":4}'
 
 # Eliminar
 curl -X DELETE "https://tu-dominio.com/api/v1/bot-users/5215559177781" \

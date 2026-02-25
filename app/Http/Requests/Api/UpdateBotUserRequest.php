@@ -22,6 +22,7 @@ class UpdateBotUserRequest extends FormRequest
             'bot_status' => ['sometimes', 'string', 'max:32'],
             'rejected_count' => ['sometimes', 'integer', 'min:0'],
             'questionnaire_status' => ['sometimes', 'string', 'max:32'],
+            'current_question_index' => ['sometimes', 'nullable', 'integer', 'min:0'],
             'property_id' => ['sometimes', 'nullable', 'string', 'max:64'],
             'count_outcontext' => ['sometimes', 'integer', 'min:0'],
             'last_intencion' => ['sometimes', 'nullable', 'string', 'max:64'],

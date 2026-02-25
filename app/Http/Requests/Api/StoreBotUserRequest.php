@@ -23,6 +23,7 @@ class StoreBotUserRequest extends FormRequest
             'bot_status' => ['nullable', 'string', 'max:32'],
             'rejected_count' => ['nullable', 'integer', 'min:0'],
             'questionnaire_status' => ['nullable', 'string', 'max:32'],
+            'current_question_index' => ['nullable', 'integer', 'min:0'],
             'property_id' => ['nullable', 'string', 'max:64'],
             'count_outcontext' => ['nullable', 'integer', 'min:0'],
             'last_intencion' => ['nullable', 'string', 'max:64'],
