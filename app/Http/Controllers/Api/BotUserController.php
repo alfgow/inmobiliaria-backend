@@ -56,19 +56,25 @@ class BotUserController extends Controller
 
     public function show(string $botUser): JsonResponse
     {
+        $normalizedValue = preg_replace('/\D+/', '', $botUser);
+        $normalizedExpression = "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(%s), 'whatsapp:', ''), '@c.us', ''), '+', ''), '-', ''), ' ', ''), '(', ''), ')', '')";
+
         $model = BotUser::query()
             ->where('session_id', $botUser)
             ->orWhere('telefono_real', $botUser)
-            ->when(preg_replace('/\D+/', '', $botUser) !== '', function ($query) use ($botUser) {
-                $normalizedValue = preg_replace('/\D+/', '', $botUser);
+            ->when($normalizedValue !== '', function ($query) use ($normalizedValue, $normalizedExpression) {
                 $query->orWhereRaw(
-                    "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(session_id), 'whatsapp:', ''), '@c.us', ''), '+', ''), '-', ''), ' ', ''), '(', ''), ')', '') = ?",
+                    sprintf($normalizedExpression, 'session_id')." = ?",
                     [$normalizedValue]
                 )->orWhereRaw(
-                    "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(LOWER(telefono_real), 'whatsapp:', ''), '@c.us', ''), '+', ''), '-', ''), ' ', ''), '(', ''), ')', '') = ?",
+                    sprintf($normalizedExpression, 'telefono_real')." = ?",
                     [$normalizedValue]
                 );
             })
+            ->orderByRaw(
+                'CASE WHEN session_id = ? THEN 1 WHEN telefono_real = ? THEN 2 ELSE 3 END',
+                [$botUser, $botUser]
+            )
             ->first();
 
         if (! $model) {
