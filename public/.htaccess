@@ -1,18 +1,16 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Pass Authorization header to PHP
-    RewriteCond %{HTTP:Authorization} .
+    # Manejar Authorization header
+    RewriteCond %{HTTP:Authorization} !^$
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-    # Pass X-XSRF-Token header to PHP (formato Apache compatible)
-    RewriteCond %{HTTP:X-XSRF-TOKEN} .
+    # Manejar X-XSRF-TOKEN header - versión corregida
+    RewriteCond %{HTTP:X-XSRF-TOKEN} !^$
     RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-TOKEN}]
 
-    # Skip if already a real file or directory
+    # Redireccionar a index.php si no es archivo/directorio real
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-
-    # Send everything to Laravel front controller
-    RewriteRule ^ index.php [L]
+    RewriteRule ^ index.php [QSA,L]
 </IfModule>
