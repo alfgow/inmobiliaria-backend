@@ -52,6 +52,14 @@
         border-color: var(--color-slate-200, currentColor);
     }
 
+    .dark *,
+    .dark ::after,
+    .dark ::before,
+    .dark ::backdrop,
+    .dark ::file-selector-button {
+        border-color: var(--color-slate-700, currentColor);
+    }
+
     body {
         font-family: var(--font-sans);
     }
@@ -60,27 +68,27 @@
 @layer components {
     /* Card component */
     .card {
-        @apply bg-white rounded-2xl border border-slate-100 shadow-sm;
+        @apply bg-white rounded-2xl border border-slate-100 shadow-sm dark:bg-slate-800 dark:border-slate-700;
     }
 
     /* Button primary */
     .btn-primary {
-        @apply inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm shadow-md shadow-blue-200 transition-all active:scale-95;
+        @apply inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm shadow-md shadow-blue-200 transition-all active:scale-95 dark:shadow-blue-900/30;
     }
 
     /* Button secondary */
     .btn-secondary {
-        @apply inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all;
+        @apply inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all dark:bg-slate-800 dark:text-slate-200 dark:border-slate-600 dark:hover:bg-slate-700;
     }
 
     /* Input field */
     .input-field {
-        @apply w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 transition-all;
+        @apply w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 transition-all dark:bg-slate-900 dark:border-slate-600 dark:text-slate-200 dark:placeholder-slate-500 dark:focus:ring-blue-900/50 dark:focus:border-blue-600;
     }
 
     /* KPI Card */
     .kpi-card {
-        @apply bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow;
+        @apply bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow dark:bg-slate-800 dark:border-slate-700;
     }
 }
 
@@ -99,7 +107,13 @@ select:focus[data-flux-control] {
     @apply outline-hidden ring-2 ring-blue-500 ring-offset-2 ring-offset-white;
 }
 
-/* Custom scrollbar */
+.dark input:focus[data-flux-control],
+.dark textarea:focus[data-flux-control],
+.dark select:focus[data-flux-control] {
+    @apply ring-offset-slate-900;
+}
+
+/* Custom scrollbar - Light mode */
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -116,6 +130,19 @@ select:focus[data-flux-control] {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
+}
+
+/* Custom scrollbar - Dark mode */
+.dark ::-webkit-scrollbar-track {
+    background: #1e293b;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: #475569;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
 }
 
 /* Property marker for maps */
@@ -205,4 +232,14 @@ select:focus[data-flux-control] {
 
 .animate-slide-up {
     animation: slideInFromBottom 0.5s ease-out;
+}
+
+/* Map popup dark mode support */
+.dark .leaflet-popup-content-wrapper {
+    background-color: #1e293b;
+    color: #f1f5f9;
+}
+
+.dark .leaflet-popup-tip {
+    background-color: #1e293b;
 }

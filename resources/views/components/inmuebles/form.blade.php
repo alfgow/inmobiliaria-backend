@@ -17,22 +17,22 @@
     $selectedMunicipio = old('municipio', optional($inmueble)->municipio);
     $selectedEstado = old('estado', optional($inmueble)->estado);
 
-    $formControlClasses = 'w-full rounded-2xl border border-gray-700/70 bg-gray-900/60 px-4 py-3 text-gray-100 placeholder-gray-500 shadow-sm shadow-black/20 transition duration-200 ease-out focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40';
+    $formControlClasses = 'w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 placeholder-slate-400 shadow-sm transition duration-200 ease-out focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:placeholder-slate-500 dark:focus:border-blue-500 dark:focus:ring-blue-900/50';
     $selectControlClasses = $formControlClasses . ' pr-10 appearance-none';
     $textareaControlClasses = $formControlClasses . ' min-h-[3rem]';
 @endphp
 
 <div class="space-y-10">
-    <section class="rounded-3xl border border-white/5 bg-gradient-to-br from-gray-950/90 via-gray-900/70 to-gray-950/80 p-8 shadow-2xl shadow-black/40 backdrop-blur">
+    <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
         <div class="space-y-6">
             <div>
-                <h2 class="text-lg font-semibold text-gray-100">Información general</h2>
-                <p class="text-sm text-gray-400">Agrega los datos principales del inmueble que se mostrarán en la ficha pública.</p>
+                <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">Información general</h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Agrega los datos principales del inmueble que se mostrarán en la ficha pública.</p>
             </div>
 
             <div class="grid gap-6 lg:grid-cols-12">
                 <div class="space-y-3 lg:col-span-7">
-                    <label for="titulo" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Título *</label>
+                    <label for="titulo" class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Título *</label>
                     <input
                         type="text"
                         id="titulo"
@@ -43,14 +43,14 @@
                         required
                     >
                     @error('titulo')
-                        <p class="text-sm text-red-400">{{ $message }}</p>
+                        <p class="text-sm text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div class="space-y-3 lg:col-span-5">
-                    <label for="precio" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Precio *</label>
+                    <label for="precio" class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Precio *</label>
                     <div class="relative">
-                        <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-500">$</span>
+                        <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400 dark:text-slate-500">$</span>
                         <input
                             type="number"
                             step="0.01"
@@ -63,7 +63,7 @@
                         >
                     </div>
                     @error('precio')
-                        <p class="text-sm text-red-400">{{ $message }}</p>
+                        <p class="text-sm text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
             </div>
@@ -71,7 +71,7 @@
             <!-- Dirección -->
             <div class="grid gap-6 lg:grid-cols-12">
                 <div class="space-y-3 lg:col-span-12">
-                    <label for="direccion" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Dirección *</label>
+                    <label for="direccion" class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Dirección *</label>
                     <input
                         type="text"
                         id="direccion"
@@ -82,7 +82,7 @@
                         required
                     >
                     @error('direccion')
-                        <p class="text-sm text-red-400">{{ $message }}</p>
+                        <p class="text-sm text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
             </div>
@@ -92,7 +92,7 @@
                     <div
                         id="inmueble-map"
                         data-postal-resolve-url="{{ route('codigos-postales.resolve') }}"
-                        class="h-64 w-full rounded-3xl border border-white/10 bg-gray-900/40 shadow-inner shadow-black/30"
+                        class="h-64 w-full rounded-3xl border border-slate-200 bg-slate-100 shadow-inner dark:border-slate-600 dark:bg-slate-900"
                     ></div>
                     <input
                         type="hidden"
@@ -105,10 +105,10 @@
                         value="{{ old('longitud', optional($inmueble)->longitud) }}"
                     >
                     @error('latitud')
-                        <p class="text-sm text-red-400">{{ $message }}</p>
+                        <p class="text-sm text-red-500">{{ $message }}</p>
                     @enderror
                     @error('longitud')
-                        <p class="text-sm text-red-400">{{ $message }}</p>
+                        <p class="text-sm text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
             </div>
@@ -121,7 +121,7 @@
             >
                 <div class="grid gap-6 lg:grid-cols-12">
                     <div class="space-y-3 lg:col-span-6">
-                        <label for="codigo_postal" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">C.P.</label>
+                        <label for="codigo_postal" class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">C.P.</label>
                         <div
                             class="space-y-2"
                             data-searchable-select
@@ -139,12 +139,12 @@
                             </select>
                         </div>
                         @error('codigo_postal')
-                            <p class="text-sm text-red-400">{{ $message }}</p>
+                            <p class="text-sm text-red-500">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div class="space-y-3 lg:col-span-6">
-                        <label for="colonia" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Colonia</label>
+                        <label for="colonia" class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Colonia</label>
                         <div
                             class="space-y-2"
                             data-searchable-select
@@ -162,7 +162,7 @@
                             </select>
                         </div>
                         @error('colonia')
-                            <p class="text-sm text-red-400">{{ $message }}</p>
+                            <p class="text-sm text-red-500">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
@@ -170,7 +170,7 @@
                 <!-- Municipio + Estado -->
                 <div class="grid gap-6 lg:grid-cols-12">
                     <div class="space-y-3 lg:col-span-6">
-                        <label for="municipio" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Municipio</label>
+                        <label for="municipio" class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Municipio</label>
                         <div
                             class="space-y-2"
                             data-searchable-select
@@ -188,12 +188,12 @@
                             </select>
                         </div>
                         @error('municipio')
-                            <p class="text-sm text-red-400">{{ $message }}</p>
+                            <p class="text-sm text-red-500">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div class="space-y-3 lg:col-span-6">
-                        <label for="estado" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Estado</label>
+                        <label for="estado" class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Estado</label>
                         <div
                             class="space-y-2"
                             data-searchable-select
@@ -211,7 +211,7 @@
                             </select>
                         </div>
                         @error('estado')
-                            <p class="text-sm text-red-400">{{ $message }}</p>
+                            <p class="text-sm text-red-500">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
@@ -220,7 +220,7 @@
            
             <div class="grid gap-5 {{ $showStatusSelector ? 'lg:grid-cols-3' : 'lg:grid-cols-2' }}">
                 <div class="space-y-3">
-                    <label for="tipo" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Tipo *</label>
+                    <label for="tipo" class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Tipo *</label>
                     <select
                         id="tipo"
                         name="tipo"
@@ -233,12 +233,12 @@
                         @endforeach
                     </select>
                     @error('tipo')
-                        <p class="text-sm text-red-400">{{ $message }}</p>
+                        <p class="text-sm text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div class="space-y-3">
-                    <label for="operacion" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Operación *</label>
+                    <label for="operacion" class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Operación *</label>
                     <select
                         id="operacion"
                         name="operacion"
@@ -251,13 +251,13 @@
                         @endforeach
                     </select>
                     @error('operacion')
-                        <p class="text-sm text-red-400">{{ $message }}</p>
+                        <p class="text-sm text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
 
                 @if ($showStatusSelector)
                     <div class="space-y-3">
-                        <label for="estatus_id" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Estatus *</label>
+                        <label for="estatus_id" class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Estatus *</label>
                         <select
                             id="estatus_id"
                             name="estatus_id"
@@ -277,7 +277,7 @@
                             @endforeach
                         </select>
                         @error('estatus_id')
-                            <p class="text-sm text-red-400">{{ $message }}</p>
+                            <p class="text-sm text-red-500">{{ $message }}</p>
                         @enderror
                     </div>
                 @endif
@@ -309,7 +309,7 @@
             </div>
 
             <div class="space-y-3">
-                <label for="descripcion" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Descripción</label>
+                <label for="descripcion" class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Descripción</label>
                 <textarea
                     id="descripcion"
                     name="descripcion"
@@ -318,12 +318,12 @@
                     placeholder="Cuenta la historia del inmueble, puntos fuertes y contexto del vecindario"
                 >{{ old('descripcion', optional($inmueble)->descripcion) }}</textarea>
                 @error('descripcion')
-                    <p class="text-sm text-red-400">{{ $message }}</p>
+                    <p class="text-sm text-red-500">{{ $message }}</p>
                 @enderror
             </div>
 
             <div class="space-y-2">
-                <label for="inmuebles24_url" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Enlace de Inmuebles24</label>
+                <label for="inmuebles24_url" class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Enlace de Inmuebles24</label>
                 <div class="flex flex-col gap-3 sm:flex-row">
                     <input
                         type="url"
@@ -336,17 +336,17 @@
                     <button
                         type="button"
                         id="extract-inmuebles24-id"
-                        class="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-900/30 transition hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-950"
+                        class="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-md shadow-blue-200 transition hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:ring-offset-2 dark:shadow-blue-900/30"
                     >
                         Extraer ID
                     </button>
                 </div>
-                <p class="text-xs text-gray-500">Pega el enlace completo y extraeremos automáticamente el ID numérico antes de .html.</p>
-                <p class="text-xs text-indigo-300 hidden" data-i24-feedback></p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Pega el enlace completo y extraeremos automáticamente el ID numérico antes de .html.</p>
+                <p class="text-xs text-blue-600 hidden dark:text-blue-400" data-i24-feedback></p>
             </div>
 
             <div class="space-y-2">
-                <label for="tags" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Tags</label>
+                <label for="tags" class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Tags</label>
                 <input
                     type="text"
                     id="tags"
@@ -355,22 +355,22 @@
                     placeholder="Ej. Familiar, Pet friendly, Céntrico"
                     class="{{ $formControlClasses }}"
                 >
-                <p class="text-xs text-gray-500">Separa cada etiqueta con una coma para organizarlas fácilmente.</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Separa cada etiqueta con una coma para organizarlas fácilmente.</p>
                 @error('tags')
-                    <p class="text-sm text-red-400">{{ $message }}</p>
+                    <p class="text-sm text-red-500">{{ $message }}</p>
                 @enderror
             </div>
         </div>
     </section>
 
-    <section class="rounded-3xl border border-white/5 bg-gradient-to-br from-gray-950/90 via-gray-900/70 to-gray-950/80 p-8 shadow-2xl shadow-black/40 backdrop-blur">
+    <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
         <div class="space-y-6">
             <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h2 class="text-lg font-semibold text-gray-100">Características</h2>
-                    <p class="text-sm text-gray-400">Detalle los elementos que ayudan a tomar decisiones rápidas.</p>
+                    <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">Características</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Detalle los elementos que ayudan a tomar decisiones rápidas.</p>
                 </div>
-                <label for="destacado" class="flex items-center justify-between gap-4 text-sm font-medium text-gray-300 cursor-pointer">
+                <label for="destacado" class="flex items-center justify-between gap-4 text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
     <span class="whitespace-nowrap">Destacar inmueble en listados</span>
     
     <input type="hidden" name="destacado" value="0">
@@ -385,7 +385,7 @@
         @checked(old('destacado', optional($inmueble)->destacado) == 1)
         class="peer sr-only"
     />
-    <div class="w-11 h-6 bg-gray-600 rounded-full peer-checked:bg-green-500 relative transition peer-checked:[&>.toggle-knob]:translate-x-5">
+    <div class="w-11 h-6 bg-slate-300 rounded-full peer-checked:bg-green-500 relative transition dark:bg-slate-600 peer-checked:[&>.toggle-knob]:translate-x-5">
         <!-- Bolita -->
         <div class="toggle-knob w-5 h-5 bg-white rounded-full absolute left-0.5 top-0.5 transform transition"></div>
     </div>
@@ -409,7 +409,7 @@
 
                 @foreach ($featureFields as $field)
                     <div class="space-y-3">
-                        <label for="{{ $field['id'] }}" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">{{ $field['label'] }}</label>
+                        <label for="{{ $field['id'] }}" class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{{ $field['label'] }}</label>
                         <input
                             type="number"
                             @if (isset($field['step'])) step="{{ $field['step'] }}" @endif
@@ -420,7 +420,7 @@
                             class="{{ $formControlClasses }}"
                         >
                         @error($field['id'])
-                            <p class="text-sm text-red-400">{{ $message }}</p>
+                            <p class="text-sm text-red-500">{{ $message }}</p>
                         @enderror
                     </div>
                 @endforeach
@@ -428,7 +428,7 @@
 
             <div class="grid gap-5 lg:grid-cols-2">
                 <div class="space-y-3">
-                    <label for="video_url" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Video del inmueble</label>
+                    <label for="video_url" class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Video del inmueble</label>
                     <input
                         type="url"
                         id="video_url"
@@ -438,12 +438,12 @@
                         class="{{ $formControlClasses }}"
                     >
                     @error('video_url')
-                        <p class="text-sm text-red-400">{{ $message }}</p>
+                        <p class="text-sm text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div class="space-y-3">
-                    <label for="tour_virtual_url" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Tour virtual</label>
+                    <label for="tour_virtual_url" class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Tour virtual</label>
                     <input
                         type="url"
                         id="tour_virtual_url"
@@ -453,17 +453,17 @@
                         class="{{ $formControlClasses }}"
                     >
                     @error('tour_virtual_url')
-                        <p class="text-sm text-red-400">{{ $message }}</p>
+                        <p class="text-sm text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="rounded-3xl border border-white/5 bg-gradient-to-br from-gray-950/90 via-gray-900/70 to-gray-950/80 p-8 shadow-2xl shadow-black/40 backdrop-blur">
+    <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
         <div class="grid gap-6 lg:grid-cols-2">
             <div class="space-y-3">
-                <label for="amenidades" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Amenidades destacadas</label>
+                <label for="amenidades" class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Amenidades destacadas</label>
                 <textarea
                     id="amenidades"
                     name="amenidades"
@@ -472,12 +472,12 @@
                     class="{{ $textareaControlClasses }}"
                 >{{ $amenidadesText }}</textarea>
                 @error('amenidades')
-                    <p class="text-sm text-red-400">{{ $message }}</p>
+                    <p class="text-sm text-red-500">{{ $message }}</p>
                 @enderror
             </div>
 
             <div class="space-y-3">
-                <label for="extras" class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Extras o notas internas</label>
+                <label for="extras" class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Extras o notas internas</label>
                 <textarea
                     id="extras"
                     name="extras"
@@ -486,17 +486,17 @@
                     class="{{ $textareaControlClasses }}"
                 >{{ $extrasText }}</textarea>
                 @error('extras')
-                    <p class="text-sm text-red-400">{{ $message }}</p>
+                    <p class="text-sm text-red-500">{{ $message }}</p>
                 @enderror
             </div>
         </div>
     </section>
 
-    <section class="rounded-3xl border border-white/5 bg-gradient-to-br from-gray-950/90 via-gray-900/70 to-gray-950/80 p-8 shadow-2xl shadow-black/40 backdrop-blur">
+    <section class="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
         <div class="space-y-4">
             <div>
-                <h2 class="text-lg font-semibold text-gray-100">Galería</h2>
-                <p class="text-sm text-gray-400">Sube hasta 10 fotografías en formato JPG o PNG. Las primeras se mostrarán como portada.</p>
+                <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">Galería</h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400">Sube hasta 10 fotografías en formato JPG o PNG. Las primeras se mostrarán como portada.</p>
             </div>
 
             <div class="space-y-3">
@@ -510,7 +510,7 @@
                     class="sr-only"
                 >
                 <div
-                    class="flex cursor-pointer flex-col gap-6 rounded-2xl border border-dashed border-gray-700/70 bg-gray-900/60 px-6 py-8 text-center transition duration-200 hover:border-indigo-400/70 hover:bg-gray-900/70 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 focus:ring-offset-2 focus:ring-offset-gray-950"
+                    class="flex cursor-pointer flex-col gap-6 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-8 text-center transition duration-200 hover:border-blue-400 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:border-slate-600 dark:bg-slate-900 dark:hover:border-blue-500 dark:hover:bg-slate-800"
                     data-gallery-dropzone
                     role="button"
                     tabindex="0"
@@ -518,15 +518,15 @@
                     aria-label="Agregar imágenes a la galería"
                 >
                     <div class="flex flex-col items-center justify-center gap-4" data-gallery-empty-state>
-                        <div class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-800/80 text-indigo-300 shadow-lg shadow-black/30">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600 shadow-sm dark:bg-blue-900/30 dark:text-blue-400">
                             <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5m-15 12.75h13.5A1.5 1.5 0 0 0 20.25 18V6a1.5 1.5 0 0 0-1.5-1.5H5.25A1.5 1.5 0 0 0 3.75 6v12a1.5 1.5 0 0 0 1.5 1.5Zm5.25-3.75h4.5a1.5 1.5 0 0 0 1.29-2.295l-2.25-3.75a1.5 1.5 0 0 0-2.58 0l-2.25 3.75A1.5 1.5 0 0 0 9 15.75Z" />
                             </svg>
                         </div>
-                        <p class="text-sm font-medium text-gray-200">Haz clic para seleccionar tus fotos</p>
+                        <p class="text-sm font-medium text-slate-700 dark:text-slate-200">Haz clic para seleccionar tus fotos</p>
                     </div>
                     <div class="hidden w-full space-y-3 text-left" data-gallery-previews-wrapper>
-                        <p class="text-xs text-gray-400">Arrastra las fotos para cambiar el orden. La primera será la portada.</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Arrastra las fotos para cambiar el orden. La primera será la portada.</p>
                         <div
                             class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
                             data-gallery-previews-container
@@ -534,19 +534,19 @@
                         >
                             <template data-gallery-preview-template>
                                 <div
-                                    class="group relative flex cursor-grab flex-col gap-3 rounded-xl border border-gray-800/70 bg-gray-900/70 p-3 shadow-lg shadow-black/30 transition duration-200 hover:border-indigo-400/70 hover:shadow-indigo-500/20"
+                                    class="group relative flex cursor-grab flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition duration-200 hover:border-blue-400 dark:border-slate-600 dark:bg-slate-800 dark:hover:border-blue-500"
                                     data-gallery-preview
                                 >
                                     <div class="absolute right-2 top-2 z-20 flex items-center gap-2">
                                         <span
-                                            class="hidden rounded-full bg-indigo-500 px-2 py-0.5 text-[10px] font-semibold text-white shadow-lg shadow-indigo-500/40"
+                                            class="hidden rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-semibold text-white shadow-sm"
                                             data-gallery-cover-badge
                                         >
                                             Portada
                                         </span>
                                         <button
                                             type="button"
-                                            class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/80 text-sm text-red-200 shadow-lg shadow-black/40 transition duration-150 hover:bg-black/70 hover:text-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
+                                            class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-800 text-sm text-red-200 shadow-sm transition duration-150 hover:bg-slate-700 hover:text-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70 dark:bg-slate-900"
                                             aria-label="Eliminar imagen"
                                             data-gallery-remove
                                         >
@@ -556,7 +556,7 @@
                                         </button>
                                     </div>
 
-                                    <div class="relative flex h-32 items-center justify-center overflow-hidden rounded-lg bg-gray-850/80 text-sm text-gray-400">
+                                    <div class="relative flex h-32 items-center justify-center overflow-hidden rounded-lg bg-slate-100 text-sm text-slate-400 dark:bg-slate-900">
                                         <div data-gallery-loading>Procesando vista previa...</div>
                                         <img
                                             data-gallery-preview-image
@@ -572,8 +572,8 @@
                                     </div>
 
                                     <div class="flex flex-col gap-1 text-left text-xs">
-                                        <span class="truncate font-medium text-gray-100" data-gallery-filename></span>
-                                        <span class="text-[11px] text-gray-400">Arrastra para reordenar</span>
+                                        <span class="truncate font-medium text-slate-800 dark:text-slate-200" data-gallery-filename></span>
+                                        <span class="text-[11px] text-slate-400 dark:text-slate-500">Arrastra para reordenar</span>
                                     </div>
                                 </div>
                             </template>
@@ -581,7 +581,7 @@
                     </div>
                     <button
                         type="button"
-                        class="inline-flex items-center gap-2 self-center rounded-full bg-indigo-500/15 px-4 py-1.5 text-xs font-semibold text-indigo-100 transition duration-200 hover:bg-indigo-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-950"
+                        class="inline-flex items-center gap-2 self-center rounded-full bg-blue-100 px-4 py-1.5 text-xs font-semibold text-blue-700 transition duration-200 hover:bg-blue-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50"
                         data-gallery-add-more
                         aria-disabled="false"
                     >
@@ -590,23 +590,23 @@
                         </svg>
                         <span data-gallery-add-more-label>Seleccionar imágenes</span>
                     </button>
-                    <p class="text-xs text-gray-400 transition-colors" data-gallery-counter>0 de 10 imágenes seleccionadas</p>
-                    <p class="text-xs text-gray-500">Formatos permitidos: JPG y PNG</p>
+                    <p class="text-xs text-slate-500 transition-colors dark:text-slate-400" data-gallery-counter>0 de 10 imágenes seleccionadas</p>
+                    <p class="text-xs text-slate-400 dark:text-slate-500">Formatos permitidos: JPG y PNG</p>
                 </div>
                 @error('imagenes')
-                    <p class="text-sm text-red-400">{{ $message }}</p>
+                    <p class="text-sm text-red-500">{{ $message }}</p>
                 @enderror
                 @error('imagenes.*')
-                    <p class="text-sm text-red-400">{{ $message }}</p>
+                    <p class="text-sm text-red-500">{{ $message }}</p>
                 @enderror
             </div>
             @if ($inmueble && $inmueble->images->isNotEmpty())
                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     @foreach ($inmueble->images as $imagen)
-                        <label class="group relative block overflow-hidden rounded-2xl border border-gray-800/70 bg-gray-900/80 shadow-lg shadow-black/30 transition duration-200 hover:border-indigo-400/70">
-                            <input type="checkbox" name="imagenes_eliminar[]" value="{{ $imagen->id }}" class="absolute right-3 top-3 h-4 w-4 rounded border-gray-600 bg-gray-800 text-red-500 focus:ring-red-400">
+                        <label class="group relative block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:border-blue-400 dark:border-slate-600 dark:bg-slate-800 dark:hover:border-blue-500">
+                            <input type="checkbox" name="imagenes_eliminar[]" value="{{ $imagen->id }}" class="absolute right-3 top-3 h-4 w-4 rounded border-slate-300 bg-slate-100 text-red-500 focus:ring-red-400 dark:border-slate-600 dark:bg-slate-700">
                             <img src="{{ $imagen->temporaryVariantUrl('watermarked') ?? $imagen->url }}" alt="Imagen inmueble" class="h-48 w-full object-cover transition duration-300 group-hover:scale-105">
-                            <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-sm text-gray-200">
+                            <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-sm text-white dark:from-black/80">
                                 Marcar para eliminar
                             </div>
                         </label>
