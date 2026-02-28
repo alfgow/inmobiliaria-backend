@@ -1,15 +1,7 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-
-    # Manejar Authorization header
-    RewriteCond %{HTTP:Authorization} !^$
-    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
-
-    # Manejar X-XSRF-TOKEN header - versión corregida
-    RewriteCond %{HTTP:X-XSRF-TOKEN} !^$
-    RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-TOKEN}]
-
-    # Redireccionar a index.php si no es archivo/directorio real
+    
+    # Redireccionar todo a index.php excepto archivos reales
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^ index.php [QSA,L]
