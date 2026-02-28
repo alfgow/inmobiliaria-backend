@@ -12,3 +12,16 @@
 
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 @fluxAppearance
+
+{{-- Alpine.js para funcionalidad del tema dark/light --}}
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+{{-- Script para aplicar tema inmediatamente (evita flash de contenido) --}}
+<script>
+    (function() {
+        const darkMode = localStorage.getItem('darkMode') === null ? true : localStorage.getItem('darkMode') === 'true';
+        if (darkMode) {
+            document.documentElement.classList.add('dark');
+        }
+    })();
+</script>
