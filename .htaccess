@@ -1,7 +1,14 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    RewriteBase /
 
-    # Evitar bucles infinitos en redirecciones internas
-    RewriteCond %{ENV:REDIRECT_STATUS} ^$
+    # Si el archivo o carpeta existe físicamente en /public/ (ej. assets JS/CSS/favicon)
+    RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -f [OR]
+    RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -d
     RewriteRule ^(.*)$ public/$1 [L]
+
+    # De lo contrario, enviamos absolutamente todo al Front Controller de Laravel
+    # de manera directa, evitando que public/.htaccess cause un bucle infinito
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/index.php [L]
 </IfModule>
