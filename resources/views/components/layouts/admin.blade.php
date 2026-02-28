@@ -119,11 +119,30 @@
                     </div>
                     <span class="font-bold text-slate-900 dark:text-slate-100">CRM INMO</span>
                 </div>
-                <button type="button" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')" class="p-2 text-slate-500 dark:text-slate-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                </button>
+                <div class="flex items-center gap-2">
+                    {{-- Mobile Theme Toggle --}}
+                    <button 
+                        type="button" 
+                        x-data 
+                        x-on:click="$flux.dark = !$flux.dark"
+                        class="p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors dark:text-slate-400 dark:hover:bg-slate-700"
+                        title="Cambiar tema"
+                    >
+                        {{-- Sun icon (shown in dark mode) --}}
+                        <svg x-show="$flux.dark" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        {{-- Moon icon (shown in light mode) --}}
+                        <svg x-show="!$flux.dark" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                    </button>
+                    <button type="button" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')" class="p-2 text-slate-500 dark:text-slate-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
             </div>
         </header>
 
@@ -163,6 +182,24 @@
                         </svg>
                         <input type="text" placeholder="Buscar..." class="w-64 bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all dark:bg-slate-900 dark:border-slate-600 dark:text-slate-200 dark:placeholder-slate-500 dark:focus:ring-blue-900/50">
                     </div>
+
+                    {{-- Theme Toggle --}}
+                    <button 
+                        type="button" 
+                        x-data 
+                        x-on:click="$flux.dark = !$flux.dark"
+                        class="p-2 text-slate-400 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-500 dark:hover:bg-slate-700"
+                        title="Cambiar tema"
+                    >
+                        {{-- Sun icon (shown in dark mode) --}}
+                        <svg x-show="$flux.dark" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        {{-- Moon icon (shown in light mode) --}}
+                        <svg x-show="!$flux.dark" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                    </button>
 
                     {{-- Notifications --}}
                     <button class="p-2 text-slate-400 hover:bg-slate-50 rounded-lg relative dark:text-slate-500 dark:hover:bg-slate-700">
