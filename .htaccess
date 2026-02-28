@@ -1,9 +1,7 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # En despliegues con DocumentRoot en la raíz del repo,
-    # forzamos todas las rutas al front controller dentro de /public.
-    # Usamos lookahead en lugar de %{REQUEST_URI} porque REQUEST_URI no cambia 
-    # en las redirecciones internas, causando un bucle infinito ("500 Internal Server Error").
-    RewriteRule ^((?!public/).*)$ public/$1 [L,NC]
+    # Evitar bucles infinitos en redirecciones internas
+    RewriteCond %{ENV:REDIRECT_STATUS} ^$
+    RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>
