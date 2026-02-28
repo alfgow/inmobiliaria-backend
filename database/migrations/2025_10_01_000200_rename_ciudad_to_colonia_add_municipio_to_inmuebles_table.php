@@ -11,10 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('inmuebles', function (Blueprint $table): void {
-            $table->renameColumn('ciudad', 'colonia');
-            $table->string('municipio', 120)->nullable()->after('colonia');
-        });
+        if (Schema::hasColumn('inmuebles', 'ciudad') && !Schema::hasColumn('inmuebles', 'colonia')) {
+            Schema::table('inmuebles', function (Blueprint $table): void {
+                $table->renameColumn('ciudad', 'colonia');
+            });
+        }
+
+        if (!Schema::hasColumn('inmuebles', 'municipio')) {
+            Schema::table('inmuebles', function (Blueprint $table): void {
+                $table->string('municipio', 120)->nullable()->after('colonia');
+            });
+        }
     }
 
     /**
@@ -22,9 +29,16 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('inmuebles', function (Blueprint $table): void {
-            $table->dropColumn('municipio');
-            $table->renameColumn('colonia', 'ciudad');
-        });
+        if (Schema::hasColumn('inmuebles', 'municipio')) {
+            Schema::table('inmuebles', function (Blueprint $table): void {
+                $table->dropColumn('municipio');
+            });
+        }
+
+        if (Schema::hasColumn('inmuebles', 'colonia') && !Schema::hasColumn('inmuebles', 'ciudad')) {
+            Schema::table('inmuebles', function (Blueprint $table): void {
+                $table->renameColumn('colonia', 'ciudad');
+            });
+        }
     }
 };

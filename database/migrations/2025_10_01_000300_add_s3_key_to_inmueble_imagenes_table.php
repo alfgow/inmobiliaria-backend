@@ -26,7 +26,9 @@ return new class extends Migration
             ->whereNotNull('path')
             ->update(['s3_key' => DB::raw('path')]);
 
-        DB::statement('ALTER TABLE inmueble_imagenes MODIFY s3_key VARCHAR(255) NOT NULL');
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement('ALTER TABLE inmueble_imagenes MODIFY s3_key VARCHAR(255) NOT NULL');
+        }
     }
 
     /**
