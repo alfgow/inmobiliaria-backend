@@ -1,3 +1,5 @@
+DirectoryIndex index.php index.html
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes
@@ -29,8 +31,7 @@ Options -Indexes
 
 # Protect sensitive files
 <FilesMatch "^\.">
-    Order allow,deny
-    Deny from all
+    Require all denied
 </FilesMatch>
 
 # Enable PHP processing
