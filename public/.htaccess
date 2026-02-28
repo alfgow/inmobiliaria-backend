@@ -1,5 +1,21 @@
-RewriteEngine On
+<IfModule mod_rewrite.c>
 
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+   Options -MultiViews
+
+   RewriteEngine On
+
+   
+
+   # Ajusta esta ruta según tu estructura:
+
+   RewriteBase / 
+
+   
+
+   RewriteCond %{REQUEST_FILENAME} !-f
+
+   RewriteCond %{REQUEST_FILENAME} !-d
+
+   RewriteRule ^(.+)$ index.php?url=$1 [QSA,L]
+
+</IfModule>
