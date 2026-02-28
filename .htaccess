@@ -1,7 +1,13 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Redirect everything to /public
+    # Evita reescrituras en cadena para rutas ya dentro de /public
     RewriteCond %{REQUEST_URI} !^/public/
-    RewriteRule ^(.*)$ /public/$1 [L]
+
+    # Mantén accesibles archivos/carpetas reales en la raíz
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Reescribe internamente hacia el front controller en /public
+    RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>
