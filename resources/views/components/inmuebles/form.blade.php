@@ -47,7 +47,7 @@
 
         <div class="space-y-6 p-6">
             {{-- Título y Precio --}}
-            <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-12">
+            <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
                 <div class="sm:col-span-2 lg:col-span-8">
                     <label for="titulo" class="{{ $labelClass }}">
                         Título <span class="text-red-500">*</span>
