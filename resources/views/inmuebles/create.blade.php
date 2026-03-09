@@ -25,25 +25,20 @@
         }
     </style>
 
-    <div class="mx-auto w-full max-w-5xl px-4 py-10 text-slate-200 custom-scrollbar" x-data="propertyForm()">
-        <header class="mb-12 flex flex-col justify-between gap-4 border-b border-[#2a3649] pb-8 md:flex-row md:items-end">
+    <div class="max-w-5xl mx-auto px-4 py-10 text-slate-200 font-sans custom-scrollbar" x-data="propertyForm()">
+        
+        <!-- Header -->
+        <header class="mb-12 border-b border-slate-800 pb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
-                <span class="text-xs font-semibold uppercase tracking-widest text-[#3b82f6]">NUEVO REGISTRO</span>
-                <h1 class="mt-2 text-4xl font-bold text-white">Registrar Propiedad</h1>
-                <p class="mt-2 text-sm text-slate-400">Configuracion completa del inmueble y carga multimedia.</p>
+                <span class="text-blue-500 font-semibold tracking-widest text-xs uppercase">Nuevo Registro</span>
+                <h1 class="text-4xl font-bold mt-2 text-white">Registrar Propiedad</h1>
+                <p class="text-slate-400 mt-2 text-lg">Configuración completa del inmueble y carga multimedia.</p>
             </div>
             <div class="flex gap-3">
-                <a
-                    href="{{ route('inmuebles.index') }}"
-                    class="rounded-lg border border-[#374151] px-5 py-2 text-sm font-semibold text-slate-300 transition hover:bg-[#1f2937]"
-                >
+                <a href="{{ route('inmuebles.index') }}" class="px-6 py-2.5 rounded-xl border border-slate-700 font-bold text-slate-300 hover:bg-slate-800 transition block text-center">
                     Cancelar
                 </a>
-                <button
-                    type="submit"
-                    form="main-form"
-                    class="rounded-lg bg-[#3b82f6] px-5 py-2 text-sm font-semibold text-white transition hover:bg-blue-600"
-                >
+                <button type="submit" form="main-form" class="px-8 py-2.5 rounded-xl bg-blue-600 font-bold text-white hover:bg-blue-700 shadow-lg shadow-blue-900/20 transition">
                     Guardar Cambios
                 </button>
             </div>
@@ -55,70 +50,42 @@
             </div>
         @endif
 
-        <form
-            id="main-form"
-            action="{{ route('inmuebles.store') }}"
-            method="POST"
-            enctype="multipart/form-data"
-            class="space-y-12"
-            data-swal-loader="registrar-inmueble"
-            data-swal-loader-title="Registrando inmueble"
-            data-swal-loader-text="Estamos guardando la informacion del inmueble..."
-        >
+        <form id="main-form" action="{{ route('inmuebles.store') }}" method="POST" enctype="multipart/form-data" class="space-y-12" data-swal-loader="registrar-inmueble" data-swal-loader-title="Registrando inmueble" data-swal-loader-text="Estamos guardando la informacion del inmueble...">
             @csrf
+            
+            <input type="hidden" name="latitud" id="latitud" value="{{ old('latitud', '19.4326') }}">
+            <input type="hidden" name="longitud" id="longitud" value="{{ old('longitud', '-99.1332') }}">
 
-            <input type="hidden" name="latitud" value="{{ old('latitud') }}">
-            <input type="hidden" name="longitud" value="{{ old('longitud') }}">
-
+            <!-- SECCIÓN 1: Ubicación -->
             <section id="ubicacion" class="space-y-6">
-                <div class="mb-4 flex items-center space-x-3">
-                    <div class="flex h-8 w-8 items-center justify-center rounded-full bg-[#1e3a8a] text-blue-400 text-sm">
-                        <i class="fas fa-map-marker-alt"></i>
+                <div class="flex items-center space-x-4 mb-4">
+                    <div class="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center border border-blue-500/30">
+                        <i class="fas fa-map-marker-alt text-blue-500"></i>
                     </div>
-                    <h2 class="text-xl font-bold text-white">1. Informacion de Ubicacion</h2>
+                    <h2 class="text-2xl font-bold text-white">1. Información de Ubicación</h2>
                 </div>
 
-                <div class="pt-2">
-                    <div class="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-2">
-                        <div>
-                            <label class="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Titulo del anuncio *</label>
-                            <input
-                                type="text"
-                                name="titulo"
-                                value="{{ old('titulo') }}"
-                                placeholder="Ej. Departamento de lujo con vista al mar"
-                                class="w-full rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                required
-                            >
+                <div class="bg-[#1e293b] p-8 rounded-3xl shadow-xl border border-slate-800">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-3 tracking-wider">Título del Anuncio *</label>
+                            <input type="text" name="titulo" value="{{ old('titulo') }}" placeholder="Ej. Departamento de lujo con vista al mar" class="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-5 py-4 focus:ring-2 focus:ring-blue-600 outline-none transition text-lg" required>
                             @error('titulo')
                                 <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
                             @enderror
                         </div>
-
+                        
                         <div>
-                            <label class="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Precio ($) *</label>
-                            <input
-                                type="number"
-                                name="precio"
-                                value="{{ old('precio') }}"
-                                min="0"
-                                step="0.01"
-                                placeholder="0.00"
-                                class="w-full rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                required
-                            >
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-3 tracking-wider">Precio ($) *</label>
+                            <input type="number" name="precio" value="{{ old('precio') }}" step="0.01" min="0" placeholder="0.00" class="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-5 py-4 focus:ring-2 focus:ring-blue-600 outline-none transition text-lg" required>
                             @error('precio')
                                 <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
                             @enderror
                         </div>
 
                         <div>
-                            <label class="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Tipo de operacion *</label>
-                            <select
-                                name="operacion"
-                                class="w-full cursor-pointer appearance-none rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                required
-                            >
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-3 tracking-wider">Tipo de Operación *</label>
+                            <select name="operacion" class="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-5 py-4 focus:ring-2 focus:ring-blue-600 outline-none transition appearance-none cursor-pointer" required>
                                 <option value="">Selecciona una opcion</option>
                                 @foreach ($operaciones as $operacion)
                                     <option value="{{ $operacion }}" @selected(old('operacion') === $operacion)>{{ $operacion }}</option>
@@ -130,12 +97,8 @@
                         </div>
 
                         <div>
-                            <label class="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Tipo de inmueble *</label>
-                            <select
-                                name="tipo"
-                                class="w-full cursor-pointer appearance-none rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                required
-                            >
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-3 tracking-wider">Tipo de Inmueble *</label>
+                            <select name="tipo" class="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-5 py-4 focus:ring-2 focus:ring-blue-600 outline-none transition appearance-none cursor-pointer" required>
                                 <option value="">Selecciona una opcion</option>
                                 @foreach ($tipos as $tipo)
                                     <option value="{{ $tipo }}" @selected(old('tipo') === $tipo)>{{ $tipo }}</option>
@@ -147,179 +110,169 @@
                         </div>
 
                         <div>
-                            <label class="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Codigo postal</label>
-                            <input
-                                type="text"
-                                name="codigo_postal"
-                                value="{{ old('codigo_postal') }}"
-                                class="w-full rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                            >
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-3 tracking-wider">Código Postal</label>
+                            <input type="text" name="codigo_postal" value="{{ old('codigo_postal') }}" class="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-5 py-4 focus:ring-2 focus:ring-blue-600 outline-none transition text-lg">
                             @error('codigo_postal')
                                 <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        <div>
-                            <label class="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Direccion completa *</label>
-                            <input
-                                type="text"
-                                name="direccion"
-                                value="{{ old('direccion') }}"
-                                placeholder="Calle, numero, colonia, ciudad..."
-                                class="w-full rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                required
-                            >
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-3 tracking-wider">Dirección Completa *</label>
+                            <input type="text" name="direccion" value="{{ old('direccion') }}" placeholder="Calle, número, colonia, ciudad..." class="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-5 py-4 focus:ring-2 focus:ring-blue-600 outline-none transition" required>
                             @error('direccion')
                                 <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
                             @enderror
                         </div>
                     </div>
+
+                    <!-- Mapa de Ubicación -->
+                    <div class="mt-8 rounded-2xl overflow-hidden border border-slate-700 h-80 relative bg-[#0f172a] group">
+                        <img src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" class="w-full h-full object-cover opacity-40 grayscale group-hover:opacity-50 transition-opacity duration-500" alt="Mapa">
+                        <div class="absolute inset-0 flex flex-col items-center justify-center bg-blue-900/10">
+                            <i class="fas fa-location-dot text-blue-500 text-5xl mb-4 drop-shadow-lg animate-bounce"></i>
+                            <div class="bg-[#1e293b]/90 backdrop-blur-md px-6 py-3 rounded-2xl shadow-2xl border border-slate-700 text-center">
+                                <span class="text-sm font-semibold block">Arrastra el marcador para fijar la posición exacta</span>
+                                <span class="text-[10px] text-slate-400 uppercase mt-1 tracking-widest">Lat: 19.4326 / Lng: -99.1332</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
+            <!-- SECCIÓN 2: Detalles y Amenidades -->
             <section id="detalles" class="space-y-6">
-                <div class="mb-4 flex items-center space-x-3">
-                    <div class="flex h-8 w-8 items-center justify-center rounded-full bg-[#064e3b] text-emerald-400 text-sm">
-                        <i class="fas fa-home"></i>
+                <div class="flex items-center space-x-4 mb-4">
+                    <div class="w-10 h-10 rounded-full bg-emerald-600/20 flex items-center justify-center border border-emerald-500/30">
+                        <i class="fas fa-house-chimney text-emerald-500"></i>
                     </div>
-                    <h2 class="text-xl font-bold text-white">2. Detalles y Amenidades</h2>
+                    <h2 class="text-2xl font-bold text-white">2. Detalles y Amenidades</h2>
                 </div>
 
-                <div class="pt-2">
-                    <div class="grid grid-cols-2 gap-x-8 gap-y-6 border-b border-[#2a3649] pb-10">
+                <div class="bg-[#1e293b] p-8 rounded-3xl shadow-xl border border-slate-800 space-y-10">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                         <div class="space-y-2">
-                            <label class="block text-center text-[10px] font-bold uppercase tracking-widest text-[#94a3b8]">Habitaciones</label>
-                            <input type="number" name="habitaciones" min="0" value="{{ old('habitaciones', 0) }}" class="w-full rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-center text-sm font-semibold text-white outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase text-center tracking-widest">Habitaciones</label>
+                            <input type="number" name="habitaciones" min="0" value="{{ old('habitaciones', 0) }}" class="text-center w-full bg-[#0f172a] border border-slate-700 rounded-2xl px-4 py-5 focus:ring-2 focus:ring-emerald-600 outline-none transition text-xl font-bold">
                         </div>
                         <div class="space-y-2">
-                            <label class="block text-center text-[10px] font-bold uppercase tracking-widest text-[#94a3b8]">Banos</label>
-                            <input type="number" name="banos" min="0" value="{{ old('banos', 0) }}" class="w-full rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-center text-sm font-semibold text-white outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase text-center tracking-widest">Baños</label>
+                            <input type="number" name="banos" min="0" value="{{ old('banos', 0) }}" class="text-center w-full bg-[#0f172a] border border-slate-700 rounded-2xl px-4 py-5 focus:ring-2 focus:ring-emerald-600 outline-none transition text-xl font-bold">
                         </div>
                         <div class="space-y-2">
-                            <label class="block text-center text-[10px] font-bold uppercase tracking-widest text-[#94a3b8]">Estacionamientos</label>
-                            <input type="number" name="estacionamientos" min="0" value="{{ old('estacionamientos', 0) }}" class="w-full rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-center text-sm font-semibold text-white outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase text-center tracking-widest">Estacionamientos</label>
+                            <input type="number" name="estacionamientos" min="0" value="{{ old('estacionamientos', 0) }}" class="text-center w-full bg-[#0f172a] border border-slate-700 rounded-2xl px-4 py-5 focus:ring-2 focus:ring-emerald-600 outline-none transition text-xl font-bold">
                         </div>
                         <div class="space-y-2">
-                            <label class="block text-center text-[10px] font-bold uppercase tracking-widest text-[#94a3b8]">M2 totales</label>
-                            <input type="number" name="metros_cuadrados" min="0" step="0.01" value="{{ old('metros_cuadrados', 0) }}" class="w-full rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-center text-sm font-semibold text-white outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase text-center tracking-widest">M² Totales</label>
+                            <input type="number" name="metros_cuadrados" min="0" step="0.01" value="{{ old('metros_cuadrados', 0) }}" class="text-center w-full bg-[#0f172a] border border-slate-700 rounded-2xl px-4 py-5 focus:ring-2 focus:ring-emerald-600 outline-none transition text-xl font-bold">
                         </div>
                     </div>
 
-                    <div class="space-y-8 pt-8 border-b border-[#2a3649] pb-10">
-                        <div class="space-y-6">
-                            <div>
-                                <h3 class="text-[10px] font-bold text-[#94a3b8] uppercase tracking-widest mb-3">Mas Ambientes</h3>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <template x-for="item in masAmbientesCatalog" :key="item">
-                                        <button type="button" 
-                                                @click="toggleAmenity(item)"
-                                                :class="isAmenitySelected(item) ? 'amenity-active border-emerald-500 bg-emerald-500/10' : 'text-slate-300 border-[#2a3649] bg-transparent hover:border-emerald-500'"
-                                                class="px-4 py-3 rounded-lg border text-xs transition-all flex items-center justify-between text-left">
-                                            <span x-text="item"></span>
-                                            <i class="fas fa-check-circle ml-2" x-show="isAmenitySelected(item)"></i>
-                                        </button>
-                                    </template>
-                                </div>
+                    <div class="space-y-8 border-t border-slate-800 pt-8">
+                        <div>
+                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Más Ambientes</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <template x-for="item in masAmbientesCatalog" :key="item">
+                                    <button type="button" 
+                                            @click="toggleAmenity(item)"
+                                            :class="isAmenitySelected(item) ? 'amenity-active' : ''"
+                                            class="amenity-toggle px-4 py-3 rounded-xl border border-slate-700 bg-[#0f172a] text-xs font-semibold hover:border-emerald-500 transition-all flex items-center justify-between text-left">
+                                        <span x-text="item"></span>
+                                        <i class="fas fa-check-circle ml-2" x-show="isAmenitySelected(item)"></i>
+                                    </button>
+                                </template>
                             </div>
-
-                            <div>
-                                <h3 class="text-[10px] font-bold text-[#94a3b8] uppercase tracking-widest mb-3">Servicios</h3>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <template x-for="item in serviciosCatalog" :key="item">
-                                        <button type="button" 
-                                                @click="toggleAmenity(item)"
-                                                :class="isAmenitySelected(item) ? 'amenity-active border-emerald-500 bg-emerald-500/10' : 'text-slate-300 border-[#2a3649] bg-transparent hover:border-emerald-500'"
-                                                class="px-4 py-3 rounded-lg border text-xs transition-all flex items-center justify-between text-left">
-                                            <span x-text="item"></span>
-                                            <i class="fas fa-check-circle ml-2" x-show="isAmenitySelected(item)"></i>
-                                        </button>
-                                    </template>
-                                </div>
-                            </div>
-                            <textarea name="amenidades" x-model="amenidadesPayload" class="hidden"></textarea>
-                            @error('amenidades')
-                                <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
-                            @enderror
                         </div>
 
                         <div>
-                            <label class="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Descripcion narrativa</label>
-                            <textarea
-                                name="descripcion"
-                                rows="4"
-                                placeholder="Cuentale a tus prospectos que hace especial a esta propiedad..."
-                                class="w-full resize-none rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-                            >{{ old('descripcion') }}</textarea>
+                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Servicios</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <template x-for="item in serviciosCatalog" :key="item">
+                                    <button type="button" 
+                                            @click="toggleAmenity(item)"
+                                            :class="isAmenitySelected(item) ? 'amenity-active' : ''"
+                                            class="amenity-toggle px-4 py-3 rounded-xl border border-slate-700 bg-[#0f172a] text-xs font-semibold hover:border-emerald-500 transition-all flex items-center justify-between text-left">
+                                        <span x-text="item"></span>
+                                        <i class="fas fa-check-circle ml-2" x-show="isAmenitySelected(item)"></i>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+
+                        <textarea name="amenidades" x-model="amenidadesPayload" class="hidden"></textarea>
+                        @error('amenidades')
+                            <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
+                        @enderror
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-3 tracking-wider">Descripción Narrativa</label>
+                            <textarea name="descripcion" rows="4" placeholder="Cuéntale a tus prospectos qué hace especial a esta propiedad..." class="w-full bg-[#0f172a] border border-slate-700 rounded-2xl px-6 py-5 focus:ring-2 focus:ring-emerald-600 outline-none transition resize-none leading-relaxed">{{ old('descripcion') }}</textarea>
                             @error('descripcion')
                                 <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
                             @enderror
                         </div>
-                    </div>
 
-                    <div class="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-2 pt-8">
-                        <div>
-                            <label class="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Enlace de Inmuebles24 o Vivanuncios</label>
-                            <div class="flex flex-col gap-3 sm:flex-row">
-                                <input
-                                    type="url"
-                                    id="inmuebles24_url"
-                                    name="inmuebles24_url"
-                                    value="{{ old('inmuebles24_url') }}"
-                                    placeholder="https://www.inmuebles24.com/... o https://www.vivanuncios.com.mx/..."
-                                    class="w-full rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                >
-                                <button type="button" id="extract-inmuebles24-id" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">
-                                    Extraer ID
-                                </button>
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 pt-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase mb-3 tracking-wider">Enlace de Inmuebles24 o Vivanuncios</label>
+                                <div class="flex flex-col gap-3 sm:flex-row">
+                                    <input
+                                        type="url"
+                                        id="inmuebles24_url"
+                                        name="inmuebles24_url"
+                                        value="{{ old('inmuebles24_url') }}"
+                                        placeholder="https://www.inmuebles24.com/..."
+                                        class="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-5 py-4 focus:ring-2 focus:ring-blue-600 outline-none transition"
+                                    >
+                                    <button type="button" id="extract-inmuebles24-id" class="rounded-xl border border-slate-700 bg-blue-600 px-6 py-4 text-sm font-semibold text-white transition hover:bg-blue-700 shadow-lg shadow-blue-900/20 truncate">
+                                        Extraer ID
+                                    </button>
+                                </div>
+                                <p class="mt-2 text-[10px] text-slate-500">Pega el enlace completo y extraeremos el ID numérico a tags.</p>
+                                <p class="hidden text-xs text-blue-400 mt-1" data-i24-feedback></p>
                             </div>
-                            <p class="mt-2 text-[10px] text-slate-400">Pega el enlace completo y extraeremos el ID numerico a tags.</p>
-                            <p class="hidden text-xs text-blue-400" data-i24-feedback></p>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-400 uppercase mb-3 tracking-wider">Tags</label>
+                                <input
+                                    type="text"
+                                    id="tags"
+                                    name="tags"
+                                    value="{{ old('tags') }}"
+                                    placeholder="Ej. Familiar, Pet friendly, Céntrico"
+                                    class="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-5 py-4 focus:ring-2 focus:ring-blue-600 outline-none transition"
+                                >
+                                @error('tags')
+                                    <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
                         </div>
 
-                        <div>
-                            <label class="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Tags</label>
-                            <input
-                                type="text"
-                                id="tags"
-                                name="tags"
-                                value="{{ old('tags') }}"
-                                placeholder="Ej. Familiar, Pet friendly, Centrico"
-                                class="w-full rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                            >
-                            @error('tags')
-                                <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
-                            @enderror
-                        </div>
                     </div>
                 </div>
             </section>
 
+            <!-- SECCIÓN 3: Multimedia (Galería Full Width) -->
             <section id="multimedia" class="space-y-6">
-                <div class="mb-4 flex items-center space-x-3">
-                    <div class="flex h-8 w-8 items-center justify-center rounded-full bg-[#4c1d95] text-purple-400 text-sm">
-                        <i class="fas fa-images"></i>
+                <div class="flex items-center space-x-4 mb-4">
+                    <div class="w-10 h-10 rounded-full bg-purple-600/20 flex items-center justify-center border border-purple-500/30">
+                        <i class="fas fa-images text-purple-500"></i>
                     </div>
-                    <h2 class="text-xl font-bold text-white">3. Galería de Fotos</h2>
+                    <h2 class="text-2xl font-bold text-white">3. Galería de Fotos</h2>
                 </div>
 
-                <div class="pt-2">
+                <div class="bg-[#1e293b] p-8 rounded-3xl shadow-xl border border-slate-800">
                     <div class="space-y-8">
+                        <!-- Dropzone Horizontal que ocupa todo el ancho -->
                         <div class="w-full">
-                            <label class="group flex h-40 w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-[#475569] bg-transparent text-slate-400 transition hover:border-purple-500 hover:text-purple-400">
-                                <input
-                                    type="file"
-                                    name="imagenes[]"
-                                    x-ref="fileInput"
-                                    @change="handleUpload"
-                                    class="hidden"
-                                    accept="image/*"
-                                    multiple
-                                >
-                                <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#1e293b] text-slate-300 transition group-hover:bg-purple-600/20 group-hover:text-purple-300">
-                                    <i class="fas fa-cloud-arrow-up"></i>
+                            <label class="w-full h-40 rounded-2xl border-2 border-dashed border-slate-700 hover:border-purple-500 hover:bg-purple-500/5 transition cursor-pointer flex flex-col items-center justify-center text-slate-500 hover:text-purple-400 group">
+                                <input type="file" name="imagenes[]" x-ref="fileInput" @change="handleUpload" class="hidden" accept="image/*" multiple>
+                                <div class="w-12 h-12 rounded-full bg-[#0f172a] flex items-center justify-center group-hover:bg-purple-600/20 mb-3 transition">
+                                    <i class="fas fa-cloud-arrow-up text-xl"></i>
                                 </div>
-                                <span class="text-[10px] font-bold uppercase tracking-widest">Haz clic o arrastra fotos aqui</span>
-                                <span class="mt-1 text-[10px] text-slate-500" x-text="photos.length + ' de 15 seleccionadas'"></span>
+                                <span class="text-xs font-bold uppercase tracking-widest">Haz clic o arrastra fotos aquí</span>
+                                <span class="text-[10px] mt-1 text-slate-500" x-text="photos.length + ' de 15 subidas'"></span>
                             </label>
                             @error('imagenes')
                                 <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
@@ -329,16 +282,17 @@
                             @enderror
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5" x-show="photos.length > 0" x-transition>
+                        <!-- Cuadrícula de miniaturas debajo -->
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4" x-show="photos.length > 0" x-transition>
                             <template x-for="(image, index) in photos" :key="index">
-                                <div class="group relative aspect-square overflow-hidden rounded-xl border border-[#334155] bg-transparent">
-                                    <img :src="image.url" class="h-full w-full object-cover transition duration-500 group-hover:scale-110">
-                                    <div class="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition group-hover:opacity-100">
-                                        <button @click.prevent="removePhoto(index)" type="button" class="flex h-8 w-8 items-center justify-center rounded-full bg-red-600 text-white transition hover:scale-110">
+                                <div class="relative group aspect-square rounded-2xl overflow-hidden border border-slate-700 bg-[#0f172a]">
+                                    <img :src="image.url" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
+                                    <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                        <button @click.prevent="removePhoto(index)" type="button" class="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center hover:scale-110 transition">
                                             <i class="fas fa-trash text-xs"></i>
                                         </button>
                                     </div>
-                                    <div x-show="index === 0" class="absolute left-2 top-2 rounded bg-blue-600 px-2 py-0.5 text-[8px] font-bold uppercase shadow">Portada</div>
+                                    <div x-show="index === 0" class="absolute top-2 left-2 px-2 py-0.5 bg-blue-600 text-[8px] font-bold uppercase rounded shadow">Portada</div>
                                 </div>
                             </template>
                         </div>
@@ -346,11 +300,13 @@
                 </div>
             </section>
 
-            <footer class="pb-20 pt-6">
-                <button type="submit" class="group flex w-full items-center justify-center rounded-xl bg-[#3b82f6] px-10 py-4 font-bold text-white shadow-lg transition hover:bg-blue-600">
+            <!-- Footer -->
+            <footer class="pt-10 pb-20">
+                <button type="submit" class="w-full px-12 py-5 rounded-2xl bg-blue-600 font-extrabold text-xl text-white hover:bg-blue-700 shadow-2xl transition flex items-center justify-center group">
                     <i class="fas fa-rocket mr-3 group-hover:animate-bounce"></i> PUBLICAR PROPIEDAD
                 </button>
             </footer>
+
         </form>
     </div>
 
@@ -392,14 +348,11 @@
                 handleUpload(event) {
                     const files = Array.from(event.target.files || []);
 
-                    if (files.length > 15) {
-                        window.alert('Limite de 15 fotos.');
+                    if (this.photos.length + files.length > 15) {
+                        window.alert('Límite de 15 fotos.');
                         event.target.value = '';
-                        this.photos = [];
                         return;
                     }
-
-                    this.photos = [];
 
                     files.forEach((file) => {
                         const reader = new FileReader();
@@ -420,13 +373,14 @@
                     }
 
                     const files = Array.from(input.files || []);
-                    files.splice(index, 1);
-
-                    const transfer = new DataTransfer();
-                    files.forEach((file) => transfer.items.add(file));
-                    input.files = transfer.files;
-
-                    this.handleUpload({ target: input });
+                    if (files.length > 0) {
+                        files.splice(index, 1);
+                        const transfer = new DataTransfer();
+                        files.forEach((file) => transfer.items.add(file));
+                        input.files = transfer.files;
+                    }
+                    
+                    this.photos.splice(index, 1);
                 },
                 toggleAmenity(name) {
                     if (this.selectedAmenities.includes(name)) {
