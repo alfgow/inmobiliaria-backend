@@ -14,6 +14,48 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
         html { scroll-behavior: smooth; }
+
+        .premium-shell {
+            position: relative;
+            border-radius: 1.5rem;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.75));
+            box-shadow: 0 25px 80px rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        .premium-shell::before,
+        .premium-shell::after {
+            content: '';
+            position: absolute;
+            border-radius: 999px;
+            filter: blur(45px);
+            opacity: 0.28;
+            pointer-events: none;
+        }
+
+        .premium-shell::before {
+            right: -120px;
+            top: -130px;
+            height: 240px;
+            width: 240px;
+            background: #38bdf8;
+        }
+
+        .premium-shell::after {
+            bottom: -120px;
+            left: -90px;
+            height: 220px;
+            width: 220px;
+            background: #8b5cf6;
+        }
+
+        .premium-card {
+            border-radius: 1.25rem;
+            border: 1px solid rgba(71, 85, 105, 0.45);
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.65));
+            padding: 1.4rem;
+        }
         
         .amenity-toggle {
             transition: all 0.2s ease;
@@ -25,24 +67,25 @@
         }
     </style>
 
-    <div class="mx-auto w-full max-w-5xl px-4 py-10 text-slate-200 custom-scrollbar" x-data="propertyForm()">
-        <header class="mb-12 flex flex-col justify-between gap-4 border-b border-[#2a3649] pb-8 md:flex-row md:items-end">
+    <div class="mx-auto w-full max-w-6xl px-4 py-10 text-slate-200 custom-scrollbar" x-data="propertyForm()">
+        <div class="premium-shell overflow-hidden p-6 sm:p-8 md:p-10">
+        <header class="relative z-10 mb-12 flex flex-col justify-between gap-6 border-b border-slate-700/70 pb-8 md:flex-row md:items-end">
             <div>
-                <span class="text-xs font-semibold uppercase tracking-widest text-[#3b82f6]">NUEVO REGISTRO</span>
-                <h1 class="mt-2 text-4xl font-bold text-white">Registrar Propiedad</h1>
-                <p class="mt-2 text-sm text-slate-400">Configuracion completa del inmueble y carga multimedia.</p>
+                <span class="inline-flex rounded-full border border-cyan-400/40 bg-cyan-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-cyan-300">NUEVO REGISTRO</span>
+                <h1 class="mt-3 text-4xl font-bold tracking-tight text-white">Registrar Propiedad</h1>
+                <p class="mt-2 max-w-xl text-sm text-slate-300">Configuración premium para publicar tu inmueble con detalles, amenidades y galería profesional.</p>
             </div>
             <div class="flex gap-3">
                 <a
                     href="{{ route('inmuebles.index') }}"
-                    class="rounded-lg border border-[#374151] px-5 py-2 text-sm font-semibold text-slate-300 transition hover:bg-[#1f2937]"
+                    class="rounded-lg border border-slate-600/80 px-5 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-700/40"
                 >
                     Cancelar
                 </a>
                 <button
                     type="submit"
                     form="main-form"
-                    class="rounded-lg bg-[#3b82f6] px-5 py-2 text-sm font-semibold text-white transition hover:bg-blue-600"
+                    class="rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-cyan-900/40 transition hover:brightness-110"
                 >
                     Guardar Cambios
                 </button>
@@ -70,7 +113,7 @@
             <input type="hidden" name="latitud" value="{{ old('latitud') }}">
             <input type="hidden" name="longitud" value="{{ old('longitud') }}">
 
-            <section id="ubicacion" class="space-y-6">
+            <section id="ubicacion" class="premium-card space-y-6">
                 <div class="mb-4 flex items-center space-x-3">
                     <div class="flex h-8 w-8 items-center justify-center rounded-full bg-[#1e3a8a] text-blue-400 text-sm">
                         <i class="fas fa-map-marker-alt"></i>
@@ -177,7 +220,7 @@
                 </div>
             </section>
 
-            <section id="detalles" class="space-y-6">
+            <section id="detalles" class="premium-card space-y-6">
                 <div class="mb-4 flex items-center space-x-3">
                     <div class="flex h-8 w-8 items-center justify-center rounded-full bg-[#064e3b] text-emerald-400 text-sm">
                         <i class="fas fa-home"></i>
@@ -294,7 +337,7 @@
                 </div>
             </section>
 
-            <section id="multimedia" class="space-y-6">
+            <section id="multimedia" class="premium-card space-y-6">
                 <div class="mb-4 flex items-center space-x-3">
                     <div class="flex h-8 w-8 items-center justify-center rounded-full bg-[#4c1d95] text-purple-400 text-sm">
                         <i class="fas fa-images"></i>
@@ -346,12 +389,13 @@
                 </div>
             </section>
 
-            <footer class="pb-20 pt-6">
-                <button type="submit" class="group flex w-full items-center justify-center rounded-xl bg-[#3b82f6] px-10 py-4 font-bold text-white shadow-lg transition hover:bg-blue-600">
+            <footer class="pb-10 pt-6">
+                <button type="submit" class="group flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 via-cyan-500 to-violet-600 px-10 py-4 font-bold text-white shadow-xl shadow-blue-900/40 transition hover:scale-[1.01] hover:brightness-110">
                     <i class="fas fa-rocket mr-3 group-hover:animate-bounce"></i> PUBLICAR PROPIEDAD
                 </button>
             </footer>
         </form>
+    </div>
     </div>
 
     <script>
