@@ -63,6 +63,17 @@
     body {
         font-family: var(--font-sans);
     }
+
+    /* Ensure native select option lists remain readable across light/dark themes. */
+    select option {
+        color: var(--color-slate-800);
+        background-color: #ffffff;
+    }
+
+    .dark select option {
+        color: var(--color-slate-100);
+        background-color: var(--color-slate-900);
+    }
 }
 
 @layer components {
