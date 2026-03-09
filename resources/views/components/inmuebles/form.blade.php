@@ -64,7 +64,7 @@
                             name="titulo"
                             value="{{ old('titulo', optional($inmueble)->titulo) }}"
                             placeholder="Ej. Departamento moderno con terraza"
-                            class="{{ $formControlClasses }} pl-12"
+                            class="block w-full min-w-0 rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50 py-3 pl-12 pr-4 text-base font-medium text-slate-700 placeholder:text-slate-400 shadow-sm shadow-slate-200/60 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md hover:shadow-blue-100/50 focus:-translate-y-0.5 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/15 dark:border-slate-600 dark:bg-gradient-to-b dark:from-slate-900 dark:to-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:shadow-slate-950/40 dark:hover:border-blue-400 dark:hover:shadow-blue-900/20 dark:focus:border-blue-400 dark:focus:ring-blue-500/25"
                             required
                         >
                     </div>
@@ -91,7 +91,7 @@
                             id="precio"
                             name="precio"
                             value="{{ old('precio', optional($inmueble)->precio) }}"
-                            class="{{ $formControlClasses }} pl-10 text-lg tabular-nums"
+                            class="block w-full min-w-0 rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50 py-3 pl-10 pr-4 text-lg font-medium tabular-nums text-slate-700 placeholder:text-slate-400 shadow-sm shadow-slate-200/60 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md hover:shadow-blue-100/50 focus:-translate-y-0.5 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/15 dark:border-slate-600 dark:bg-gradient-to-b dark:from-slate-900 dark:to-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:shadow-slate-950/40 dark:hover:border-blue-400 dark:hover:shadow-blue-900/20 dark:focus:border-blue-400 dark:focus:ring-blue-500/25"
                             required
                         >
                     </div>
