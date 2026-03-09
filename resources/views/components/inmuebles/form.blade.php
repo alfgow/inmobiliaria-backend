@@ -526,9 +526,26 @@
             @if ($inmueble)
                 <livewire:property-gallery-manager :inmueble="$inmueble" :watermark-preview-url="$watermarkPreviewUrl ?? ''" />
             @else
-                <p class="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-500 dark:border-slate-600 dark:bg-slate-700/50 dark:text-slate-300">
-                    Guarda el inmueble para habilitar la galería de fotos.
-                </p>
+                <div class="space-y-4 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 dark:border-slate-600 dark:bg-slate-700/40">
+                    <label for="imagenes" class="{{ $labelClass }} mb-0">Cargar fotos al crear</label>
+                    <input
+                        type="file"
+                        id="imagenes"
+                        name="imagenes[]"
+                        accept="image/jpeg,image/png"
+                        multiple
+                        class="{{ $formControlClasses }} file:mr-4 file:rounded-xl file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-700"
+                    >
+                    <p class="text-sm text-slate-500 dark:text-slate-300">
+                        Puedes subir hasta 10 imágenes ahora. Después de guardar podrás administrar el orden, cambiar portada y eliminar fotos desde la galería.
+                    </p>
+                    @error('imagenes')
+                        <p class="text-sm text-red-500">{{ $message }}</p>
+                    @enderror
+                    @error('imagenes.*')
+                        <p class="text-sm text-red-500">{{ $message }}</p>
+                    @enderror
+                </div>
             @endif
         </div>
     </section>
