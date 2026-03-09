@@ -39,7 +39,7 @@
                     </button>
                 </form>
 
-                <a href="{{ route('contactos.index') }}" class="inline-flex w-full sm:w-auto items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-4 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-600 dark:hover:bg-slate-700">
+                <a href="{{ route('contactos.index') }}" class="hidden sm:inline-flex w-full sm:w-auto items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-4 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-600 dark:hover:bg-slate-700">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
@@ -53,7 +53,7 @@
                     <span class="hidden sm:inline">Editar</span>
                 </a>
                 
-                <a href="{{ route('contactos.create', ['prefill' => $contact->email ?? $contact->telefono ?? $contact->nombre, 'prefill_field' => $contact->email ? 'email' : ($contact->telefono ? 'telefono' : 'nombre')]) }}" class="inline-flex w-full sm:w-auto items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-blue-200 transition-all active:scale-95 dark:shadow-blue-900/30">
+                <a href="{{ route('contactos.create', ['prefill' => $contact->email ?? $contact->telefono ?? $contact->nombre, 'prefill_field' => $contact->email ? 'email' : ($contact->telefono ? 'telefono' : 'nombre')]) }}" class="hidden sm:inline-flex w-full sm:w-auto items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-blue-200 transition-all active:scale-95 dark:shadow-blue-900/30">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                     </svg>
@@ -236,10 +236,19 @@
                 <div class="space-y-4">
                     @forelse ($contact->intereses as $interes)
                         <article class="flex items-start gap-4 rounded-xl border border-slate-100 bg-slate-50 p-4 hover:bg-blue-50/50 hover:border-blue-100 transition-colors group dark:bg-slate-900/50 dark:border-slate-700 dark:hover:bg-blue-900/20 dark:hover:border-blue-800">
-                            <div class="w-12 h-12 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 dark:bg-blue-900/30 dark:text-blue-400">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                </svg>
+                            <div class="w-12 h-12 rounded-lg overflow-hidden bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 dark:bg-blue-900/30 dark:text-blue-400">
+                                @if (filled(optional($interes->inmueble)->cover_image_url))
+                                    <img
+                                        src="{{ $interes->inmueble->cover_image_url }}"
+                                        alt="Portada de {{ $interes->inmueble->titulo }}"
+                                        class="h-full w-full object-cover"
+                                        loading="lazy"
+                                    >
+                                @else
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                    </svg>
+                                @endif
                             </div>
                             <div class="flex-1 min-w-0">
                                 <h3 class="font-bold text-slate-800 text-base truncate dark:text-slate-200">{{ optional($interes->inmueble)->titulo ?? 'Inmueble sin título' }}</h3>
