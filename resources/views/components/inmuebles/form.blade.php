@@ -119,6 +119,67 @@
                 @enderror
             </div>
 
+            {{-- CP + Colonia + Municipio + Estado --}}
+            <section
+                class="space-y-6"
+                data-postal-selector
+                data-postal-options-url="{{ route('codigos-postales.index') }}"
+            >
+                <div class="grid gap-6 lg:grid-cols-2">
+                    <div>
+                        <label for="codigo_postal" class="{{ $labelClass }}">Código Postal</label>
+                        <select id="codigo_postal" name="codigo_postal" class="{{ $selectControlClasses }}">
+                            <option value="">Selecciona una opción</option>
+                            @if ($selectedCodigoPostal)
+                                <option value="{{ $selectedCodigoPostal }}" selected>{{ $selectedCodigoPostal }}</option>
+                            @endif
+                        </select>
+                        @error('codigo_postal')
+                            <p class="mt-2 text-sm text-red-500">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="colonia" class="{{ $labelClass }}">Colonia</label>
+                        <select id="colonia" name="colonia" class="{{ $selectControlClasses }}">
+                            <option value="">Selecciona una opción</option>
+                            @if ($selectedColonia)
+                                <option value="{{ $selectedColonia }}" selected>{{ $selectedColonia }}</option>
+                            @endif
+                        </select>
+                        @error('colonia')
+                            <p class="mt-2 text-sm text-red-500">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="municipio" class="{{ $labelClass }}">Municipio</label>
+                        <select id="municipio" name="municipio" class="{{ $selectControlClasses }}">
+                            <option value="">Selecciona una opción</option>
+                            @if ($selectedMunicipio)
+                                <option value="{{ $selectedMunicipio }}" selected>{{ $selectedMunicipio }}</option>
+                            @endif
+                        </select>
+                        @error('municipio')
+                            <p class="mt-2 text-sm text-red-500">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="estado" class="{{ $labelClass }}">Estado</label>
+                        <select id="estado" name="estado" class="{{ $selectControlClasses }}">
+                            <option value="">Selecciona una opción</option>
+                            @if ($selectedEstado)
+                                <option value="{{ $selectedEstado }}" selected>{{ $selectedEstado }}</option>
+                            @endif
+                        </select>
+                        @error('estado')
+                            <p class="mt-2 text-sm text-red-500">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+            </section>
+
             {{-- Map --}}
             <div>
                 <label class="{{ $labelClass }}">Ubicación en mapa</label>
@@ -133,75 +194,6 @@
                     <p class="mt-2 text-sm text-red-500">{{ $message }}</p>
                 @enderror
             </div>
-
-            {{-- CP + Colonia + Municipio + Estado --}}
-            <section
-                class="space-y-6"
-                data-postal-selector
-                data-postal-options-url="{{ route('codigos-postales.index') }}"
-            >
-                <div class="grid gap-6 lg:grid-cols-2">
-                    <div>
-                        <label for="codigo_postal" class="{{ $labelClass }}">Código Postal</label>
-                        <div data-searchable-select data-search-placeholder="Buscar C.P.">
-                            <select id="codigo_postal" name="codigo_postal" class="{{ $selectControlClasses }}">
-                                <option value="">Selecciona una opción</option>
-                                @if ($selectedCodigoPostal)
-                                    <option value="{{ $selectedCodigoPostal }}" selected>{{ $selectedCodigoPostal }}</option>
-                                @endif
-                            </select>
-                        </div>
-                        @error('codigo_postal')
-                            <p class="mt-2 text-sm text-red-500">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="colonia" class="{{ $labelClass }}">Colonia</label>
-                        <div data-searchable-select data-search-placeholder="Buscar colonia">
-                            <select id="colonia" name="colonia" class="{{ $selectControlClasses }}">
-                                <option value="">Selecciona una opción</option>
-                                @if ($selectedColonia)
-                                    <option value="{{ $selectedColonia }}" selected>{{ $selectedColonia }}</option>
-                                @endif
-                            </select>
-                        </div>
-                        @error('colonia')
-                            <p class="mt-2 text-sm text-red-500">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="municipio" class="{{ $labelClass }}">Municipio</label>
-                        <div data-searchable-select data-search-placeholder="Buscar municipio">
-                            <select id="municipio" name="municipio" class="{{ $selectControlClasses }}">
-                                <option value="">Selecciona una opción</option>
-                                @if ($selectedMunicipio)
-                                    <option value="{{ $selectedMunicipio }}" selected>{{ $selectedMunicipio }}</option>
-                                @endif
-                            </select>
-                        </div>
-                        @error('municipio')
-                            <p class="mt-2 text-sm text-red-500">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="estado" class="{{ $labelClass }}">Estado</label>
-                        <div data-searchable-select data-search-placeholder="Buscar estado">
-                            <select id="estado" name="estado" class="{{ $selectControlClasses }}">
-                                <option value="">Selecciona una opción</option>
-                                @if ($selectedEstado)
-                                    <option value="{{ $selectedEstado }}" selected>{{ $selectedEstado }}</option>
-                                @endif
-                            </select>
-                        </div>
-                        @error('estado')
-                            <p class="mt-2 text-sm text-red-500">{{ $message }}</p>
-                        @enderror
-                    </div>
-                </div>
-            </section>
 
             {{-- Tipo, Operación, Estatus --}}
             <div class="grid gap-6 {{ $showStatusSelector ? 'lg:grid-cols-3' : 'lg:grid-cols-2' }}">
