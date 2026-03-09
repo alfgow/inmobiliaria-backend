@@ -3,9 +3,9 @@
 <x-layouts.admin>
     {{-- Header --}}
     <header class="mb-8">
-        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-5">
             <div>
-                <div class="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest mb-1 dark:text-slate-500">
+                <div class="flex flex-wrap items-center gap-2 text-[11px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 dark:text-slate-500">
                     <span>App</span>
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
@@ -16,15 +16,15 @@
                     </svg>
                     <span class="text-blue-600 dark:text-blue-400">Perfil</span>
                 </div>
-                <h2 class="text-3xl font-black text-slate-900 dark:text-slate-100">{{ $contact->nombre ?? 'Contacto sin nombre' }}</h2>
-                <p class="text-slate-500 mt-1 dark:text-slate-400">Gestiona las interacciones, comentarios e inmuebles de interés registrados.</p>
+                <h2 class="text-2xl sm:text-3xl font-black text-slate-900 leading-tight dark:text-slate-100">{{ $contact->nombre ?? 'Contacto sin nombre' }}</h2>
+                <p class="text-sm sm:text-base text-slate-500 mt-2 max-w-2xl dark:text-slate-400">Gestiona las interacciones, comentarios e inmuebles de interés registrados.</p>
             </div>
             
-            <div class="flex items-center gap-2">
+            <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:justify-end">
                 <form
                     action="{{ route('contactos.destroy', $contact) }}"
                     method="POST"
-                    class="inline-flex"
+                    class="inline-flex w-full sm:w-auto"
                     data-swal-confirm="Esta acción eliminará el contacto y todo su historial."
                     data-swal-title="¿Deseas eliminar el contacto?"
                     data-swal-confirm-button="Sí, eliminar"
@@ -32,28 +32,28 @@
                 >
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="inline-flex items-center justify-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50" title="Eliminar">
+                    <button type="submit" class="inline-flex w-full sm:w-auto items-center justify-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50" title="Eliminar">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                     </button>
                 </form>
 
-                <a href="{{ route('contactos.index') }}" class="inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-4 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-600 dark:hover:bg-slate-700">
+                <a href="{{ route('contactos.index') }}" class="inline-flex w-full sm:w-auto items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-4 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-600 dark:hover:bg-slate-700">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
                     <span class="hidden sm:inline">Volver</span>
                 </a>
                 
-                <a href="{{ route('contactos.edit', $contact) }}" class="inline-flex items-center justify-center gap-2 bg-blue-50 text-blue-600 hover:bg-blue-100 px-4 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50">
+                <a href="{{ route('contactos.edit', $contact) }}" class="inline-flex w-full sm:w-auto items-center justify-center gap-2 bg-blue-50 text-blue-600 hover:bg-blue-100 px-4 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                     <span class="hidden sm:inline">Editar</span>
                 </a>
                 
-                <a href="{{ route('contactos.create', ['prefill' => $contact->email ?? $contact->telefono ?? $contact->nombre, 'prefill_field' => $contact->email ? 'email' : ($contact->telefono ? 'telefono' : 'nombre')]) }}" class="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-blue-200 transition-all active:scale-95 dark:shadow-blue-900/30">
+                <a href="{{ route('contactos.create', ['prefill' => $contact->email ?? $contact->telefono ?? $contact->nombre, 'prefill_field' => $contact->email ? 'email' : ($contact->telefono ? 'telefono' : 'nombre')]) }}" class="inline-flex w-full sm:w-auto items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-blue-200 transition-all active:scale-95 dark:shadow-blue-900/30">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                     </svg>
@@ -72,7 +72,7 @@
     {{-- Contact Info Card --}}
     <section class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 mb-8 hover:shadow-md transition-shadow dark:bg-slate-800 dark:border-slate-700">
         <div class="flex flex-col md:flex-row md:justify-between gap-6">
-            <div class="flex items-start gap-5">
+            <div class="flex flex-col sm:flex-row items-start gap-4 sm:gap-5">
                 <div class="w-16 h-16 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-2xl font-black shrink-0 relative dark:bg-blue-900/30 dark:text-blue-400">
                     {{ strtoupper(substr($contact->nombre ?? 'U', 0, 1)) }}
                     @if($contact->fuente === 'WhatsApp Bot' || $contact->fuente === 'WhatsApp')
@@ -83,17 +83,17 @@
                         </div>
                     @endif
                 </div>
-                <div class="space-y-3">
+                <div class="space-y-3 w-full">
                     <div>
-                        <div class="flex items-center gap-3 mb-1">
-                            <h3 class="text-xl md:text-2xl font-bold text-slate-800 dark:text-slate-200">{{ $contact->nombre ?? 'Sin nombre' }}</h3>
-                            <span class="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-0.5 rounded-md dark:bg-slate-700 dark:text-slate-300">ID: #{{ $contact->id }}</span>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-1">
+                            <h3 class="text-xl md:text-2xl font-bold leading-tight text-slate-800 dark:text-slate-200">{{ $contact->nombre ?? 'Sin nombre' }}</h3>
+                            <span class="inline-flex w-fit bg-slate-100 text-slate-600 text-xs font-bold px-2 py-0.5 rounded-md dark:bg-slate-700 dark:text-slate-300">ID: #{{ $contact->id }}</span>
                         </div>
                     </div>
                     
-                    <div class="flex flex-col sm:flex-row gap-4 sm:gap-8 pt-1">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 pt-1">
                         @if($contact->email)
-                        <div class="flex items-center gap-3 text-sm border-l-2 border-slate-100 pl-3 dark:border-slate-700">
+                        <div class="flex items-center gap-3 text-sm rounded-xl border border-slate-100 px-3 py-2 dark:border-slate-700">
                             <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-500 shrink-0 dark:bg-blue-900/30 dark:text-blue-400">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -105,7 +105,7 @@
                             </div>
                         </div>
                         @else
-                        <div class="flex items-center gap-3 text-sm border-l-2 border-slate-100 pl-3 opacity-50 dark:border-slate-700">
+                        <div class="flex items-center gap-3 text-sm rounded-xl border border-slate-100 px-3 py-2 opacity-50 dark:border-slate-700">
                             <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 shrink-0 dark:bg-slate-700">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -119,7 +119,7 @@
                         @endif
                         
                         @if($contact->telefono)
-                        <div class="flex items-center gap-3 text-sm border-l-2 border-slate-100 pl-3 dark:border-slate-700">
+                        <div class="flex items-center gap-3 text-sm rounded-xl border border-slate-100 px-3 py-2 dark:border-slate-700">
                             <div class="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center text-green-500 shrink-0 dark:bg-green-900/30 dark:text-green-400">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
@@ -133,7 +133,7 @@
                             </div>
                         </div>
                         @else
-                        <div class="flex items-center gap-3 text-sm border-l-2 border-slate-100 pl-3 opacity-50 dark:border-slate-700">
+                        <div class="flex items-center gap-3 text-sm rounded-xl border border-slate-100 px-3 py-2 opacity-50 dark:border-slate-700">
                             <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 shrink-0 dark:bg-slate-700">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
@@ -146,7 +146,7 @@
                         </div>
                         @endif
                         
-                        <div class="flex items-center gap-3 text-sm border-l-2 border-slate-100 pl-3 dark:border-slate-700">
+                        <div class="flex items-center gap-3 text-sm rounded-xl border border-slate-100 px-3 py-2 dark:border-slate-700">
                             <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500 shrink-0 dark:bg-indigo-900/30 dark:text-indigo-400">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
