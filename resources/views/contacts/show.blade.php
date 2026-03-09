@@ -1,4 +1,21 @@
-@php use Illuminate\Support\Str; @endphp
+@php
+    use Illuminate\Support\Str;
+
+    $contactDisplayName = collect(preg_split('/\s+/', trim((string) ($contact->nombre ?? '')) ?: '') ?: [])
+        ->filter(fn ($part) => $part !== '')
+        ->values()
+        ->pipe(function ($parts) {
+            if ($parts->count() >= 3) {
+                return $parts->only([0, $parts->count() - 1])->implode(' ');
+            }
+
+            return $parts->implode(' ');
+        });
+
+    if ($contactDisplayName === '') {
+        $contactDisplayName = 'Contacto sin nombre';
+    }
+@endphp
 
 <x-layouts.admin>
     {{-- Header --}}
@@ -16,7 +33,7 @@
                     </svg>
                     <span class="text-blue-600 dark:text-blue-400">Perfil</span>
                 </div>
-                <h2 class="text-2xl sm:text-3xl font-black text-slate-900 leading-tight dark:text-slate-100">{{ $contact->nombre ?? 'Contacto sin nombre' }}</h2>
+                <h2 class="text-2xl sm:text-3xl font-black text-slate-900 leading-tight dark:text-slate-100">{{ $contactDisplayName }}</h2>
                 <p class="text-sm sm:text-base text-slate-500 mt-2 max-w-2xl dark:text-slate-400">Gestiona las interacciones, comentarios e inmuebles de interés registrados.</p>
             </div>
             
@@ -74,6 +91,12 @@
         <div class="flex flex-col md:flex-row md:justify-between gap-6">
             <div class="w-full">
                 <div class="space-y-3 w-full">
+                    <div>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-1">
+                            <h3 class="text-xl md:text-2xl font-bold leading-tight text-slate-800 dark:text-slate-200">{{ $contactDisplayName }}</h3>
+                        </div>
+                    </div>
+                    
                     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 pt-1">
                         @if($contact->email)
                         <div class="flex items-center gap-3 text-sm rounded-xl border border-slate-100 px-3 py-2 dark:border-slate-700">
