@@ -15,46 +15,12 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
         html { scroll-behavior: smooth; }
 
-        .premium-shell {
-            position: relative;
-            border-radius: 1.5rem;
-            border: 1px solid rgba(148, 163, 184, 0.18);
-            background: linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.75));
-            box-shadow: 0 25px 80px rgba(15, 23, 42, 0.5);
-            backdrop-filter: blur(10px);
-        }
-
-        .premium-shell::before,
-        .premium-shell::after {
-            content: '';
-            position: absolute;
-            border-radius: 999px;
-            filter: blur(45px);
-            opacity: 0.28;
-            pointer-events: none;
-        }
-
-        .premium-shell::before {
-            right: -120px;
-            top: -130px;
-            height: 240px;
-            width: 240px;
-            background: #38bdf8;
-        }
-
-        .premium-shell::after {
-            bottom: -120px;
-            left: -90px;
-            height: 220px;
-            width: 220px;
-            background: #8b5cf6;
-        }
-
         .premium-card {
-            border-radius: 1.25rem;
-            border: 1px solid rgba(71, 85, 105, 0.45);
-            background: linear-gradient(180deg, rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.65));
-            padding: 1.4rem;
+            border-radius: 1.5rem;
+            border: 1px solid #1e293b;
+            background: #1e293b;
+            padding: 2rem;
+            box-shadow: 0 20px 45px rgba(15, 23, 42, 0.35);
         }
         
         .amenity-toggle {
@@ -68,24 +34,23 @@
     </style>
 
     <div class="mx-auto w-full max-w-6xl px-4 py-10 text-slate-200 custom-scrollbar" x-data="propertyForm()">
-        <div class="premium-shell overflow-hidden p-6 sm:p-8 md:p-10">
-        <header class="relative z-10 mb-12 flex flex-col justify-between gap-6 border-b border-slate-700/70 pb-8 md:flex-row md:items-end">
+        <header class="relative z-10 mb-12 flex flex-col justify-between gap-6 border-b border-slate-800 pb-8 md:flex-row md:items-end">
             <div>
-                <span class="inline-flex rounded-full border border-cyan-400/40 bg-cyan-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-cyan-300">NUEVO REGISTRO</span>
+                <span class="text-blue-500 font-semibold tracking-widest text-xs uppercase">NUEVO REGISTRO</span>
                 <h1 class="mt-3 text-4xl font-bold tracking-tight text-white">Registrar Propiedad</h1>
-                <p class="mt-2 max-w-xl text-sm text-slate-300">Configuración premium para publicar tu inmueble con detalles, amenidades y galería profesional.</p>
+                <p class="mt-2 max-w-xl text-lg text-slate-400">Configuración completa del inmueble y carga multimedia.</p>
             </div>
             <div class="flex gap-3">
                 <a
                     href="{{ route('inmuebles.index') }}"
-                    class="rounded-lg border border-slate-600/80 px-5 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-700/40"
+                    class="rounded-xl border border-slate-700 px-6 py-2.5 text-base font-bold text-slate-300 transition hover:bg-slate-800"
                 >
                     Cancelar
                 </a>
                 <button
                     type="submit"
                     form="main-form"
-                    class="rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-cyan-900/40 transition hover:brightness-110"
+                    class="rounded-xl bg-blue-600 px-8 py-2.5 text-base font-bold text-white shadow-lg shadow-blue-900/20 transition hover:bg-blue-700"
                 >
                     Guardar Cambios
                 </button>
@@ -130,7 +95,7 @@
                                 name="titulo"
                                 value="{{ old('titulo') }}"
                                 placeholder="Ej. Departamento de lujo con vista al mar"
-                                class="w-full rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                class="w-full rounded-xl border border-slate-700 bg-[#0f172a] px-5 py-4 text-lg text-slate-200 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-600"
                                 required
                             >
                             @error('titulo')
@@ -147,7 +112,7 @@
                                 min="0"
                                 step="0.01"
                                 placeholder="0.00"
-                                class="w-full rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                class="w-full rounded-xl border border-slate-700 bg-[#0f172a] px-5 py-4 text-lg text-slate-200 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-600"
                                 required
                             >
                             @error('precio')
@@ -159,7 +124,7 @@
                             <label class="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Tipo de operacion *</label>
                             <select
                                 name="operacion"
-                                class="w-full cursor-pointer appearance-none rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                class="w-full cursor-pointer appearance-none rounded-xl border border-slate-700 bg-[#0f172a] px-5 py-4 text-lg text-slate-200 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-600"
                                 required
                             >
                                 <option value="">Selecciona una opcion</option>
@@ -176,7 +141,7 @@
                             <label class="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Tipo de inmueble *</label>
                             <select
                                 name="tipo"
-                                class="w-full cursor-pointer appearance-none rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                class="w-full cursor-pointer appearance-none rounded-xl border border-slate-700 bg-[#0f172a] px-5 py-4 text-lg text-slate-200 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-600"
                                 required
                             >
                                 <option value="">Selecciona una opcion</option>
@@ -195,7 +160,7 @@
                                 type="text"
                                 name="codigo_postal"
                                 value="{{ old('codigo_postal') }}"
-                                class="w-full rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                class="w-full rounded-xl border border-slate-700 bg-[#0f172a] px-5 py-4 text-slate-200 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-600"
                             >
                             @error('codigo_postal')
                                 <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
@@ -206,16 +171,31 @@
                             <label class="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Direccion completa *</label>
                             <input
                                 type="text"
+                                id="direccion"
                                 name="direccion"
                                 value="{{ old('direccion') }}"
                                 placeholder="Calle, numero, colonia, ciudad..."
-                                class="w-full rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                class="w-full rounded-xl border border-slate-700 bg-[#0f172a] px-5 py-4 text-slate-200 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-600"
                                 required
                             >
                             @error('direccion')
                                 <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
                             @enderror
                         </div>
+                    </div>
+
+                    <div class="mt-8 overflow-hidden rounded-2xl border border-slate-700 h-80 relative bg-[#0f172a] group">
+                        <div
+                            id="inmueble-map"
+                            data-postal-resolve-url="{{ route('codigos-postales.resolve') }}"
+                            class="h-full w-full"
+                        ></div>
+                        @error('latitud')
+                            <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
+                        @enderror
+                        @error('longitud')
+                            <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
             </section>
@@ -252,12 +232,12 @@
                         <div class="space-y-6">
                             <div>
                                 <h3 class="text-[10px] font-bold text-[#94a3b8] uppercase tracking-widest mb-3">Mas Ambientes</h3>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                                     <template x-for="item in masAmbientesCatalog" :key="item">
                                         <button type="button" 
                                                 @click="toggleAmenity(item)"
                                                 :class="isAmenitySelected(item) ? 'amenity-active border-emerald-500 bg-emerald-500/10' : 'text-slate-300 border-[#2a3649] bg-transparent hover:border-emerald-500'"
-                                                class="px-4 py-3 rounded-lg border text-xs transition-all flex items-center justify-between text-left">
+                                                class="px-4 py-3 rounded-xl border text-xs transition-all flex items-center justify-between text-left">
                                             <span x-text="item"></span>
                                             <i class="fas fa-check-circle ml-2" x-show="isAmenitySelected(item)"></i>
                                         </button>
@@ -267,12 +247,12 @@
 
                             <div>
                                 <h3 class="text-[10px] font-bold text-[#94a3b8] uppercase tracking-widest mb-3">Servicios</h3>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                                     <template x-for="item in serviciosCatalog" :key="item">
                                         <button type="button" 
                                                 @click="toggleAmenity(item)"
                                                 :class="isAmenitySelected(item) ? 'amenity-active border-emerald-500 bg-emerald-500/10' : 'text-slate-300 border-[#2a3649] bg-transparent hover:border-emerald-500'"
-                                                class="px-4 py-3 rounded-lg border text-xs transition-all flex items-center justify-between text-left">
+                                                class="px-4 py-3 rounded-xl border text-xs transition-all flex items-center justify-between text-left">
                                             <span x-text="item"></span>
                                             <i class="fas fa-check-circle ml-2" x-show="isAmenitySelected(item)"></i>
                                         </button>
@@ -291,7 +271,7 @@
                                 name="descripcion"
                                 rows="4"
                                 placeholder="Cuentale a tus prospectos que hace especial a esta propiedad..."
-                                class="w-full resize-none rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                                class="w-full resize-none rounded-2xl border border-slate-700 bg-[#0f172a] px-6 py-5 text-slate-200 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-600"
                             >{{ old('descripcion') }}</textarea>
                             @error('descripcion')
                                 <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
@@ -395,7 +375,7 @@
                 </button>
             </footer>
         </form>
-    </div>
+
     </div>
 
     <script>
