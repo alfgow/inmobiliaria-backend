@@ -78,16 +78,16 @@
                     <h2 class="text-xl font-bold text-white">1. Informacion de Ubicacion</h2>
                 </div>
 
-                <div class="rounded-2xl bg-[#1e293b] p-8">
-                    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                        <div class="md:col-span-2">
+                <div class="pt-2">
+                    <div class="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-2">
+                        <div>
                             <label class="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Titulo del anuncio *</label>
                             <input
                                 type="text"
                                 name="titulo"
                                 value="{{ old('titulo') }}"
                                 placeholder="Ej. Departamento de lujo con vista al mar"
-                                class="w-full rounded-lg border border-[#334155] bg-[#0f172a] px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                class="w-full rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                 required
                             >
                             @error('titulo')
@@ -104,7 +104,7 @@
                                 min="0"
                                 step="0.01"
                                 placeholder="0.00"
-                                class="w-full rounded-lg border border-[#334155] bg-[#0f172a] px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                class="w-full rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                 required
                             >
                             @error('precio')
@@ -116,7 +116,7 @@
                             <label class="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Tipo de operacion *</label>
                             <select
                                 name="operacion"
-                                class="w-full cursor-pointer appearance-none rounded-lg border border-[#334155] bg-[#0f172a] px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                class="w-full cursor-pointer appearance-none rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                 required
                             >
                                 <option value="">Selecciona una opcion</option>
@@ -133,7 +133,7 @@
                             <label class="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Tipo de inmueble *</label>
                             <select
                                 name="tipo"
-                                class="w-full cursor-pointer appearance-none rounded-lg border border-[#334155] bg-[#0f172a] px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                class="w-full cursor-pointer appearance-none rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                 required
                             >
                                 <option value="">Selecciona una opcion</option>
@@ -152,21 +152,21 @@
                                 type="text"
                                 name="codigo_postal"
                                 value="{{ old('codigo_postal') }}"
-                                class="w-full rounded-lg border border-[#334155] bg-[#0f172a] px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                class="w-full rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                             >
                             @error('codigo_postal')
                                 <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        <div class="md:col-span-2">
+                        <div>
                             <label class="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Direccion completa *</label>
                             <input
                                 type="text"
                                 name="direccion"
                                 value="{{ old('direccion') }}"
                                 placeholder="Calle, numero, colonia, ciudad..."
-                                class="w-full rounded-lg border border-[#334155] bg-[#0f172a] px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                class="w-full rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                 required
                             >
                             @error('direccion')
@@ -185,36 +185,36 @@
                     <h2 class="text-xl font-bold text-white">2. Detalles y Amenidades</h2>
                 </div>
 
-                <div class="space-y-8 rounded-2xl bg-[#1e293b] p-8">
-                    <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+                <div class="pt-2">
+                    <div class="grid grid-cols-2 gap-x-8 gap-y-6 border-b border-[#2a3649] pb-10">
                         <div class="space-y-2">
                             <label class="block text-center text-[10px] font-bold uppercase tracking-widest text-[#94a3b8]">Habitaciones</label>
-                            <input type="number" name="habitaciones" min="0" value="{{ old('habitaciones', 0) }}" class="w-full rounded-lg border border-[#334155] bg-[#0f172a] px-4 py-3 text-center text-sm font-semibold text-white outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+                            <input type="number" name="habitaciones" min="0" value="{{ old('habitaciones', 0) }}" class="w-full rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-center text-sm font-semibold text-white outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
                         </div>
                         <div class="space-y-2">
                             <label class="block text-center text-[10px] font-bold uppercase tracking-widest text-[#94a3b8]">Banos</label>
-                            <input type="number" name="banos" min="0" value="{{ old('banos', 0) }}" class="w-full rounded-lg border border-[#334155] bg-[#0f172a] px-4 py-3 text-center text-sm font-semibold text-white outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+                            <input type="number" name="banos" min="0" value="{{ old('banos', 0) }}" class="w-full rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-center text-sm font-semibold text-white outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
                         </div>
                         <div class="space-y-2">
                             <label class="block text-center text-[10px] font-bold uppercase tracking-widest text-[#94a3b8]">Estacionamientos</label>
-                            <input type="number" name="estacionamientos" min="0" value="{{ old('estacionamientos', 0) }}" class="w-full rounded-lg border border-[#334155] bg-[#0f172a] px-4 py-3 text-center text-sm font-semibold text-white outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+                            <input type="number" name="estacionamientos" min="0" value="{{ old('estacionamientos', 0) }}" class="w-full rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-center text-sm font-semibold text-white outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
                         </div>
                         <div class="space-y-2">
                             <label class="block text-center text-[10px] font-bold uppercase tracking-widest text-[#94a3b8]">M2 totales</label>
-                            <input type="number" name="metros_cuadrados" min="0" step="0.01" value="{{ old('metros_cuadrados', 0) }}" class="w-full rounded-lg border border-[#334155] bg-[#0f172a] px-4 py-3 text-center text-sm font-semibold text-white outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+                            <input type="number" name="metros_cuadrados" min="0" step="0.01" value="{{ old('metros_cuadrados', 0) }}" class="w-full rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-center text-sm font-semibold text-white outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
                         </div>
                     </div>
 
-                    <div class="space-y-8 pt-4">
+                    <div class="space-y-8 pt-8 border-b border-[#2a3649] pb-10">
                         <div class="space-y-6">
                             <div>
-                                <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Mas Ambientes</h3>
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <h3 class="text-[10px] font-bold text-[#94a3b8] uppercase tracking-widest mb-3">Mas Ambientes</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <template x-for="item in masAmbientesCatalog" :key="item">
                                         <button type="button" 
                                                 @click="toggleAmenity(item)"
-                                                :class="isAmenitySelected(item) ? 'amenity-active border-emerald-500 bg-emerald-500/10' : 'text-slate-200 border-[#334155] bg-[#0f172a] hover:border-emerald-500'"
-                                                class="px-3 py-2 rounded-lg border text-xs transition-all flex items-center justify-between text-left">
+                                                :class="isAmenitySelected(item) ? 'amenity-active border-emerald-500 bg-emerald-500/10' : 'text-slate-300 border-[#2a3649] bg-transparent hover:border-emerald-500'"
+                                                class="px-4 py-3 rounded-lg border text-xs transition-all flex items-center justify-between text-left">
                                             <span x-text="item"></span>
                                             <i class="fas fa-check-circle ml-2" x-show="isAmenitySelected(item)"></i>
                                         </button>
@@ -223,13 +223,13 @@
                             </div>
 
                             <div>
-                                <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Servicios</h3>
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <h3 class="text-[10px] font-bold text-[#94a3b8] uppercase tracking-widest mb-3">Servicios</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <template x-for="item in serviciosCatalog" :key="item">
                                         <button type="button" 
                                                 @click="toggleAmenity(item)"
-                                                :class="isAmenitySelected(item) ? 'amenity-active border-emerald-500 bg-emerald-500/10' : 'text-slate-200 border-[#334155] bg-[#0f172a] hover:border-emerald-500'"
-                                                class="px-3 py-2 rounded-lg border text-xs transition-all flex items-center justify-between text-left">
+                                                :class="isAmenitySelected(item) ? 'amenity-active border-emerald-500 bg-emerald-500/10' : 'text-slate-300 border-[#2a3649] bg-transparent hover:border-emerald-500'"
+                                                class="px-4 py-3 rounded-lg border text-xs transition-all flex items-center justify-between text-left">
                                             <span x-text="item"></span>
                                             <i class="fas fa-check-circle ml-2" x-show="isAmenitySelected(item)"></i>
                                         </button>
@@ -248,47 +248,47 @@
                                 name="descripcion"
                                 rows="4"
                                 placeholder="Cuentale a tus prospectos que hace especial a esta propiedad..."
-                                class="w-full resize-none rounded-lg border border-[#334155] bg-[#0f172a] px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                                class="w-full resize-none rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                             >{{ old('descripcion') }}</textarea>
                             @error('descripcion')
                                 <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
                             @enderror
                         </div>
+                    </div>
 
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 pt-4">
-                            <div>
-                                <label class="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Enlace de Inmuebles24 o Vivanuncios</label>
-                                <div class="flex flex-col gap-3 sm:flex-row">
-                                    <input
-                                        type="url"
-                                        id="inmuebles24_url"
-                                        name="inmuebles24_url"
-                                        value="{{ old('inmuebles24_url') }}"
-                                        placeholder="https://www.inmuebles24.com/... o https://www.vivanuncios.com.mx/..."
-                                        class="w-full rounded-lg border border-[#334155] bg-[#0f172a] px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                    >
-                                    <button type="button" id="extract-inmuebles24-id" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">
-                                        Extraer ID
-                                    </button>
-                                </div>
-                                <p class="mt-2 text-[10px] text-slate-400">Pega el enlace completo y extraeremos el ID numerico a tags.</p>
-                                <p class="hidden text-xs text-blue-400" data-i24-feedback></p>
-                            </div>
-
-                            <div>
-                                <label class="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Tags</label>
+                    <div class="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-2 pt-8">
+                        <div>
+                            <label class="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Enlace de Inmuebles24 o Vivanuncios</label>
+                            <div class="flex flex-col gap-3 sm:flex-row">
                                 <input
-                                    type="text"
-                                    id="tags"
-                                    name="tags"
-                                    value="{{ old('tags') }}"
-                                    placeholder="Ej. Familiar, Pet friendly, Centrico"
-                                    class="w-full rounded-lg border border-[#334155] bg-[#0f172a] px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                    type="url"
+                                    id="inmuebles24_url"
+                                    name="inmuebles24_url"
+                                    value="{{ old('inmuebles24_url') }}"
+                                    placeholder="https://www.inmuebles24.com/... o https://www.vivanuncios.com.mx/..."
+                                    class="w-full rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                 >
-                                @error('tags')
-                                    <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
-                                @enderror
+                                <button type="button" id="extract-inmuebles24-id" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">
+                                    Extraer ID
+                                </button>
                             </div>
+                            <p class="mt-2 text-[10px] text-slate-400">Pega el enlace completo y extraeremos el ID numerico a tags.</p>
+                            <p class="hidden text-xs text-blue-400" data-i24-feedback></p>
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-[10px] font-bold uppercase tracking-wider text-slate-400">Tags</label>
+                            <input
+                                type="text"
+                                id="tags"
+                                name="tags"
+                                value="{{ old('tags') }}"
+                                placeholder="Ej. Familiar, Pet friendly, Centrico"
+                                class="w-full rounded-lg border border-[#2a3649] bg-transparent px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                            >
+                            @error('tags')
+                                <p class="mt-2 text-xs text-red-400">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
                 </div>
@@ -302,10 +302,10 @@
                     <h2 class="text-xl font-bold text-white">3. Galería de Fotos</h2>
                 </div>
 
-                <div class="rounded-2xl bg-[#1e293b] p-8">
+                <div class="pt-2">
                     <div class="space-y-8">
                         <div class="w-full">
-                            <label class="group flex h-40 w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-[#475569] bg-[#0f172a] text-slate-400 transition hover:border-purple-500 hover:text-purple-400">
+                            <label class="group flex h-40 w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-[#475569] bg-transparent text-slate-400 transition hover:border-purple-500 hover:text-purple-400">
                                 <input
                                     type="file"
                                     name="imagenes[]"
@@ -331,7 +331,7 @@
 
                         <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5" x-show="photos.length > 0" x-transition>
                             <template x-for="(image, index) in photos" :key="index">
-                                <div class="group relative aspect-square overflow-hidden rounded-xl border border-[#334155] bg-[#0f172a]">
+                                <div class="group relative aspect-square overflow-hidden rounded-xl border border-[#334155] bg-transparent">
                                     <img :src="image.url" class="h-full w-full object-cover transition duration-500 group-hover:scale-110">
                                     <div class="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition group-hover:opacity-100">
                                         <button @click.prevent="removePhoto(index)" type="button" class="flex h-8 w-8 items-center justify-center rounded-full bg-red-600 text-white transition hover:scale-110">
