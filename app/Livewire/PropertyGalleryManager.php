@@ -13,7 +13,7 @@ class PropertyGalleryManager extends Component
 {
     use WithFileUploads;
 
-    public Inmueble $inmueble;
+    public ?Inmueble $inmueble = null;
     public string $watermarkPreviewUrl = '';
 
     /**
@@ -27,21 +27,34 @@ class PropertyGalleryManager extends Component
         'photos.*' => 'image|max:10240', // Configurable max size, currently 10MB
     ];
 
-    public function mount(Inmueble $inmueble, string $watermarkPreviewUrl = '')
+    public function mount(?Inmueble $inmueble = null, string $watermarkPreviewUrl = '')
     {
         $this->inmueble = $inmueble;
         $this->watermarkPreviewUrl = $watermarkPreviewUrl;
-        $this->loadImages();
+
+        if ($this->inmueble) {
+            $this->loadImages();
+        }
     }
 
     public function loadImages()
     {
+        if (! $this->inmueble) {
+            $this->images = [];
+
+            return;
+        }
+
         // Must convert to array to avoid Livewire model hydration issues when dragging/dropping
         $this->images = $this->inmueble->images()->orderBy('orden')->get()->toArray();
     }
 
     public function updatedPhotos()
     {
+        if (! $this->inmueble) {
+            return;
+        }
+
         $this->validate();
 
         if (count($this->photos) > 0) {
@@ -60,6 +73,10 @@ class PropertyGalleryManager extends Component
 
     public function deleteImage($imageId)
     {
+        if (! $this->inmueble) {
+            return;
+        }
+
         $image = $this->inmueble->images()->find($imageId);
         if ($image) {
             try {
@@ -75,6 +92,10 @@ class PropertyGalleryManager extends Component
 
     public function updateImageOrder($orderedIds)
     {
+        if (! $this->inmueble) {
+            return;
+        }
+
         foreach ($orderedIds as $index => $id) {
             $this->inmueble->images()->where('id', $id)->update(['orden' => $index + 1]);
         }
