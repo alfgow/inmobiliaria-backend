@@ -17,15 +17,15 @@
     $selectedMunicipio = old('municipio', optional($inmueble)->municipio);
     $selectedEstado = old('estado', optional($inmueble)->estado);
 
-    // Modern form control classes with better focus states
-    $formControlClasses = 'w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-700 placeholder-slate-400 shadow-sm transition-all duration-200 hover:border-slate-300 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:placeholder-slate-500 dark:hover:border-slate-500 dark:focus:border-blue-500 dark:focus:ring-blue-500/20';
+    // Premium form control styles with stronger readability and touch targets.
+    $formControlClasses = 'w-full rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50 px-4 py-3 text-base font-medium text-slate-700 placeholder:text-slate-400 shadow-sm shadow-slate-200/60 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md hover:shadow-blue-100/50 focus:-translate-y-0.5 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/15 dark:border-slate-600 dark:bg-gradient-to-b dark:from-slate-900 dark:to-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:shadow-slate-950/40 dark:hover:border-blue-400 dark:hover:shadow-blue-900/20 dark:focus:border-blue-400 dark:focus:ring-blue-500/25';
     $selectControlClasses = $formControlClasses . ' pr-10 appearance-none';
     $textareaControlClasses = $formControlClasses . ' min-h-[6rem] resize-y';
 
     // Section header style
     $sectionHeaderClass = 'flex items-center gap-3 text-lg font-semibold text-slate-900 dark:text-slate-100';
     $sectionDescClass = 'mt-1 text-sm text-slate-500 dark:text-slate-400';
-    $labelClass = 'mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400';
+    $labelClass = 'mb-2.5 block text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400';
 @endphp
 
 <div class="space-y-6">
@@ -47,20 +47,27 @@
 
         <div class="space-y-6 p-6">
             {{-- Título y Precio --}}
-            <div class="grid gap-6 lg:grid-cols-12">
-                <div class="lg:col-span-8">
+            <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-12">
+                <div class="sm:col-span-2 lg:col-span-8">
                     <label for="titulo" class="{{ $labelClass }}">
                         Título <span class="text-red-500">*</span>
                     </label>
-                    <input
-                        type="text"
-                        id="titulo"
-                        name="titulo"
-                        value="{{ old('titulo', optional($inmueble)->titulo) }}"
-                        placeholder="Ej. Departamento moderno con terraza"
-                        class="{{ $formControlClasses }}"
-                        required
-                    >
+                    <div class="relative">
+                        <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-blue-500/70 dark:text-blue-300/70">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h10" />
+                            </svg>
+                        </span>
+                        <input
+                            type="text"
+                            id="titulo"
+                            name="titulo"
+                            value="{{ old('titulo', optional($inmueble)->titulo) }}"
+                            placeholder="Ej. Departamento moderno con terraza"
+                            class="{{ $formControlClasses }} pl-12"
+                            required
+                        >
+                    </div>
                     @error('titulo')
                         <p class="mt-2 flex items-center gap-1.5 text-sm text-red-500">
                             <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -69,13 +76,13 @@
                     @enderror
                 </div>
 
-                <div class="lg:col-span-4">
+                <div class="sm:col-span-1 lg:col-span-4">
                     <label for="precio" class="{{ $labelClass }}">
                         Precio <span class="text-red-500">*</span>
                     </label>
                     <div class="relative">
-                        <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 dark:text-slate-500">
-                            <span class="text-lg font-semibold">$</span>
+                        <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-blue-500 dark:text-blue-300">
+                            <span class="text-lg font-bold">$</span>
                         </span>
                         <input
                             type="number"
@@ -84,7 +91,7 @@
                             id="precio"
                             name="precio"
                             value="{{ old('precio', optional($inmueble)->precio) }}"
-                            class="{{ $formControlClasses }} pl-10 font-mono text-lg"
+                            class="{{ $formControlClasses }} pl-10 text-lg tabular-nums"
                             required
                         >
                     </div>
