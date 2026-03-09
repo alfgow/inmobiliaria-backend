@@ -19,7 +19,7 @@
 
     // Premium form control styles with stronger readability and touch targets.
     $formControlClasses = 'w-full rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50 px-4 py-3 text-base font-medium text-slate-700 placeholder:text-slate-400 shadow-sm shadow-slate-200/60 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md hover:shadow-blue-100/50 focus:-translate-y-0.5 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/15 dark:border-slate-600 dark:bg-gradient-to-b dark:from-slate-900 dark:to-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:shadow-slate-950/40 dark:hover:border-blue-400 dark:hover:shadow-blue-900/20 dark:focus:border-blue-400 dark:focus:ring-blue-500/25';
-    $selectControlClasses = $formControlClasses . ' pr-10 appearance-none';
+    $selectControlClasses = $formControlClasses . ' pr-10 appearance-none text-slate-700 dark:text-slate-100';
     $textareaControlClasses = $formControlClasses . ' min-h-[6rem] resize-y';
 
     // Section header style
