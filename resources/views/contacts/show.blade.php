@@ -1,16 +1,7 @@
 @php
     use Illuminate\Support\Str;
 
-    $contactDisplayName = collect(preg_split('/\s+/', trim((string) ($contact->nombre ?? '')) ?: '') ?: [])
-        ->filter(fn ($part) => $part !== '')
-        ->values()
-        ->pipe(function ($parts) {
-            if ($parts->count() >= 3) {
-                return $parts->only([0, $parts->count() - 1])->implode(' ');
-            }
-
-            return $parts->implode(' ');
-        });
+    $contactDisplayName = Str::of((string) ($contact->nombre ?? ''))->squish()->value();
 
     if ($contactDisplayName === '') {
         $contactDisplayName = 'Contacto sin nombre';
