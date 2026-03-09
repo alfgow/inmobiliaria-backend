@@ -74,13 +74,6 @@
         <div class="flex flex-col md:flex-row md:justify-between gap-6">
             <div class="w-full">
                 <div class="space-y-3 w-full">
-                    <div>
-                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-1">
-                            <h3 class="text-xl md:text-2xl font-bold leading-tight text-slate-800 dark:text-slate-200">{{ $contact->nombre ?? 'Sin nombre' }}</h3>
-                            <span class="inline-flex w-fit bg-slate-100 text-slate-600 text-xs font-bold px-2 py-0.5 rounded-md dark:bg-slate-700 dark:text-slate-300">ID: #{{ $contact->id }}</span>
-                        </div>
-                    </div>
-                    
                     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 pt-1">
                         @if($contact->email)
                         <div class="flex items-center gap-3 text-sm rounded-xl border border-slate-100 px-3 py-2 dark:border-slate-700">
