@@ -8,8 +8,24 @@
     @endphp
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        [x-cloak] { display: none !important; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
+        html { scroll-behavior: smooth; }
+        
+        .amenity-toggle {
+            transition: all 0.2s ease;
+        }
+        .amenity-active {
+            background-color: rgba(16, 185, 129, 0.1) !important;
+            border-color: #10b981 !important;
+            color: #34d399 !important;
+        }
+    </style>
 
-    <div class="mx-auto w-full max-w-5xl px-4 py-10 text-slate-200" x-data="propertyForm()">
+    <div class="mx-auto w-full max-w-5xl px-4 py-10 text-slate-200 custom-scrollbar" x-data="propertyForm()">
         <header class="mb-12 flex flex-col justify-between gap-4 border-b border-slate-800 pb-8 md:flex-row md:items-end">
             <div>
                 <span class="text-xs font-semibold uppercase tracking-widest text-blue-500">Nuevo registro</span>
@@ -190,20 +206,35 @@
                     </div>
 
                     <div class="space-y-8 border-t border-slate-800 pt-8">
-                        <div>
-                            <h3 class="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">Amenidades</h3>
-                            <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
-                                <template x-for="item in amenityCatalog" :key="item">
-                                    <button
-                                        type="button"
-                                        @click="toggleAmenity(item)"
-                                        :class="isAmenitySelected(item) ? 'border-emerald-500 bg-emerald-500/10 text-emerald-300' : 'border-slate-700 bg-[#0f172a] text-slate-200'"
-                                        class="flex items-center justify-between rounded-xl border px-4 py-3 text-left text-xs font-semibold transition-all hover:border-emerald-500"
-                                    >
-                                        <span x-text="item"></span>
-                                        <i class="fas fa-check-circle ml-2" x-show="isAmenitySelected(item)"></i>
-                                    </button>
-                                </template>
+                        <div class="space-y-8">
+                            <div>
+                                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Mas Ambientes</h3>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <template x-for="item in masAmbientesCatalog" :key="item">
+                                        <button type="button" 
+                                                @click="toggleAmenity(item)"
+                                                :class="isAmenitySelected(item) ? 'amenity-active' : 'text-slate-200'"
+                                                class="amenity-toggle px-4 py-3 rounded-xl border border-slate-700 bg-[#0f172a] text-xs font-semibold hover:border-emerald-500 transition-all flex items-center justify-between text-left">
+                                            <span x-text="item"></span>
+                                            <i class="fas fa-check-circle ml-2" x-show="isAmenitySelected(item)"></i>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Servicios</h3>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <template x-for="item in serviciosCatalog" :key="item">
+                                        <button type="button" 
+                                                @click="toggleAmenity(item)"
+                                                :class="isAmenitySelected(item) ? 'amenity-active' : 'text-slate-200'"
+                                                class="amenity-toggle px-4 py-3 rounded-xl border border-slate-700 bg-[#0f172a] text-xs font-semibold hover:border-emerald-500 transition-all flex items-center justify-between text-left">
+                                            <span x-text="item"></span>
+                                            <i class="fas fa-check-circle ml-2" x-show="isAmenitySelected(item)"></i>
+                                        </button>
+                                    </template>
+                                </div>
                             </div>
                             <textarea name="amenidades" x-model="amenidadesPayload" class="hidden"></textarea>
                             @error('amenidades')
@@ -288,7 +319,7 @@
                                     <i class="fas fa-cloud-arrow-up text-xl"></i>
                                 </div>
                                 <span class="text-xs font-bold uppercase tracking-widest">Haz clic o arrastra fotos aqui</span>
-                                <span class="mt-1 text-[10px] text-slate-500" x-text="photos.length + ' de 10 seleccionadas'"></span>
+                                <span class="mt-1 text-[10px] text-slate-500" x-text="photos.length + ' de 15 seleccionadas'"></span>
                             </label>
                             @error('imagenes')
                                 <p class="mt-2 text-sm text-red-400">{{ $message }}</p>
@@ -329,7 +360,7 @@
                 photos: [],
                 selectedAmenities: @js($oldAmenities),
                 amenidadesPayload: @js(old('amenidades', '')),
-                amenityCatalog: [
+                masAmbientesCatalog: [
                     'Cocina integral',
                     'Cuarto de juegos',
                     'Cuarto de servicio',
@@ -337,6 +368,8 @@
                     'Estudio',
                     'Sotano',
                     'Oficina',
+                ],
+                serviciosCatalog: [
                     'Acceso discapacitados',
                     'Aire acondicionado',
                     'Caseta de guardia',
@@ -359,8 +392,8 @@
                 handleUpload(event) {
                     const files = Array.from(event.target.files || []);
 
-                    if (files.length > 10) {
-                        window.alert('Limite de 10 fotos.');
+                    if (files.length > 15) {
+                        window.alert('Limite de 15 fotos.');
                         event.target.value = '';
                         this.photos = [];
                         return;
