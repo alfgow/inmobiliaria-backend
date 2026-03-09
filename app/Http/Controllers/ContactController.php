@@ -192,8 +192,23 @@ class ContactController extends Controller
     {
         $contact->load([
             'comentarios' => fn ($query) => $query->orderByDesc('created_at'),
-            'intereses' => fn ($query) => $query->with('inmueble')->orderByDesc('created_at'),
+            'intereses' => fn ($query) => $query->with('inmueble.coverImage')->orderByDesc('created_at'),
         ]);
+
+        $contact->intereses->each(function ($interes): void {
+            $inmueble = $interes->inmueble;
+
+            if (! $inmueble) {
+                return;
+            }
+
+            $coverImage = $inmueble->coverImage;
+
+            $inmueble->setAttribute(
+                'cover_image_url',
+                $coverImage?->temporaryVariantUrl('watermarked') ?? $coverImage?->url
+            );
+        });
 
         return view('contacts.show', [
             'contact' => $contact,
