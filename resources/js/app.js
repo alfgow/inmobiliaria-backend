@@ -155,6 +155,24 @@ document.addEventListener("DOMContentLoaded", () => {
             feedback.textContent = message;
         };
 
+        const parseUrl = (value) => {
+            const normalized = (value || "").trim();
+
+            if (!normalized) {
+                return null;
+            }
+
+            try {
+                return new URL(normalized);
+            } catch {
+                try {
+                    return new URL(`https://${normalized}`);
+                } catch {
+                    return null;
+                }
+            }
+        };
+
         const extractIdFromUrl = (value) => {
             const normalized = (value || "").trim();
 
@@ -162,9 +180,42 @@ document.addEventListener("DOMContentLoaded", () => {
                 return null;
             }
 
-            const match = normalized.match(/(\d+)(?=\.html)/i);
+            const parsedUrl = parseUrl(normalized);
 
-            return match ? match[1] : null;
+            if (parsedUrl) {
+                const host = parsedUrl.hostname.toLowerCase();
+                const path = parsedUrl.pathname;
+
+                if (host.includes("inmuebles24.")) {
+                    const inmuebles24Match = path.match(/(\d+)(?=\.html(?:\/)?$)/i);
+
+                    if (inmuebles24Match) {
+                        return inmuebles24Match[1];
+                    }
+                }
+
+                if (host.includes("vivanuncios.")) {
+                    const vivanunciosMatch = path.match(/\/(\d+)(?:\/)?$/);
+
+                    if (vivanunciosMatch) {
+                        return vivanunciosMatch[1];
+                    }
+                }
+            }
+
+            const htmlFallbackMatch = normalized.match(/(\d+)(?=\.html(?:[?#]|$))/i);
+
+            if (htmlFallbackMatch) {
+                return htmlFallbackMatch[1];
+            }
+
+            const numericSegments = normalized.match(/\d{6,}/g);
+
+            if (!numericSegments || numericSegments.length === 0) {
+                return null;
+            }
+
+            return numericSegments[numericSegments.length - 1];
         };
 
         const addTag = (tag) => {
@@ -202,7 +253,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!extractedId) {
                 setFeedback(
-                    "No pudimos detectar el ID en el enlace. Revisa que termine en .html.",
+                    "No pudimos detectar el ID en el enlace. Usa un enlace de Inmuebles24 o Vivanuncios.",
                     "warning"
                 );
 

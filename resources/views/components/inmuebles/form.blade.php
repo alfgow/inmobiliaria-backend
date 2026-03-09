@@ -323,14 +323,14 @@
             </div>
 
             <div class="space-y-2">
-                <label for="inmuebles24_url" class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Enlace de Inmuebles24</label>
+                <label for="inmuebles24_url" class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Enlace de Inmuebles24 o Vivanuncios</label>
                 <div class="flex flex-col gap-3 sm:flex-row">
                     <input
                         type="url"
                         id="inmuebles24_url"
                         name="inmuebles24_url"
                         value="{{ old('inmuebles24_url', optional($inmueble)->inmuebles24_url) }}"
-                        placeholder="https://www.inmuebles24.com/propiedades/..."
+                        placeholder="https://www.inmuebles24.com/... o https://www.vivanuncios.com.mx/..."
                         class="{{ $formControlClasses }} flex-1"
                     >
                     <button
@@ -341,7 +341,7 @@
                         Extraer ID
                     </button>
                 </div>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Pega el enlace completo y extraeremos automáticamente el ID numérico antes de .html.</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Pega el enlace completo y extraeremos el ID numérico del anuncio (Inmuebles24 o Vivanuncios).</p>
                 <p class="text-xs text-blue-600 hidden dark:text-blue-400" data-i24-feedback></p>
             </div>
 
