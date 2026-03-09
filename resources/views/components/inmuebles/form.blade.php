@@ -307,7 +307,7 @@
                     <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    Pega el enlace completo y extraeremos automáticamente el ID numérico.
+                    Pega el enlace completo de Inmuebles24 o Vivanuncios y extraeremos automáticamente el ID numérico.
                 </p>
                 <p class="mt-1 hidden text-xs text-blue-600 dark:text-blue-400" data-i24-feedback></p>
             </div>
@@ -530,7 +530,13 @@
         </div>
 
         <div class="p-6">
-            <livewire:property-gallery-manager :inmueble="$inmueble" :watermark-preview-url="$watermarkPreviewUrl ?? ''" />
+            @if ($inmueble)
+                <livewire:property-gallery-manager :inmueble="$inmueble" :watermark-preview-url="$watermarkPreviewUrl ?? ''" />
+            @else
+                <p class="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-500 dark:border-slate-600 dark:bg-slate-700/50 dark:text-slate-300">
+                    Guarda el inmueble para habilitar la galería de fotos.
+                </p>
+            @endif
         </div>
     </section>
 </div>

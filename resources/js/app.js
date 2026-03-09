@@ -162,9 +162,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 return null;
             }
 
-            const match = normalized.match(/(\d+)(?=\.html)/i);
+            const inmuebles24Match = normalized.match(/inmuebles24\..*?(\d+)(?=\.html)/i);
+            if (inmuebles24Match) {
+                return inmuebles24Match[1];
+            }
 
-            return match ? match[1] : null;
+            const vivanunciosMatch = normalized.match(/vivanuncios\..*?\/(\d+)(?:\/?(?:\?.*)?)?$/i);
+            if (vivanunciosMatch) {
+                return vivanunciosMatch[1];
+            }
+
+            const fallbackMatch = normalized.match(/(\d{6,})(?:\D*)$/);
+
+            return fallbackMatch ? fallbackMatch[1] : null;
         };
 
         const addTag = (tag) => {
@@ -202,7 +212,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!extractedId) {
                 setFeedback(
-                    "No pudimos detectar el ID en el enlace. Revisa que termine en .html.",
+                    "No pudimos detectar el ID del enlace. Verifica que incluya un segmento numérico al final.",
                     "warning"
                 );
 
