@@ -17,6 +17,7 @@ class ContactController extends Controller
     public function index(Request $request): View
     {
         $search = trim((string) $request->input('search'));
+        $normalizedPhoneSearch = $this->normalizePhoneSearch($search);
 
         if ($search === '') {
             $contacts = new LengthAwarePaginator(
@@ -32,11 +33,18 @@ class ContactController extends Controller
         } else {
             $contacts = Contact::query()
                 ->with(['latestInterest.inmueble', 'latestComment'])
-                ->where(function ($contactQuery) use ($search) {
+                ->where(function ($contactQuery) use ($search, $normalizedPhoneSearch) {
                     $contactQuery
                         ->where('nombre', 'like', "%{$search}%")
                         ->orWhere('telefono', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%");
+
+                    if ($normalizedPhoneSearch !== null && strlen($normalizedPhoneSearch) >= 7) {
+                        $contactQuery->orWhereRaw(
+                            $this->normalizedPhoneColumnSql('telefono').' LIKE ?',
+                            ['%'.$normalizedPhoneSearch.'%']
+                        );
+                    }
                 })
                 ->orderByDesc('id')
                 ->paginate(12)
@@ -180,12 +188,48 @@ class ContactController extends Controller
             return 'email';
         }
 
-        $sanitized = preg_replace('/[\s\-().+]/', '', $value);
-        if ($sanitized !== null && $sanitized !== '' && ctype_digit($sanitized) && strlen($sanitized) >= 7) {
+        $normalizedPhone = $this->normalizePhoneSearch($value);
+        if ($normalizedPhone !== null && strlen($normalizedPhone) >= 7) {
             return 'telefono';
         }
 
         return 'nombre';
+    }
+
+    private function normalizePhoneSearch(string $value): ?string
+    {
+        $digits = preg_replace('/\D+/', '', $value);
+
+        if ($digits === null || $digits === '') {
+            return null;
+        }
+
+        if (str_starts_with($digits, '521') && strlen($digits) === 13) {
+            return substr($digits, 3);
+        }
+
+        if (str_starts_with($digits, '52') && strlen($digits) === 12) {
+            return substr($digits, 2);
+        }
+
+        return $digits;
+    }
+
+    private function normalizedPhoneColumnSql(string $column): string
+    {
+        $digitsOnlyColumn = implode('', [
+            'REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(',
+            $column,
+            ", ' ', ''), '+', ''), '-', ''), '(', ''), ')', ''), '.', '')",
+        ]);
+
+        return <<<SQL
+CASE
+    WHEN LENGTH($digitsOnlyColumn) = 13 AND SUBSTR($digitsOnlyColumn, 1, 3) = '521' THEN SUBSTR($digitsOnlyColumn, 4)
+    WHEN LENGTH($digitsOnlyColumn) = 12 AND SUBSTR($digitsOnlyColumn, 1, 2) = '52' THEN SUBSTR($digitsOnlyColumn, 3)
+    ELSE $digitsOnlyColumn
+END
+SQL;
     }
 
     public function show(Contact $contact): View
