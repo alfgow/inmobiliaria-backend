@@ -12,6 +12,13 @@
             </div>
         @endif
 
+        @unless ($supportsLifecycle)
+            <div class="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                La vista ya quedó compatible, pero la tabla <span class="font-mono text-amber-50">api_keys</span> todavía no tiene las columnas nuevas.
+                Aplica el SQL de <span class="font-mono text-amber-50">docs/sql/2026-04-20-api-keys-management.sql</span> para habilitar suspensión, rotación y estados vigentes.
+            </div>
+        @endunless
+
         @if ($createdKey)
             <div class="space-y-4 rounded-2xl border border-indigo-500/30 bg-indigo-500/10 p-5 text-sm text-indigo-100">
                 <div>
@@ -58,8 +65,15 @@
                     value="{{ old('allowed_ip') }}"
                     placeholder="Ej. 192.0.2.10"
                     class="w-full rounded-xl border border-gray-700 bg-gray-850/70 px-4 py-3 text-gray-100 placeholder-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                    @disabled(! $supportsAllowedIp)
                 >
-                <p class="mt-2 text-sm text-gray-400">Solo permitiremos solicitudes desde esta IP cuando se use la API key.</p>
+                <p class="mt-2 text-sm text-gray-400">
+                    @if ($supportsAllowedIp)
+                        Solo permitiremos solicitudes desde esta IP cuando se use la API key.
+                    @else
+                        Esta restricción quedará disponible cuando agregues la columna <span class="font-mono">allowed_ip</span> con el SQL de actualización.
+                    @endif
+                </p>
                 @error('allowed_ip')
                     <p class="mt-2 text-sm text-red-400">{{ $message }}</p>
                 @enderror
@@ -74,7 +88,13 @@
             <div class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                 <div>
                     <h2 class="text-xl font-semibold text-white">API keys registradas</h2>
-                    <p class="text-sm text-gray-400">Solo las keys en estado <span class="font-semibold text-emerald-300">Vigente</span> pasan autenticación.</p>
+                    <p class="text-sm text-gray-400">
+                        @if ($supportsLifecycle)
+                            Solo las keys en estado <span class="font-semibold text-emerald-300">Vigente</span> pasan autenticación.
+                        @else
+                            Mientras no apliques el SQL, las keys existentes se mostrarán sin ciclo de vida avanzado.
+                        @endif
+                    </p>
                 </div>
             </div>
 
@@ -119,13 +139,13 @@
                                                 <p class="text-xs uppercase tracking-wide text-gray-500">Último uso</p>
                                                 <p>{{ optional($apiKey->last_used_at)->diffForHumans() ?? 'Nunca utilizada' }}</p>
                                             </div>
-                                            @if ($apiKey->suspended_at)
+                                            @if ($supportsLifecycle && $apiKey->suspended_at)
                                                 <div class="space-y-1">
                                                     <p class="text-xs uppercase tracking-wide text-gray-500">Suspendida desde</p>
                                                     <p>{{ $apiKey->suspended_at->format('d/m/Y H:i') }}</p>
                                                 </div>
                                             @endif
-                                            @if ($apiKey->revoked_at)
+                                            @if ($supportsLifecycle && $apiKey->revoked_at)
                                                 <div class="space-y-1">
                                                     <p class="text-xs uppercase tracking-wide text-gray-500">Revocada desde</p>
                                                     <p>{{ $apiKey->revoked_at->format('d/m/Y H:i') }}</p>
@@ -135,7 +155,7 @@
                                     </div>
                                 </div>
                                 <div class="flex flex-wrap gap-3">
-                                    @if ($apiKey->isActive())
+                                    @if ($supportsLifecycle && $apiKey->isActive())
                                         <form action="{{ route('settings.api-keys.suspend', $apiKey) }}" method="POST" onsubmit="return confirm('¿Suspender esta API key? Mientras esté suspendida no podrá autenticarse.');">
                                             @csrf
                                             @method('PATCH')
@@ -143,7 +163,7 @@
                                                 <span>Suspender</span>
                                             </button>
                                         </form>
-                                    @elseif ($apiKey->isSuspended())
+                                    @elseif ($supportsLifecycle && $apiKey->isSuspended())
                                         <form action="{{ route('settings.api-keys.activate', $apiKey) }}" method="POST">
                                             @csrf
                                             @method('PATCH')
@@ -153,7 +173,7 @@
                                         </form>
                                     @endif
 
-                                    @if (! $apiKey->isRevoked())
+                                    @if ($supportsLifecycle && ! $apiKey->isRevoked())
                                         <form action="{{ route('settings.api-keys.rotate', $apiKey) }}" method="POST" onsubmit="return confirm('¿Rotar esta API key? Se generará una nueva y la actual quedará invalidada.');">
                                             @csrf
                                             <button type="submit" class="inline-flex items-center gap-2 rounded-xl border border-indigo-500/60 px-4 py-2 text-sm font-medium text-indigo-200 transition hover:bg-indigo-500/10">

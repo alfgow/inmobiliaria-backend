@@ -7,25 +7,33 @@ use App\Models\ApiKey;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class ApiKeyController extends Controller
 {
     public function index(Request $request): View
     {
-        $apiKeys = $request->user()
-            ->apiKeys()
-            ->orderByRaw(
+        $supportsAllowedIp = $this->supportsAllowedIp();
+        $supportsLifecycle = $this->supportsLifecycleManagement();
+
+        $query = $request->user()->apiKeys();
+
+        if ($supportsLifecycle) {
+            $query->orderByRaw(
                 "case status when ? then 0 when ? then 1 else 2 end",
                 [ApiKey::STATUS_ACTIVE, ApiKey::STATUS_SUSPENDED],
-            )
-            ->latest()
-            ->get();
+            );
+        }
+
+        $apiKeys = $query->latest()->get();
 
         return view('settings.api-keys.index', [
             'apiKeys' => $apiKeys,
             'createdKey' => $request->session()->pull('created_api_key'),
             'status' => session('status'),
+            'supportsAllowedIp' => $supportsAllowedIp,
+            'supportsLifecycle' => $supportsLifecycle,
         ]);
     }
 
@@ -37,13 +45,21 @@ class ApiKeyController extends Controller
 
         $keyPair = ApiKey::generateKeyPair();
 
-        $apiKey = $user->apiKeys()->create([
+        $payload = [
             'name' => $validated['name'],
             'prefix' => $keyPair['prefix'],
             'key_hash' => $keyPair['hash'],
-            'allowed_ip' => $validated['allowed_ip'] ?? null,
-            'status' => ApiKey::STATUS_ACTIVE,
-        ]);
+        ];
+
+        if ($this->supportsAllowedIp()) {
+            $payload['allowed_ip'] = $validated['allowed_ip'] ?? null;
+        }
+
+        if ($this->supportsLifecycleManagement()) {
+            $payload['status'] = ApiKey::STATUS_ACTIVE;
+        }
+
+        $apiKey = $user->apiKeys()->create($payload);
 
         return to_route('settings.api-keys.index')
             ->with('status', 'Se creó una nueva API key correctamente.')
@@ -58,6 +74,10 @@ class ApiKeyController extends Controller
     public function suspend(Request $request, ApiKey $apiKey): RedirectResponse
     {
         $this->authorizeOwnership($request, $apiKey);
+
+        if (! $this->supportsLifecycleManagement()) {
+            return $this->missingSchemaRedirect('Para suspender API keys primero aplica el SQL de actualización sobre la tabla `api_keys`.');
+        }
 
         if ($apiKey->isRevoked()) {
             return to_route('settings.api-keys.index')
@@ -79,6 +99,10 @@ class ApiKeyController extends Controller
     {
         $this->authorizeOwnership($request, $apiKey);
 
+        if (! $this->supportsLifecycleManagement()) {
+            return $this->missingSchemaRedirect('Para reactivar API keys primero aplica el SQL de actualización sobre la tabla `api_keys`.');
+        }
+
         if ($apiKey->isRevoked()) {
             return to_route('settings.api-keys.index')
                 ->with('status', 'La API key revocada no puede reactivarse. Debes rotarla o generar una nueva.');
@@ -99,6 +123,10 @@ class ApiKeyController extends Controller
     {
         $this->authorizeOwnership($request, $apiKey);
 
+        if (! $this->supportsLifecycleManagement()) {
+            return $this->missingSchemaRedirect('Para rotar API keys primero aplica el SQL de actualización sobre la tabla `api_keys`.');
+        }
+
         if ($apiKey->isRevoked()) {
             return to_route('settings.api-keys.index')
                 ->with('status', 'La API key ya fue revocada. Genera una nueva si necesitas reemplazarla.');
@@ -114,7 +142,7 @@ class ApiKeyController extends Controller
                 'name' => $apiKey->name,
                 'prefix' => $keyPair['prefix'],
                 'key_hash' => $keyPair['hash'],
-                'allowed_ip' => $apiKey->allowed_ip,
+                'allowed_ip' => $this->supportsAllowedIp() ? $apiKey->allowed_ip : null,
                 'status' => ApiKey::STATUS_ACTIVE,
             ]);
 
@@ -146,5 +174,20 @@ class ApiKeyController extends Controller
         if ($apiKey->user_id !== $request->user()->id) {
             abort(403);
         }
+    }
+
+    protected function supportsAllowedIp(): bool
+    {
+        return Schema::hasColumn('api_keys', 'allowed_ip');
+    }
+
+    protected function supportsLifecycleManagement(): bool
+    {
+        return Schema::hasColumns('api_keys', ['status', 'suspended_at', 'revoked_at']);
+    }
+
+    protected function missingSchemaRedirect(string $message): RedirectResponse
+    {
+        return to_route('settings.api-keys.index')->with('status', $message);
     }
 }
