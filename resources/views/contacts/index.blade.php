@@ -43,14 +43,9 @@
                 <article class="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow p-5 dark:bg-slate-800 dark:border-slate-700">
                     {{-- Header --}}
                     <div class="flex items-start justify-between mb-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg dark:bg-blue-900/30 dark:text-blue-400">
-                                {{ strtoupper(substr($contact->nombre ?? 'U', 0, 1)) }}
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-slate-800 dark:text-slate-200">{{ $contact->nombre ?? 'Sin nombre' }}</h3>
-                                <p class="text-xs text-slate-500 dark:text-slate-400">ID: #{{ $contact->id }}</p>
-                            </div>
+                        <div>
+                            <h3 class="font-bold text-slate-800 dark:text-slate-200">{{ $contact->nombre ?? 'Sin nombre' }}</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">ID: #{{ $contact->id }}</p>
                         </div>
                         <span class="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded-full dark:text-slate-400 dark:bg-slate-700">
                             {{ optional($contact->created_at)->format('d/m/Y') ?? '—' }}
