@@ -27,6 +27,9 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/appearance', 'settings.appearance')->name('appearance.edit');
     Route::get('settings/api-keys', [ApiKeyController::class, 'index'])->name('settings.api-keys.index');
     Route::post('settings/api-keys', [ApiKeyController::class, 'store'])->name('settings.api-keys.store');
+    Route::patch('settings/api-keys/{apiKey}/suspend', [ApiKeyController::class, 'suspend'])->name('settings.api-keys.suspend');
+    Route::patch('settings/api-keys/{apiKey}/activate', [ApiKeyController::class, 'activate'])->name('settings.api-keys.activate');
+    Route::post('settings/api-keys/{apiKey}/rotate', [ApiKeyController::class, 'rotate'])->name('settings.api-keys.rotate');
     Route::delete('settings/api-keys/{apiKey}', [ApiKeyController::class, 'destroy'])->name('settings.api-keys.destroy');
 
     Volt::route('settings/two-factor', 'settings.two-factor')

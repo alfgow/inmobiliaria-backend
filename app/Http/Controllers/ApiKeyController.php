@@ -6,6 +6,7 @@ use App\Http\Requests\StoreApiKeyRequest;
 use App\Models\ApiKey;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class ApiKeyController extends Controller
@@ -14,6 +15,10 @@ class ApiKeyController extends Controller
     {
         $apiKeys = $request->user()
             ->apiKeys()
+            ->orderByRaw(
+                "case status when ? then 0 when ? then 1 else 2 end",
+                [ApiKey::STATUS_ACTIVE, ApiKey::STATUS_SUSPENDED],
+            )
             ->latest()
             ->get();
 
@@ -37,6 +42,7 @@ class ApiKeyController extends Controller
             'prefix' => $keyPair['prefix'],
             'key_hash' => $keyPair['hash'],
             'allowed_ip' => $validated['allowed_ip'] ?? null,
+            'status' => ApiKey::STATUS_ACTIVE,
         ]);
 
         return to_route('settings.api-keys.index')
@@ -44,9 +50,83 @@ class ApiKeyController extends Controller
             ->with('created_api_key', [
                 'id' => $apiKey->id,
                 'name' => $apiKey->name,
-                'token_type' => 'Bearer',
                 'access_token' => $keyPair['plain'],
-                'expires_in' => config('jwt.ttl'),
+                'prefix' => $keyPair['prefix'],
+            ]);
+    }
+
+    public function suspend(Request $request, ApiKey $apiKey): RedirectResponse
+    {
+        $this->authorizeOwnership($request, $apiKey);
+
+        if ($apiKey->isRevoked()) {
+            return to_route('settings.api-keys.index')
+                ->with('status', 'La API key ya fue revocada y no puede suspenderse.');
+        }
+
+        if ($apiKey->isSuspended()) {
+            return to_route('settings.api-keys.index')
+                ->with('status', 'La API key ya estaba suspendida.');
+        }
+
+        $apiKey->suspend();
+
+        return to_route('settings.api-keys.index')
+            ->with('status', 'La API key se suspendió correctamente.');
+    }
+
+    public function activate(Request $request, ApiKey $apiKey): RedirectResponse
+    {
+        $this->authorizeOwnership($request, $apiKey);
+
+        if ($apiKey->isRevoked()) {
+            return to_route('settings.api-keys.index')
+                ->with('status', 'La API key revocada no puede reactivarse. Debes rotarla o generar una nueva.');
+        }
+
+        if ($apiKey->isActive()) {
+            return to_route('settings.api-keys.index')
+                ->with('status', 'La API key ya estaba vigente.');
+        }
+
+        $apiKey->activate();
+
+        return to_route('settings.api-keys.index')
+            ->with('status', 'La API key volvió a quedar vigente.');
+    }
+
+    public function rotate(Request $request, ApiKey $apiKey): RedirectResponse
+    {
+        $this->authorizeOwnership($request, $apiKey);
+
+        if ($apiKey->isRevoked()) {
+            return to_route('settings.api-keys.index')
+                ->with('status', 'La API key ya fue revocada. Genera una nueva si necesitas reemplazarla.');
+        }
+
+        $newApiKey = null;
+        $keyPair = null;
+
+        DB::transaction(function () use ($request, $apiKey, &$newApiKey, &$keyPair): void {
+            $keyPair = ApiKey::generateKeyPair();
+
+            $newApiKey = $request->user()->apiKeys()->create([
+                'name' => $apiKey->name,
+                'prefix' => $keyPair['prefix'],
+                'key_hash' => $keyPair['hash'],
+                'allowed_ip' => $apiKey->allowed_ip,
+                'status' => ApiKey::STATUS_ACTIVE,
+            ]);
+
+            $apiKey->revoke();
+        });
+
+        return to_route('settings.api-keys.index')
+            ->with('status', 'La API key se rotó correctamente. La credencial anterior quedó invalidada.')
+            ->with('created_api_key', [
+                'id' => $newApiKey->id,
+                'name' => $newApiKey->name,
+                'access_token' => $keyPair['plain'],
                 'prefix' => $keyPair['prefix'],
             ]);
     }
@@ -58,7 +138,7 @@ class ApiKeyController extends Controller
         $apiKey->delete();
 
         return to_route('settings.api-keys.index')
-            ->with('status', 'La API key se revocó correctamente.');
+            ->with('status', 'La API key se eliminó correctamente.');
     }
 
     protected function authorizeOwnership(Request $request, ApiKey $apiKey): void
